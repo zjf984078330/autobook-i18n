@@ -8,6 +8,8 @@ Puedes ayudarte del código fuente del libro original [autobook-mirror](https://
 
 Tambien puedes optener el codigo fuente desde el servidor oficial via CVS:
 
-```$ cvs -d :pserver:anoncvs@sourceware.org:/cvs/autobook login
-   Password: anoncvs
-   $ cvs -d :pserver:anoncvs@sourceware.org:/cvs/autobook co autobook```
+```
+$ cvs -d :pserver:anoncvs@sourceware.org:/cvs/autobook login
+Password: anoncvs
+$ cvs -d :pserver:anoncvs@sourceware.org:/cvs/autobook co autobook
+```
