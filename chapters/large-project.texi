@@ -1,0 +1,948 @@
+@c -*- texinfo -*-
+
+@ignore LW
+Not quite sure what you mean by "worked" example.  Should these chapters
+be separate? Or combined? (this and A Small...)  
+
+2000-07-05  Gary V. Vaughan
+
+	Same answer as before =)O|
+@end ignore
+
+This chapter develops the worked example described in @ref{A Small
+COLLECTIVE Project}.  Again, the example is heavily colored by my own
+views, and there certainly are other, very different, but equally valid
+ways of achieving the same objectives.
+@ignore LW
+Say a bit more perhaps about why you in particular advocate this method
+though -- I like how you say that there are alternatives, and good ones,
+but I think it's also good to promote your own approach, or the reader
+might wonder why he/she should read the chapter.  Also, if there are
+other, equally valid approaches, why not mention them here, and say
+where they can be found?
+
+2000-07-05  Gary V. Vaughan
+
+	I'll see what I can add in the relevant sections, but this is
+        the wrong place for it -- this is just a general disclaimer
+        in case someone turns up a better way of doing something that I
+        don't know about (and consequently don't mention).
+@end ignore
+
+I will explain how I incorporated @command{libtool} into the Sic
+project, and how to put the project documentation and test suite under
+the control of COLLECTIVE.  I pointed out some problems with the project
+when I first introduced it -- this chapter will address those issues,
+and present my favored solution to each.
+@ignore LW
+This chapter again shows why I think we should include the author's name
+on the chapter.  Also, I'd like you map out a bit more about what the
+contents will be in this introductory section.  If this is a series of
+steps you took, explain that to the reader, and why x comes before y.
+And why not arrange the headings as steps?
+
+2000-07-05  Gary V. Vaughan
+
+        I think we've decided not to include author names now haven't
+        me?  I have no preference either way.
+
+	Adding more detail to this paragraph would either be waffle or a
+        repeat of what is said in the section itself.  The sections are
+        not steps and have no order, apart from what I used to keep the
+        narrative flowing.
+@end ignore
+
+@menu
+* Using Libtool Libraries::
+* Removing --foreign::
+* Installing Header Files::
+* Including Texinfo Documentation::
+* Adding a Test Suite::
+@end menu
+
+@ignore LW
+These are not of the same format--Why not Installing Header to match the
+others?
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+@end ignore
+@node Using Libtool Libraries
+@section Using Libtool Libraries
+
+As you have seen, It is very easy to convert @command{automake} built
+static libraries to @command{automake} built Libtool libraries. In order
+to build @samp{libsic} as a Libtool library, I have changed the name of
+the library from @file{libsic.a} (the @dfn{old archive} name in Libtool
+terminology) to @file{libsic.la} (the @dfn{pseudo-library}), and must
+use the @code{LTLIBRARIES} Automake primary:
+
+@ignore LW
+Perhaps say why the reader would do this conversion?
+
+2000-07-05  Gary V. Vaughan
+
+	That is covered in the Introducing Libtool chapter.
+@end ignore
+
+@example
+m4_include(examples/sic-large/sic/Makefile_1.texi)
+@end example
+@ignore LW
+Again, I'd like to see the examples pulled into the final document.  This is a 
+global query--I won't repeat it for the rest of the chapter
+
+2000-07-05  Gary V. Vaughan
+
+        It is just a matter of which file you work from.
+@end ignore
+Notice the @samp{la} in @code{libsic_la_SOURCES} is new too.
+
+It is similarly easy to take advantage of Libtool @emph{convenience}
+libraries.  For the purposes of Sic, @file{libreplace} is an ideal
+candidate for this treatment -- I can create the library as a separate
+entity from selected sources in their own directory, and add those
+objects to @file{libsic}.  This technique ensures that the installed
+library has all of the support functions it needs without having to
+link @file{libreplace} as a separate object.
+@ignore LW
+I don't know if I'd use the word trivial as a synonym for easy--they have
+different connotations.
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+In @file{replace/Makefile.am}, I have again changed the name of the
+library from@* @file{libreplace.a} to @file{libreplace.la}, and changed
+the automake primary from @samp{LIBRARIES} to @samp{LTLIBRARIES}.
+Unfortunately, those changes alone are insufficient.  Libtool libraries
+are compiled from Libtool objects (which have the @samp{.lo} suffix), so
+I cannot use @samp{LIBOBJS} which is a list of @samp{.o} suffixed
+objects@footnote{Actually the suffix will be  whatever is appropriate
+for the target host: such as @samp{.obj} on Windows for example.}.
+@xref{Extra Macros for Libtool}, for more details.  Here is
+@file{replace/Makefile.am}:
+
+@ignore
+LW
+For x-refs, better to include a more detailed explanation.  Also, please
+introduce code listing below--"as in", as follows, etc.
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+
+akim
+There is a sentence starting by `libtool libraries' without the
+capitalization.  It doesn't come out nicely.
+
+All the footnotes should be checked for Capitalization, and ending
+period.
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@example
+m4_include(examples/sic-large/replace/Makefile_1.texi)
+@end example
+
+And not forgetting to set and use the @samp{LTLIBOBJS} configure
+substitution (@pxref{Extra Macros for Libtool}):
+
+@example
+m4_include(examples/sic-large/configure_1.texi)
+@end example
+
+@ignore akim
+Hm, watch out ac_objext too, no?  In addition to .o and .lo.  It is work
+mentioning that future versions of Autoconf will make this useless, it's
+a bug.
+
+2000-07-05  Gary V. Vaughan
+
+        Indeed.  I'm glad it will be fixed, and didn't know it was on
+        the TODO list.  Thanks.  I've added a note in the Using Libtool
+        chapter where it is first used.
+@end ignore
+
+As a consequence of using @command{libtool} to build the project
+libraries, the increasing number of configuration files being added to
+the @file{config} directory will grow to include @file{ltconfig} and
+@file{ltmain.sh}.  These files will be used on the installer's machine
+when Sic is configured, so it is important to distribute them.  The
+naive way to do it is to give the @file{config} directory a
+@file{Makefile.am} of its own;  however, it is not too difficult to
+distribute these files from the top @file{Makefile.am}, and it saves
+clutter, as you can see here:
+
+@example
+m4_include(examples/sic-large/Makefile_1.texi)
+@end example
+
+@ignore LW
+Introduce this example listing more.
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+
+akim
+Why do you _EXTRA the m4 files?
+
+In dist-hook, why a subshell for mkdir auxdir?
+
+2000-07-05  Gary V. Vaughan
+
+	I have exposed more of the file to see why I have split the
+        files into 2 macros.
+
+        The dist_hook was adapted from a rule in automake itself, so
+        I can only assume that there is a `make' that somehow doesn't
+        revert to the correct directory at the end of that line.
+@end ignore
+
+@noindent
+The @samp{dist-hook} rule is used to make sure the @file{config}
+directory and the files it contains are correctly added to the
+distribution by the @samp{make dist} rules, @pxref{Introduction to
+Distributions}.
+
+I have been careful to use the @command{configure} script's location for
+@code{ac_aux_dir}, so that it is defined (and can be changed) in only
+one place.  This is achieved by adding the following macro to
+@file{configure.in}: 
+
+@example
+AC_SUBST(ac_aux_dir)
+@end example
+
+@noindent
+There is no need to explicitly set a macro in the @file{Makefile.am},
+because Automake automatically creates macros for every value that you
+@samp{AC_SUBST} from @file{configure.in}.
+
+I have also added the @code{AC_PROG_LIBTOOL} macro to
+@file{configure.in} in place of @code{AC_PROG_RANLIB} as described in
+@ref{Using GNU Libtool}.
+
+Now I can upgrade the configury to use @command{libtool} -- the greater
+part of this is running the @command{libtoolize} script that comes with
+the Libtool distribution.   The @command{bootstrap} script then needs to
+be updated to run @command{libtoolize} at the correct juncture:
+@ignore LW
+should these have been listed as steps?
+
+2000-07-05  Gary V. Vaughan
+
+	Nope.  Reworded.
+@end ignore
+
+@example
+m4_include(examples/sic-large/bootstrap.texi)
+@end example
+
+@noindent
+Now I can re-bootstrap the entire project so that it can make use of
+@command{libtool}: 
+
+@example
+$ ./bootstrap
++ aclocal -I config
++ libtoolize --force --copy
+Putting files in AC_CONFIG_AUX_DIR, `config'.
++ autoheader
++ automake --add-missing --copy
+automake: configure.in: installing `config/install-sh'
+automake: configure.in: installing `config/mkinstalldirs'
+automake: configure.in: installing `config/missing'
++ autoconf
+@end example
+
+The new macros are evident by the new output seen when the newly
+regenerated @command{configure} script is executed:
+
+@example
+@group
+$ ./configure --with-readline
+...
+@end group
+checking host system type... i586-pc-linux-gnu
+checking build system type... i586-pc-linux-gnu
+checking for ld used by GCC... /usr/bin/ld
+checking if the linker (/usr/bin/ld) is GNU ld... yes
+checking for /usr/bin/ld option to reload object files... -r
+checking for BSD-compatible nm... /usr/bin/nm -B
+checking whether ln -s works... yes
+checking how to recognise dependent libraries... pass_all
+checking for object suffix... o
+checking for executable suffix... no
+checking for ranlib... ranlib
+checking for strip... strip
+...
+@group
+checking if libtool supports shared libraries... yes
+checking whether to build shared libraries... yes
+checking whether to build static libraries... yes
+creating libtool
+...
+@end group
+@group
+$ make
+...
+gcc -g -O2 -o .libs/sic sic.o sic_builtin.o sic_repl.o sic_syntax.o \
+../sic/.libs/libsic.so -lreadline -Wl,--rpath -Wl,/usr/local/lib
+creating sic
+...
+@end group
+@group
+$ src/sic
+] libtool --mode=execute ldd src/sic
+    libsic.so.0 => /tmp/sic/sic/.libs/libsic.so.0 (0x40014000)
+    libreadline.so.4 => /lib/libreadline.so.4 (0x4001e000)
+    libc.so.6 => /lib/libc.so.6 (0x40043000)
+    libncurses.so.5 => /lib/libncurses.so.5 (0x40121000)
+    /lib/ld-linux.so.2 => /lib/ld-linux.so.2 (0x40000000)
+] exit
+$
+@end group
+@end example
+
+As you can see, @command{sic} is now linked against a shared library
+build of @file{libsic}, but not directly against the convenience
+library, @file{libreplace}.
+
+
+
+@node Removing --foreign
+@section Removing @option{--foreign}
+@ignore LW
+--foreign should be emphasized (note to editor, not authors)
+@end ignore
+
+Now that I have the bulk of the project in place, I want it to adhere to
+the @sc{gnu} standard layout.  By removing the @option{--foreign} option
+from the call to @command{automake} in the @command{bootstrap} file,
+@command{automake} is able to warn me about missing, or in some
+cases@footnote{For example, when I come to using the @samp{make dist} rule.},
+malformed files, as follows:
+@ignore LW
+Introduce listing more (as follows, or something)
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+@example
+$ ./bootstrap
++ aclocal -I config
++ libtoolize --force --copy
+Putting files in AC_CONFIG_AUX_DIR, `config'.
++ autoheader
++ automake --add-missing --copy
+automake: Makefile.am: required file `./NEWS' not found
+automake: Makefile.am: required file `./README' not found
+automake: Makefile.am: required file `./AUTHORS' not found
+automake: Makefile.am: required file `./THANKS' not found
++ autoconf
+@end example
+
+The @sc{gnu} standards
+book@footnote{The @sc{gnu} standard is distributed from
+@uref{http://www.gnu.org/prep/standards.html}.} describes the contents
+of these files in more detail.  Alternatively, take a look at a few
+other @sc{gnu} packages from @uref{ftp://ftp.gnu.org/gnu}.
+@ignore LW
+Are you sure this should be a footnote?  Wouldn't it be better just set
+off by commas?
+
+2000-07-05  Gary V. Vaughan
+
+	I'd like to keep url's as footnotes so that they are easy to
+        find again when leafint through the book.
+@end ignore
+
+
+@node Installing Header Files
+@section Installing Header Files
+
+@ignore LW
+Up to now, this chapter has been a pretty straightforward, first-person
+description of how to do what you've done in this example (and why you
+have done so).  At this point, it changes direction, and switches more
+to a 3rd-person account of background, explanations, etc., alternating
+occasionally with what you've done for the  example.  It reads more like
+earlier chapters in the book. Please make the entire chapter fit under
+the former format, or change it altogether.
+
+2000-07-05  Gary V. Vaughan
+
+	As in the Small Project chapter, I need to mix styles a little,
+        since it is an account of what I did when creating the Sic
+        project interspersed with explanations of why.  Each would be
+        devalued by the lack of the other, and trying to do explanation
+        in first person would sound awkward.
+@end ignore
+@quotation
+@c Begin sidebar entitled: Why can't I install @file{config.h}?
+One of the more difficult problems with COLLECTIVE driven projects is
+that each of them depends on @file{config.h} (or its equivalent) and the
+project specific symbols that it defines.  The purpose of this file is
+to be @code{#include}d from all of the project source files.  The
+preprocessor can tailor then the code in these files to the target
+environment.
+
+It is often difficult and sometimes impossible to not introduce a
+dependency on @file{config.h} from one of the project's installable
+header files. It would be nice if you could simply install the generated
+@file{config.h}, but even if you name it carefully or install it to a
+subdirectory to avoid filename problems, the macros it defines will
+clash with those from any other COLLECTIVE based project which also
+installs @emph{its} @file{config.h}.
+
+For example, if Sic installed its @file{config.h} as
+@file{/usr/include/sic/config.h}, and had @samp{#include <sic/config.h>}
+in the installed @file{common.h}, when another COLLECTIVE based project
+came to use the Sic library it might begin like this:
+
+@example
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#if HAVE_SIC_H
+#  include <sic.h>
+#endif
+
+static const char version_number[] = VERSION;
+@end example
+
+@noindent
+But, @file{sic.h} says @samp{#include <sic/common.h>}, which in turn
+says @samp{#include <sic/config.h>}.  Even though the other project has
+the correct value for @samp{VERSION} in its own @file{config.h}, by the
+time the preprocessor reaches the @samp{version_number} definition, it
+has been redefined to the value in @file{sic/config.h}.  Imagine the
+mess you could get into if you were using several libraries which each
+installed their own @file{config.h} definitions.  @sc{gcc} issues a
+warning when a macro is redefined to a different value which would help
+you to catch this error.  Some compilers do not issue a warning, and
+perhaps worse, other compilers will warn even if the repeated
+definitions have the same value, flooding you with hundreds of warnings
+for each source file that reads multiple @file{config.h} headers.
+
+The Autoconf macro @code{AC_OUTPUT_COMMANDS}@footnote{This is for
+Autoconf version 2.13.  Autoconf version 2.50 recommends
+@code{AC_CONFIG_COMMANDS}.} provides a way to solve this problem.  The
+idea is to generate a system specific but installable header from the
+results of the various tests performed by @command{configure}.  There is
+a 1-to-1 mapping between the preprocessor code that relied on the
+configure results written to @file{config.h}, and the new shell code
+that relies on the configure results saved in @file{config.cache}.
+
+@ignore akim
+Autoconf 2.50 recommends AC_CONFIG_COMMANDS.
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+@end ignore
+@end quotation
+
+The following code is a snippet from @file{configure.in}, in the body of
+the @code{AC_OUTPUT_COMMANDS} macro:
+
+@example
+m4_include(examples/sic-large/configure_4.texi)
+@end example
+
+@noindent
+Compare this with the equivalent C pre-processor code from
+@file{sic/common.h}, which it replaces:
+
+@example
+#if STDC_HEADERS || HAVE_STDLIB_H
+#  include <stdlib.h>
+#endif
+
+#if HAVE_UNISTD_H
+#  include <unistd.h>
+#endif
+
+#if HAVE_SYS_WAIT_H
+#  include <sys/wait.h>
+#endif
+
+#if HAVE_ERRNO_H
+#  include <errno.h>
+#endif
+#ifndef errno
+/* Some systems #define this! */
+extern int errno;
+#endif
+
+#if HAVE_STRING_H
+#  include <string.h>
+#else
+#  if HAVE_STRING_H
+#    include <strings.h>
+#  endif
+#endif
+
+#if HAVE_ASSERT_H
+#  include <assert.h>
+#  define SIC_ASSERT assert
+#else
+#  define SIC_ASSERT(expr) ((void) 0)
+#endif
+@end example
+
+@ignore akim
+I have never heard of a missing assert.h.  If you know some, please
+point us to it so that Autoconf be updated.  Also, it is more usual to
+use STDC_HEADERS for stdlib.h, but debatable, agreed.
+
+2000-07-05  Gary V. Vaughan
+
+	This is code I have been dragging around with me for literally
+        years.  ISTR (but it is very hazy) that it was the crippled Sun2
+        boxes at University had only a K&R C compilation environment --
+        so we are talking maybe SunOS-2.2 with unbundled ANSI compiler?
+        Anyway, my manual page says assert is ``ISO9899 (ANSI C)''
+        conformant, so I had assumed that strictly speaking assert was
+        an ANSI feature.
+
+        Changed the stdlib guard.
+
+LW
+I think it's confusing that not until this graf do you get back to your
+project. It seems that this background would be more helpful elsewhere
+in the book, and you could reference back to it, only briefly explaining
+why you did it as you did in this case.
+
+2000-07-05  Gary V. Vaughan
+
+        Hmm.  Okay.  Well the last couple of paragraphs are also about
+        the project -- I have made the explanatory text a sidebar now.
+@end ignore
+
+Apart from the mechanical process of translating the preprocessor code,
+there is some plumbing needed to ensure that the @file{common.h} file
+generated by the new code in @file{configure.in} is functionally
+equivalent to the old code, and is generated in a correct and timely
+fashion.
+
+Taking my lead from some of the Automake generated @command{make} rules
+to regenerate @file{Makefile} from @file{Makefile.in} by calling
+@file{config.status}, I have added some similar rules to
+@file{sic/Makefile.am} to regenerate @file{common.h} from
+@file{common-h.in}.
+
+@example
+m4_include(examples/sic-large/sic/Makefile_2.texi)
+@end example
+
+The way that @code{AC_OUTPUT_COMMANDS} works, is to copy the contained
+code into @command{config@-.status} (@pxref{Generated File
+Dependencies}).  It is actually @command{config.status} that creates the
+generated files -- for example, @command{automake} generated@*
+@file{Makefile}s are able to regenerate themselves from corresponding
+@file{Makefile.in}s by calling @command{config.status} if they become
+out of date.  Unfortunately, this means that @command{config.status}
+doesn't have direct access to the cache values generated while
+@command{configure} was running (because it has finished its work by the
+time @command{config.status} is called).  It is tempting to read in the
+cache file at the top of the code inside @code{AC_OUTPUT_COMMANDS}, but
+that only works if you know where the cache file is saved.  Also the
+package installer can use the @option{--cache-file} option of
+@command{configure} to change the location of the file, or turn off
+caching entirely with @samp{--cache-file=/dev/null}.
+@ignore LW
+New paragraph can start here.
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@code{AC_OUTPUT_COMMANDS} accepts a second argument which can be used
+to pass the variable settings discovered by @command{configure} into
+@command{config.status}.  It's not pretty, and is a little error prone.
+In the first argument to @code{AC_OUTPUT_COMMANDS}, you must be careful
+to check that @strong{every single} configure variable referenced is
+correctly set somewhere in the second argument.
+@ignore LW
+A word seems to be missing in this last sentence.
+
+2000-07-05  Gary V. Vaughan
+
+        Nope, the sentence is unwieldy though.
+@end ignore
+
+A slightly stripped down example from the sic project
+@file{configure.in} looks like this:
+
+@example
+m4_changequote(,)m4_dnl
+m4_include(examples/sic-large/configure_5.texi)
+m4_changequote(`,')m4_dnl
+@end example
+
+@noindent
+You will notice that the contents of @file{common-h.in} are copied into
+@file{common.h} verbatim as it is generated.  It's just an easy way of
+collecting together the code that belongs in @file{common.h}, but which
+doesn't rely on configuration tests, without cluttering
+@file{configure.in} any more than necessary.
+
+I should point out that, although this method has served me well for a
+number of years now, it is inherently fragile because it relies on
+undocumented internals of both Autoconf and Automake.  There is a very
+real possibility that if you also track the latest releases of
+COLLECTIVE, it may stop working.  Future releases of COLLECTIVE will
+address the interface problems that force us to use code like this, for
+the lack of a better way to do things.
+
+@ignore akim
+Right.  So in fact I don't understand why you don't recommend to install
+config.h as sic-config.h?  What would be the problem with leaving the
+decoding section of #if plus config.h., instead of making the file by
+hand.
+
+Sure your result is much cleaner, but, OTOH, it's a lot of additional
+work, and is more fragile to changes.
+
+2000-07-05  Gary V. Vaughan
+
+        More explanation added at the start of the section.
+@end ignore
+
+
+@node Including Texinfo Documentation
+@section Including Texinfo Documentation
+
+Automake provides a few facilities to make the maintenance of Texinfo
+documentation within projects much simpler than it used to be.  Writing
+a @file{Makefile.am} for Texinfo documentation is extremely
+straightforward:
+
+@ignore akim
+s/@command{texinfo}/Texinfo/
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@example
+m4_include(examples/sic-large/doc/Makefile_1.texi)
+@end example
+
+@noindent
+The @samp{TEXINFOS} primary will not only create rules for generating
+@samp{.info} files suitable for browsing with the @sc{gnu} info reader,
+but also for generating @samp{.dvi} and @samp{.ps} documentation for
+printing.
+
+You can also create other formats of documentation by adding the
+appropriate @command{make} rules to @file{Makefile.am}.  For example,
+because the more recent Texinfo distributions have begun to support
+generation of HTML documentation from the @samp{.texi} format master
+document, I have added the appropriate rules to the @file{Makefile.am}:
+
+@example
+m4_include(examples/sic-large/doc/Makefile_2.texi)
+@end example
+
+@ignore Didier Verna Tue Jun 13 18:25:14 CEST 2000
+It would be a good thing to point out the obsolescence of the suffix
+rules (like those in the sample code above) in GNU make, and give a word
+about the more general "%.to: %.from" type of targets.
+
+2000-07-05  Gary V. Vaughan
+
+	Nope.  For automake generated Makefiles to work, you must be
+        careful not to use any GNUisms in literal make rules that you
+        add.
+@end ignore
+
+@noindent
+For ease of maintenance, these @command{make} rules employ a suffix rule
+which describes how to generate HTML from equivalent @samp{.texi} source
+-- this involves telling make about the @samp{.html} suffix using the
+automake @code{SUFFIXES} macro.  I haven't defined @samp{MAKEINFO}
+explicitly (though I could have done) because I know that Automake has
+already defined it for use in the @samp{.info} generation rules.
+
+@ignore akim
+In a single sentence, the mix between `@file{.texi} source' and `html
+file' is bizarre.
+
+2000-07-05  Gary V. Vaughan
+
+	Gary.
+@end ignore
+
+The @samp{html} target is for convenience; typing @samp{make html} is a
+little easier than typng @samp{make sic.html}.  I have also added a
+@code{.PHONY} target so that featureful @command{make} programs will
+know that the @samp{html} target doesn't actually generate a file called
+literally, @file{html}.  As it stands, this code is not quite complete,
+since the toplevel @file{Makefile.am} doesn't know how to call the
+@samp{html} rule in the @file{doc} subdirectory.
+
+@ignore Didier Verna Tue Jun 13 18:25:14 CEST 2000
+That's useless I think. Remove.
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+There is no need to provide a general solution here in the way Automake
+does for its @samp{dvi} target, for example. A simple recursive call to
+@file{doc/Makefile} is much simpler:
+
+@example
+m4_include(examples/sic-large/Makefile_2.texi)
+@end example
+
+@cindex version.texi
+Another useful management function that Automake can perform for you
+with respect to Texinfo documentation is to automatically generate the
+version numbers for your Texinfo documents.  It will add @command{make}
+rules to generate a suitable @file{version.texi}, so long as
+@command{automake} sees @samp{@@include version.texi} in the body of the
+Texinfo source:
+
+@ignore akim
+s/texinfo/Texinfo/, there is always an upper case T.  There are other
+places to fix in this file.
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@example
+m4_include(examples/sic-large/doc/sic_1.texi)
+@end example
+
+@file{version.texi} sets Texinfo variables, @samp{VERSION},
+@samp{EDITION} and @samp{UPDATE}, which can be expanded elsewhere in the
+main Texinfo documentation by using @code{@@value@{EDITION@}} for
+example. This makes use of another auxiliary file, @command{mdate-sh}
+which will be added to the scripts in the @code{$ac_aux_dir}
+subdirectory by Automake after adding the @file{version.texi} reference
+to @file{sic.texi}:
+
+@ignore Didier Verna Tue Jun 13 18:25:14 CEST 2000
+This is a real question: I think I remember something about replacing
+-sh by .sh for supplied scripts like version-sh and stuff. What's the
+status of this ? Maybe it would be worth mentioning here.
+
+2000-07-05  Gary V. Vaughan
+
+	It is not something I am aware of (and I read all the autotools
+        mailing lists).
+@end ignore
+
+@example
+$ ./bootstrap
++ aclocal -I config
++ libtoolize --force --copy
+Putting files in AC_CONFIG_AUX_DIR, `config'.
++ autoheader
++ automake --add-missing --copy
+doc/Makefile.am:22: installing `config/mdate-sh'
++ autoconf
+$ make html
+/bin/sh ./config.status --recheck
+...
+Making html in ./doc
+make[1]: Entering directory `/tmp/sic/doc'
+Updating version.texi
+makeinfo --html sic.texi
+make[1]: Leaving directory `/tmp/sic/doc'
+@end example
+
+Hopefully, it now goes without saying that I also need to add the
+@file{doc} subdirectory to @samp{AC_OUTPUT} in @file{configure.in} and
+to @samp{SUBDIRS} in the top-level @file{Makefile.am}.
+
+
+@node Adding a Test Suite
+@section Adding a Test Suite
+
+Automake has very flexible support for automated test-suites within a
+project distribution, which are discussed more fully in the Automake
+manual.  I have added a simple shell script based testing facility to
+Sic using this support -- this kind of testing mechanism is perfectly
+adequate for command line projects.  The tests themselves simply feed
+prescribed input to the uninstalled @command{sic} interpreter and
+compare the actual output with what is expected.
+
+@ignore akim
+s/dscussed/discussed/
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+Here is one of the test scripts:
+
+@example
+m4_include(examples/sic-large/tests/incomplete_1.texi)
+@end example
+
+@ignore akim
+The file is missing.  cvs add?
+
+2000-07-05  Gary V. Vaughan
+
+	Must have been a glitch in your build!  Looks good to me...
+@end ignore
+
+@noindent
+The tricky part of this script is the first part which discovers the
+location of (and loads)  @file{$srcdir/defs}.  It is a little convoluted
+because it needs to work if the user has compiled the project in a
+separate build tree -- in which case the @file{defs} file is in a
+separate source tree and not in the actual directory in which the test
+is executed.
+
+The @file{defs} file allows me to factor out the common definitions from
+each of the test files so that it can be maintained once in a single
+file that is read by all of the tests:
+
+@example
+m4_changequote(,)m4_dnl
+m4_include(examples/sic-large/tests/defs.texi)
+m4_changequote(`,')m4_dnl
+@end example
+
+Having written a few more test scripts, and made sure that they are
+working by running them from the command line, all that remains is to
+write a suitable @file{Makefile.am} so that @command{automake} can run
+the test suite automatically.
+
+@example
+m4_include(examples/sic-large/tests/Makefile_1.texi)
+@end example
+
+@ignore akim
+Likewise.
+
+2000-07-05  Gary V. Vaughan
+
+	Works for me.
+@end ignore
+
+
+@noindent
+I have used the @samp{testsubdir} macro to run the tests in their own
+subdirectory so that the directory containing the actual test scripts is
+not polluted with lots of fallout files generated by running the tests.
+For completeness I have used a @dfn{hook target}@footnote{This is a sort
+of callback function which will be called by the @command{make} rules
+generated by Automake.} to remove this subdirectory when the user types:
+
+@ignore akim
+s/cantaining/containing/
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@example
+$ make distclean
+...
+rm -rf testSubDir
+...
+@end example
+
+Adding more tests is accomplished by creating a new test script and
+adding it to the list in @code{noinst_SCRIPTS}.  Remembering to add the
+new @file{tests} subdirectory to @file{configure.in} and the top-level
+@file{Makefile.am}, and reconfiguring the project to propagate the
+changes into the various generated files, I can run the whole test suite
+from the top directory with:
+
+@example
+$ make check
+@end example
+
+It is often useful run tests in isolation, either when developing new
+tests, or to examine more closely why a test has failed unexpectedly.
+Having set this test suite up as I did, individual tests can be executed
+with:
+
+@example
+$ VERBOSE=1 make check TESTS=incomplete.test
+make  check-TESTS
+make[1]: Entering directory
+`/tmp/sic/tests'
+=== Running test incomplete.test
+1
+2
+3
+PASS: incomplete.test
+==================
+All 1 tests passed
+==================
+make[1]: Leaving directory `/tmp/sic/tests'
+$ ls testSubDir/
+err   errok   in.sic   ok   out
+@end example
+
+@noindent
+The @file{testSubDir} subdirectory now contains the expected and actual
+output from that particular test for both @file{stdout} and
+@file{stderr}, and the input file which generated the actual output.
+Had the test failed, I would be able to look at these files to decide
+whether there is a bug in the program or simply a bug in the test
+script.  Being able to examine individual tests like this is invaluable,
+especially when the test suite becomes very large -- because you will,
+naturally, add tests every time you add features to a project or find
+and fix a bug.
+
+Another alternative to the pure shell based test mechanism I have
+presented here is the Autotest facility by Fran@,cois Pinard, as used
+in Autoconf after release 2.13.
+
+@ignore akim
+Maybe you want to give a chance to Autotest?  The testing framework of
+CVS Autoconf.  Written by Franois Pinard.  I enjoy it.
+
+2000-07-05  Gary V. Vaughan
+
+	I'd like to but I can't find any documentation, and I don't have
+        the time to unravel it right now =(O|  I've mentioned it anyway.
+@end ignore
+
+@ignore LW
+Does end a bit more than several of the chapters--I still might
+transition into the next for clarity.
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+Later in @ref{A Complex COLLECTIVE Project}, the Sic project will be
+revisited to take advantage of some of the more advanced features of
+COLLECTIVE.  But first these advanced features will be discussed in the
+next several chapters -- starting, in the next chapter, with a
+discussion of how COLLECTIVE can help you to make a tarred distribution
+of your own projects.
+
+@c Local variables:
+@c fill-column: 72
+@c End:

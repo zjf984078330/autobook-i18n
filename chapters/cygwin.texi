@@ -1,0 +1,2432 @@
+@c -*-texinfo-*-
+@ignore
+1999-12-04  Leah Williams
+
+        Good chapter overall. Strong writing & content. Internal
+        organization in sections make sense. I'd like to see
+        everything pull together more--links between sections
+        not always as clear. Unclear whether some content
+        belongs in this chapter/would be better in another
+        or in a sidebar.
+
+2000-04-18  Akim Demaille
+
+        Agreed, this is a great chapter.  Congrats!
+
+2000-05-31  Gary V. Vaughan
+
+        I've addressed these now.
+
+1999-12-04  Leah Williams
+
+        Conventions question--I'm wondering if all of these terms
+        preceded by tags should be in monospaced font, a courier font
+        that is smaller than the text around it.  (This would be
+        something we do later in the process.) Commands, files, etc do
+        usually appear in monospace. Also, not sure where footnote ends
+        here.
+
+2000-05-31  Gary V. Vaughan
+
+	See the STYLE file.
+
+1999-12-04  Leah Williams
+        It helps to list your topics in the order in which they appear
+        in the chapter. They're not in order here.
+
+2000-05-31  Gary V. Vaughan
+
+        I don't introduce specific topics... it's just a general overall
+        intro I think.
+@end ignore
+
+@cindex Windows, Cygwin
+@cindex Windows, mingw
+@cindex DJGPP
+@cindex CRTDLL.DLL
+@cindex PE-COFF binary format
+It is possible to use the COLLECTIVE to build software packages on
+Windows.  Since the tools were developed on Unix, it is easier to get
+them to work using Cygnus Solutions' Cygwin distribution which provides
+a @sc{posix} wrapper for the Win32 @acronym{API}, @xref{Unix
+Diversity, , The Diversity of Unix Systems}, but it is certainly
+possible to run the tools within other Windows environments, notably
+Colin Peters' @dfn{Mingw32} and D.J. Delorie's @dfn{@sc{djgpp}}.  These
+development environments are freely available on the
+Internet@footnote{Mingw32 home page,
+@uref{http://www.geocities.com/Tokyo/Towers/6162/gcc.html}; and DJGPP
+home page, @uref{http://www.delorie.com/djgpp/}.}.  Unlike Cygwin, these
+other environments are designed for developing with the Win32
+@acronym{API} directly and consequently they are not as useful for
+porting Unix projects to Windows or writing code that works on both
+Windows and Unix, see  @ref{Unix/Windows Portability} for more details.
+This chapter describes the process of using COLLECTIVE with Cygwin,
+although some of this advice also applies to employing some of the other
+@sc{gnu} based Windows development environments.
+@ignore
+2000-04-18  Akim Demaille
+
+        It is `easiest'?  Shouldn't it be easier?  Do we still need to
+        talk about egcs today?  The convention for the DLL is not clear:
+        some are @code{CRTDLL.DLL} and some are @file{Cygwin1.dll}.  I'm
+        not sure to understand why code/file.
+
+2000-06-02  Gary V. Vaughan
+
+        Nope.  Yep.  Nope.  Doh -- file it is then.
+        Respectively =)O|  Thanks.
+
+1999-12-04  Leah Williams
+
+        Content question--You say the ways that the reader can run the
+        tools in other Windows environments. Although you point out that
+        it's easier to use cygwin, I'm left with the impression that I
+        might as wel use either of the others--perhaps list
+        disadvantages of the other choices? What made you focus on this
+        one? (if it's not too obvious). Also, this may  be good as a
+        sidebar with a heading such as  "Other Windows Environments
+        Options" or something a little  less generic:).
+
+2000-05-31  Gary V. Vaughan
+
+	Agreed.  I have written something about why the others are less
+        applicable.  I don't want it to be a sidebar though...
+
+1999-12-04  Leah Williams
+
+        Also, it seems strange to start with "After reading this
+        chapter" and  then move on to what seems to be the subject of
+        the chapter.
+
+        I split paragraph because it was pretty long & topic changed.
+
+2000-05-31  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+@quotation
+@c sidebar entitled:  Which API?
+It is notable that the recent Cygwin ports of @sc{gcc} and
+@dfn{binutils} can produce binaries which will run with the
+@file{cygwin1.dll} emulation layer, or linked against @file{CRTDLL.DLL},
+the Windows native @dfn{@b{C} @b{R}un@b{T}ime @b{D}ynamic @b{L}ink
+@b{L}ibrary} depending on the needs of particular source code.  Recent
+versions@footnote{since Cygwin-b20.1, I believe.} of the binutils
+implement the @acronym{PE-COFF} binary format used by Windows, so by
+specifying the @option{-mno-cygwin} compiler option to the Cygwin
+compiler and using only the @acronym{API} from @file{CRTDLL.DLL}, you
+can build binaries which are independent of the @file{cygwin1.dll}
+@sc{dll}.  Such binaries will generally run faster, since they bypass
+the @sc{posix} emulation, and give easier access to Windows specific
+things such as drive letters.  Source code designed to be compiled this
+way will not compile on Unix however, since it will be limited to the
+Win32 @acronym{API} provided by @file{CRTDLL.DLL}.
+@end quotation
+
+@ignore
+1999-12-04  Leah Williams
+
+        I'm a little confused here. Should this section on binaries be
+        in the introductory section? It seems like a sidebar almost. I
+        also wondered about the libtool philosophy section below.
+        Although it is Windows related, it seems more like something
+        that should be referenced here than discussed at length.
+
+2000-05-31  Gary V. Vaughan
+
+        Good idea.  A sidebar it is then!  I have moved the libtool
+        section to the Autotools section.
+
+1999-12-04  Leah Williams
+
+        Be sure to mention whether these are chap/section refs. If
+        section refs in other chapts mentioned, say both section &
+        chapt. Will help us later.
+
+2000-05-31  Gary V. Vaughan
+
+        Texinfo can't express that:  it is added to the typeset file
+        during the generation of autobook.dvi though.
+
+1999-12-04  Leah Williams
+
+        If you tell me what chapters you're considering, I can give you
+        my input, and can request such input from the reviewers as well.
+         A note on chapter beginnings--I don't like to start a chapter
+        with "After reading this chapter."  That is a very good LAST
+        paragraph in an intro--It's better first to introduce the topic.
+        I like to think of the first paragraph of a chapter as an
+        advertisement for that chapter--ie If I'm the reader, why should
+        I read this? What can I get out of it?  The last paragraph in
+        the intro should let the reader know how the chapter is
+        organized, and specifics of its coverage (as you do below).
+
+2000-05-31  Gary V. Vaughan
+
+        Agreed.  Now the last paragraph of the intro.
+
+2000-01-12  Alexandre Oliva
+
+	Actually, the E of EGCS stands for Experimental.
+
+	Why is Cygwin1.dll a @file and CRTDLL.DLL a @code?
+
+	Is the C of Cygwin really capital in the -mno-Cygwin flag?
+
+	Isn't mentioning the existence of the two libraries too much
+	detail for a second paragraph on Cygwin?
+
+2000-06-21  Gary V. Vaughan
+
+	Respectively:
+
+	I have removed references to egcs now that it has become gcc.
+
+	Already fixed.
+
+	Already fixed.  Someone (okay I admit it, it was me) got carried
+	away with sed.
+
+	Yeah,  maybe.  It is a sidebar now, which is less frightening I
+	think.
+@end ignore
+
+After reading this chapter, you will be able to install and use
+COLLECTIVE @emph{natively} under Windows using Cygnus Solutions' Cygwin
+environment, both to develop your own packages with the aid of Cygwin,
+and to compile, install, and to a certain degree port other peoples
+packages for use with Cygwin.  As a Unix package developer, you
+will learn how to write your configury to be Windows friendly, and to be
+aware of certain quirks of Windows which can affect the portability of
+packages which need to work on Windows in addition to your Unix
+development machine.
+
+@ignore
+1999-12-04  Leah Williams
+
+        Below is a list of the topics in this chapter. All such lists
+        should be introduced (ie in this chapter we will discuss).  But
+        I prefer in these cases to see sentence descriptions rather than
+        bulleted lists--basically because the reader might not know what
+        you mean by preliminaries, might know you're talking about
+        autotools, but not know in what way, etc. HOW you cover
+        something is of course almost as important to the reader as what
+        you cover.  This list belongs in the "After reading this
+        chapter" section where you discuss what is in the chapter, and
+        the section "Preliminaries" should immediately follow.  This is
+        why I find the libtool discussion confusing where it is.
+
+2000-05-31  Gary V. Vaughan
+
+	See the STYLE file.
+@end ignore
+
+@menu
+* Preliminaries::
+* Installing COLLECTIVE on Cygwin::
+* Writing A Cygwin Friendly Package::
+* DLLs with Libtool::
+* Package Installation::
+@end menu
+
+@node Preliminaries
+@section Preliminaries
+
+@cindex Cygwin usertools.exe
+@cindex Cygwin full.exe
+@ignore
+1999-12-04  Leah Williams
+
+        Do you mean our proofreaders?  They won't be technical enough to
+        necessarily know what you're referring to here--you'll want to
+        say where exactly when we get to the author review process.
+        Also, this section would be less choppy if each of the problems
+        would be its own bullet (bulleted items include indented
+        text)--that is, bourne shell,  Cygwin bourne shell, sc(gnu)make,
+        sc (gnu)gcc, perl, & install.
+
+2000-05-25  Ben Elliston
+
+        I'm proofreading this and will handle the xref.
+
+2000-05-31  Gary V. Vaughan
+
+        Thanks Ben!
+@end ignore
+As explained in @ref{Installing COLLECTIVE on Cygwin}, COLLECTIVE requires several
+other tools to operate.  Most Unices provide the majority, if not all,
+of these prerequisites by default.  Windows, unfortunately, does not.
+Cygwin is better than most in this respect, and only a few extras are
+required.  The latest net release of Cygwin@footnote{1.1.1 at the time
+of writing.} has a packaging mechanism which downloads and installs
+various Unix tools that have been precompiled for the Cygwin environment
+by the Cygnus folks.  To develop with COLLECTIVE and Cygwin, you need to
+install all of these packages to make sure you have all of the necessary
+header files and compiler tools.
+
+@ignore
+1999-12-04  Leah Williams
+
+        Not sure what these tables are.  Please clarify.
+
+2000-05-31  Gary V. Vaughan
+
+	See the STYLE file.
+@end ignore
+@table @asis
+@item Bourne shell
+@cindex Cygwin Bourne shell
+@cindex Cygwin @command{sh.exe}
+Cygwin provides a port of @dfn{ash} which is smaller and faster than
+bash, but sometimes rejects arcane Bourne shell scripts.  If you can
+stand to sacrifice a little speed, it is worth copying the supplied
+@command{bash.exe} to @file{/bin/sh.exe} to forestall any such
+problems.
+
+@ignore
+2000-01-12  Alexandre Oliva
+
+	The B for Bourne Shell should probably be capitalized
+
+2000-04-18  Akim Demaille
+
+        Hm, *B*ourne, no?
+
+2000-06-02  Gary V. Vaughan
+
+	Indeed.
+@end ignore
+
+@item @sc{gnu} M4
+@cindex Cygwin M4
+Cygwin provides a port of @sc{gnu} M4.
+@ignore
+2000-04-18  Akim Demaille
+
+        I'd use either M4 for the package, and @code{m4} for the program
+        in fact.  Yeah, I'm being extremely picky, but it's because I
+        like this chapter, and have nothing interesting to say :)
+
+2000-06-02  Gary V. Vaughan
+
+        Thats okay.  We've all settled on M4 and @command{m4}
+        repectively.  Thanks.
+@end ignore
+
+
+@item @sc{gnu} Make
+@cindex Cygwin Make
+At the time of writing, developers need @sc{gnu} Make in order to do
+dependency tracking (@pxref{Advanced GNU Automake Usage, , Automatic
+dependency tracking}), though this is set to change in a future release
+of Automake.  Cygwin version 1.1.1 comes with a port of @sc{gnu}
+@code{make-3.77}, which I have personally never had any problems with.
+The received wisdom from users is to manually upgrade to the latest
+version,
+@code{make-3.79}@footnote{@uref{ftp://ftp.gnu.org/gnu/make/make-3.79.tar.gz}},
+which compiles and installs from source without modification.  Should
+you experience (or anticipate) any Make related problems, you might try
+upgrading to this version or later.
+@ignore
+2000-01-12  Alexandre Oliva
+
+	s/and make/any make/
+
+2000-06-21  Gary V. Vaughan
+
+	Yup.
+
+1999-12-04  Leah Williams
+
+        Do you need to define dependency tracking for the reader?
+
+2000-05-31  Gary V. Vaughan
+
+        Agreed.  I've added an xref.
+
+1999-12-04  Leah Williams
+
+        Also, these two grafs (above & below my comment here) should
+        probably be combined-- "as of this writing, these two are the
+        case"--if you want to list them in bullets to separate the
+        discussion, that would work.
+
+2000-05-31  Gary V. Vaughan
+
+        This table is a bulleted list of sorts already.
+@end ignore
+
+@item @sc{gnu} @sc{gcc}
+@cindex Cygwin gcc
+At the time of writing, @sc{gnu} @sc{gcc} is also needed by
+Automake in order to do dependency tracking.  Cygwin version
+1.1.1 comes with a port of the latest @sc{gnu} @sc{gcc} compiler.
+
+@item Perl
+@cindex Cygwin Perl
+The current implementation of Automake (1.4) is written in
+@command{perl4}, though it is likely that @command{perl5} will be
+needed for Automake 1.5.  The very latest versions of Perl now compile
+out of the box on Cygwin@footnote{You can get a precompiled package
+from @uref{http://cygutils.netpedia.net/}, also an excellent resource
+for other packages ported to Cygwin.}.
+@end table
+
+There are some other pitfalls to installing a fully working Cygwin
+environment on your Windows machine, but that is outside the scope of
+this chapter.  Cygnus host a mailing list archive and an
+@acronym{FAQ}@footnote{@uref{http://sourceware.cygnus.com/cygwin/}} to
+provide some level of support, and these should be your first port of
+call in case the installation does not go according to plan.
+
+@ignore
+2000-04-18  Akim Demaille
+
+        s/host/hosts/ ?
+
+2000-06-02  Gary V. Vaughan
+
+        Nope.  Cygnus (the company) is already plural and _they_ _host_
+        a   mailing list.
+@end ignore
+
+@node Installing COLLECTIVE on Cygwin
+@section Installing COLLECTIVE on Cygwin
+@ignore
+1999-12-04  Leah Williams
+
+        Is there more that should be said here?  Seems very short. Also,
+        would "Autotool Installation" be a better heading?  We've moved
+        from what you must know about/do before install, and now we're
+        installing, right?
+
+2000-05-31  Gary V. Vaughan
+
+        Yup and yup, respectively.  Added some more text and changed to
+        your better section title.
+@end ignore
+
+@cindex Cygwin autotools compilation
+With all of the above infrastructure in place, each of the COLLECTIVE
+can be built natively and installed from source right out of the box.
+It is worth taking care with the installation directories, as there is
+no package management under Cygwin, and it is easy to let everything get
+thrown into a big pile in @file{/usr/local}, which makes it relatively
+difficult to upgrade and remove packages.
+
+@cindex Windows, Autoconf
+Support for Cygwin has been in Autoconf for several years, as far back
+as version 2.0 as best as I can tell.  Building it has never been a
+problem as long as @sc{gnu} M4 and a Bourne Shell are available, it is
+the macros themselves which offer this support.  Of course, any Autoconf
+macros you write yourself must be designed carefully to not make any
+assumptions about being executed on Unix if the Cygwin compatibility is
+to remain.  A binary package of Autoconf for Cygwin version 1.1.1 is
+available from the CygUtils website@footnote{The CygUtils website is
+@uref{http://cygutils.netpedia.net/V1.1/}.}.
+
+@cindex Windows, Automake
+Automake joined the fray much later than the Cygwin support code was
+added to Autoconf, and has consequently always supported Cygwin.  Until
+the last release of Cygwin, the stumbling block has always been finding
+(or building) a Cygwin compatible Perl interpreter for Automake to use.
+Thanks to the work of Eric Fifer, Perl 5.6.0 builds right out of the box
+on Cygwin, removing this problem entirely.  Ready built packages of Perl
+and Automake are available from the CygUtils website.
+
+@cindex Windows, Libtool philosophy
+The initial Libtool support for Windows was written by Ian Lance Taylor
+of Cygnus Solutions, when Cygwin was at release b18, @xref{Microsoft
+Windows Development, , Microsoft Windows}.  More recent releases of
+Cygwin in general, and @sc{gcc} in particular have much better
+facilities for building and linking with Windows @sc{dll}s, to the
+extent that with a little perseverance it is possible to build @sc{dll}s
+with @sc{gcc} from C++ sources, and to have those @sc{dll}s interoperate with
+@sc{dll}s built with Windows development environments.  In time,
+automation of these facilities will make their way into Libtool.  The
+method that Libtool currently uses to build @sc{dll}s works with Cygwin
+releases at least as far back as b18, and at least as far forward as the
+version I am now using, Cygwin-1.1.1.  The same code will also build
+@sc{dll}s correctly with Mingw32.  There are certainly simpler ways to
+assemble a @sc{dll}, but Libtool aims to combine two goals which are
+somewhat in contention with Windows' treatment of @sc{dll}s; Libtool is
+aiming for maximum portability across the various flavours of
+@sc{dll}-using Windows build environments; not forgetting Libtool's
+raison d'@^etre
+@ignore
+2000-04-18  Akim Demaille
+
+        @^e is fine.  raison d'@^etre.
+
+
+2000-06-02  Gary V. Vaughan
+
+        Cool.  I didn't know that!
+
+1999-12-04  Leah Williams
+
+        I don't understand the raison d'entre sentence--Should you say
+        what libtool's raison d'entre is? And am not sure how you want
+        it highlighted. Italic?
+
+2000-05-31  Gary V. Vaughan
+
+        I didn't know how to write a circumflex accent in texinfo.
+        Fixed now.
+@end ignore
+which is to abstract the many and varied ways of building libraries on
+different targets behind a single unified interface.  To meet these two
+goals, Libtool must only use tools which exist across the range of
+versions it supports, and must at the same time try to make @sc{dll}s
+appear to have the same characteristics as a modern @sc{elf} shared
+library, such as the shared libraries under @sc{gnu}/Linux.  This is no
+mean feat, and in fact Libtool still has some way to go in order to be
+able to do this convincingly.  It turns out that Windows @sc{dll}s lack
+many, many features that packages developed on Unix are likely to take
+for granted.  Emulation of these missing features are making their way
+into Libtool.  Although support for @sc{dll}s is improving steadily with
+every release, there are some severe technical problems with the Windows
+library architecture that will prevent Libtool from ever being able to
+build @sc{dll}s completely transparently.  The details are extremely
+technical and beyond the scope of this book.
+
+@ignore
+2000-01-12  Alexandre Oliva
+	s/infact/in fact/
+
+	This paragraph seems quite out-dated.  I heard Cygwin 1.0 is
+	out.  It also gives hope to users that some day libtool will
+	make it possible to automatically do anything that's possible to
+	accomplish with an ELF shared library on MS-Windows.  I think we
+	had already agreed that this wasn't possible, for several
+        reasons.  :-(
+
+2000-06-21  Gary V. Vaughan
+
+	I never did buy a 1.0 CD, though I *have* updated the whole
+	chapter to reflect the state of the latest next release of
+	Cygwin (1.1.1).
+
+	I was being over optimistic here, I agree.  I have toned down
+	that statement rather a lot now.  Thanks for the reminder =)O|
+@end ignore
+
+
+As noted in @ref{Installing the tools}, things will only work correctly
+if each of Autoconf, Automake and Libtool are installed with the same
+@option{--prefix} argument, since they all share a macro directory in
+@file{$prefix/share/aclocal}.
+
+@ignore
+2000-01-12  Alexandre Oliva
+
+	But this will hopefully no longer be true in the next major
+	releases of autoconf and automake, right?
+
+2000-06-21  Gary V. Vaughan
+
+	I am not aware of any concrete plans to fix it, so I won't
+	promise the reader.
+@end ignore
+
+@c ensure that there is a description of the symlink fix if automake and
+@c libtool must be installed to different prefixes elsewhere in the
+@c completed book.
+
+@node Writing A Cygwin Friendly Package
+@section Writing A Cygwin Friendly Package
+
+@cindex Cygwin package portability
+One approach to using the Cygwin support offered by COLLECTIVE in your
+own package is to have an eye towards having it compile nicely on Unix
+and on Windows, or indeed of tweaking the configuration of existing
+packages which use COLLECTIVE but which do not compile under Cygwin, or
+do not behave quite right after compilation.  There are several things
+you need to be aware of in order to design a package to work seamlessly
+under Cygwin, and yet several more if portability to DOS and
+(non-Cygwin) Windows is important too. We discussed many of these issues
+in @ref{Unix/Windows Issues}.
+@ignore
+1999-12-04  Leah Williams
+
+        Globally-don't forget to say section/chapter in x refs & instead
+        of "earlier in the chapter/earlier section/later in
+        chapter/later section-- specifics ALWAYS better.
+
+2000-05-31  Gary V. Vaughan
+
+	Okay.  Done.
+@end ignore
+In this section, we will expand on those issues with ways in which
+COLLECTIVE can help deal with them.
+
+@ignore
+1999-12-04  Leah Williams
+
+        Should this be a d head? In the section below, say what section
+        "later in this chapter" means.
+
+2000-05-31  Gary V. Vaughan
+
+        No, I like it as part of the lead in to the meat of this
+        section.   I have changed "later in this chapter" to "the
+        rest of this section".
+@end ignore
+@cindex Cygwin static packages
+If you only need to build executables and static libraries, then Cygwin
+provides an environment close enough to Unix that any packages which
+ship with a relatively recent configuration will compile pretty much out
+of the box, except for a few peculiarities of Windows which are discussed
+throughout the rest of this section.  If you want to build a package
+which has not been maintained for a while, and which consequently uses
+an old Autoconf, then it is usually just a matter of removing the
+generated files, rebootstrapping the package with the installed (up to
+date!) Autoconf, and rerunning the @file{configure} script.  On occasion
+some tweaks will be needed in the @file{configure.in} to satisfy the
+newer @command{autoconf}, but @command{autoconf} will almost always
+diagnose these for you while it is being run.
+
+@ignore
+1999-12-04  Leah Williams
+
+        Be sure to introduce bulleted items like this. Also, are these d
+        heads? or e heads under cygwin static packages?
+
+2000-05-31  Gary V. Vaughan
+
+        See STYLE file.
+@end ignore
+@menu
+* Text vs Binary Modes::
+* File System Limitations::
+* Executable Filename Extensions::
+@end menu
+
+@node Text vs Binary Modes
+@subsection Text vs Binary Modes
+@cindex Windows CR-LF
+@cindex Windows text line terminator
+
+As discussed in @ref{Unix/Windows Text/Binary}, text and binary files are
+different on Windows.  Lines in a Windows text files end in a
+carriage return/line feed pair, but a C program reading the file in text
+mode will see a single line feed.
+
+Cygwin has several ways to hide this dichotomy, and the solution(s) you
+choose will depend on how you plan to use your program.  I will outline
+the relative tradeoffs you make with each choice:
+
+@ignore
+1999-12-04  Leah Williams
+
+        Should this be a bulleted list of differences, including
+        mounting, binmode, and system calls? Or a comparison table? I
+        don't see what you're referring to when you say table.
+
+2000-05-31  Gary V. Vaughan
+
+        See STYLE.
+@end ignore
+@table @asis
+@item mounting
+@cindex Cygwin mount
+Before installing an operating system to your hard drive, you must first
+organise the disk into @dfn{partitions}.  Under Windows, you might only
+have a single partition on the disk, which would be called
+@samp{C:}@footnote{Typically you would also have a floppy drive named
+@samp{A:}, and a @sc{cd-rom} named @samp{D:}.}.  Provided that some
+media is present, Windows allows you to access the contents of any drive
+letter -- that is you can access @samp{A:} when there is a floppy disk in
+the drive, and @samp{F:} provided you divided you available drives into
+sufficient partitions for that letter to be in use.  With Unix, things
+are somewhat different:  hard disks are still divided into partitions
+(typically several), but there is only a single filesystem @dfn{mounted}
+under the root directory.  You can use the @command{mount} command to
+hook a partition (or floppy drive or @sc{cd-rom}, etc.) into a
+subdirectory of the root filesystem:
+
+@example
+$ mount /dev/fd0 /mnt/floppy
+$ cd /mnt/floppy
+@end example
+
+@noindent
+Until the directory is @command{unmount}ed, the contents of the floppy
+disk will be available as part of the single Unix filesystem in the
+directory, @file{/mnt/floppy}.  This is in contrast with Windows'
+multiple root directories which can be accessed by changing filesystem
+root -- to access the contents of a floppy disk:
+
+@example
+C:\WINDOWS\> A:
+A:> DIR
+...
+@end example
+
+@noindent
+Cygwin has a mounting facility to allow Cygwin applications to see a
+single unified file system starting at the root directory, by
+@command{mount}ing drive letters to subdirectories.  When mounting a
+directory you can set a flag to determine whether the files in that
+partition should be treated the same whether they are @sc{text} or
+@sc{binary} mode files.  Mounting a file system to treat @sc{text} files
+the same as @sc{binary} files, means that Cygwin programs can behave in
+the same way as they might on Unix and treat all files as equal.
+Mounting a file system to treat @sc{text} files `properly', will cause
+Cygwin programs to translate between Windows @acronym{CR-LF} line end
+sequences and Unix @acronym{CR} line endings, which plays havoc with
+file seeking, and many programs which make assumptions about the size of
+a @code{char} in a @code{FILE} stream.  However @samp{binmode} is the
+default method because it is the only way to interoperate between
+Windows binaries and Cygwin binaries.  You can get a list of which drive
+letters are mounted to which directories, and the modes they are mounted
+with by running the @command{mount} command without arguments:
+
+@example
+BASH.EXE-2.04$ mount
+Device              Directory            Type        flags
+C:\cygwin           /                    user        binmode
+C:\cygwin\bin       /usr/bin             user        binmode
+C:\cygwin\lib       /usr/lib             user        binmode
+D:\home             /home                user        binmode
+@end example
+
+@noindent
+As you can see, the Cygwin @command{mount} command allows you to
+``mount'' arbitrary Windows directories as well as simple drive letters
+into the single filesystem seen by Cygwin applications.
+
+@ignore
+2000-04-18  Akim Demaille
+
+        I don't understand the sentence ``Unlike the @sc{unix} concept
+        of @command{mount}, there is no need for the mounted file system
+        to be a partition unto itself.  ''  I confess I know nothing
+        about this issue, but still, it is frustrating not to understand
+        :(.
+
+2000-06-05  Gary V. Vaughan
+
+        That should cover it.  I worried that perhaps I over did it now,
+        though?
+@end ignore
+
+
+@item binmode
+@cindex CYGWIN binmode setting
+The @code{CYGWIN} environment variable holds a space separated list of
+setup options which exert some minor control over the way the
+@file{cygwin1.dll} (or @file{cygwinb19.dll} etc.)  behaves.  One such
+option is the @samp{binmode} setting; if @code{CYGWIN} contains the
+@samp{binmode} option, files which are opened through @file{cygwin1.dll}
+without an explicit text or binary mode,
+@c I think this includes pipes too, I will check up on this
+will default to binary mode which is closest to how Unix behaves.
+@ignore
+2000-04-18  Akim Demaille
+
+        Well, is it @file{Cygwin1.dll} or @code{Cygwin1.dll}?
+
+2000-06-02  Gary V. Vaughan
+
+        The former.  Definitely.  =)O|
+@end ignore
+
+@item system calls
+@cindex binary mode fopen
+@cindex binary mode open
+@cindex text mode fopen
+@cindex text mode open
+@file{cygwin1.dll}, @sc{gnu} libc and other modern C @acronym{API}
+implementations accept extra flags for @code{fopen} and @code{open} calls to
+determine in which mode a file is opened.  On Unix it makes no
+difference, and sadly most Unix programmers are not aware of this
+subtlety, so this tends to be the first thing that needs to be fixed when
+porting a Unix program to Cygwin.  The best way to use these calls
+portably is to use the following macros with a package's @file{configure.in}
+to be sure that the extra arguments are available:
+@end table
+
+@example
+m4_include(examples/openmode.texi)
+@end example
+@ignore
+2000-01-12  Alexandre Oliva
+
+	Is opening /bin/sh really a good idea?  Wouldn't it be better to
+	create a conftest file in the build tree and to try to open it?
+
+	Also,o the test seems to be broken, as it always sets
+	ac_cv_func_fopen_binary=yes.  BTW, aren't there systems in which
+	fclose() returns void?  It's always a good idea to quote cached
+	variables when testing them, just in case someone modified the
+	cache and introduced some space or other weird character in its
+	definition.
+
+	The same comments apply to the other macros in openmode.m4.
+
+2000-06-21  Gary V. Vaughan
+
+	Agreed on all counts.  How about now?
+
+2000-04-18  Akim Demaille
+
+        `dnl' is dead!  Using `#' would be much clearer in addition.  I
+        don't understand why you `rm -f core *.exe.core' in your macros.
+        Autoconf already runs:
+          rm -fr conftest* confdefs* core core.* *.core $ac_clean_files
+
+        Also, you have occurrences of << $`' >> in there that don't make
+        sense, and are output in the final version.  You can just get
+        rid of them.
+
+2000-06-02  Gary V. Vaughan
+
+        All sorted now =)O|
+@end ignore
+
+Add the following preprocessor code to a common header file that will be
+included by any sources that use @code{fopen} calls:
+
+@example
+#define fopen	rpl_fopen
+@end example
+@ignore
+2000-04-18  Akim Demaille
+
+        Just FYI, in case you might be willing to use the same
+        `standard', it is usual to use `rpl_' to this end: `rpl_fopen'.
+
+2000-06-02  Gary V. Vaughan
+
+        Okay.  You got it!
+@end ignore
+
+Save the following function to a file, and link that into your program
+so that in combination with the preprocessor magic above, you can always
+specify text or binary mode to @code{open} and @code{fopen}, and let
+this code take care of removing the flags on machines which do not
+support them:
+
+@example
+m4_include(examples/rpl_fopen.texi)
+@end example
+
+@ignore
+2000-01-12  Alexandre Oliva
+
+	This code assumes a lot about the target system.  There are
+	systems that do not support strdup, strcpy and strchr, so it may
+	be nice to mention the need for AC_REPLACE_FUNCing them.
+
+2000-06-21  Gary V. Vaughan
+
+	Glad someone was paying attention =)O|  Yes indeedy.  The latest
+        addresses each of your points I think.
+@end ignore
+
+@noindent
+The correct operation of the file above relies on several things having
+been checked by the @command{configure} script, so you will also need to
+ensure that the following macros are present in your @file{configure.in}
+before you use this code:
+
+@example
+m4_include(examples/configure_1.texi)
+@end example
+
+
+@node File System Limitations
+@subsection File System Limitations
+
+We discussed some differences between Unix and Windows file systems
+in @ref{Unix/Windows Filesystems}.  You learned about some of the
+differences between Unix and Windows file systems.  This section
+expands on that discussion, covering filename differences and
+separator and drive letter distinctions.
+
+@ignore
+1999-12-04  Leah Williams
+
+        Introduce these e head topics.
+
+2000-05-31  Gary V. Vaughan
+
+        See STYLE.
+@end ignore
+@menu
+* 8.3 Filenames::
+* Separators and Drive Letters::
+@end menu
+
+@node 8.3 Filenames
+@subsubsection 8.3 Filenames
+@cindex 8.3 filenames in COLLECTIVE
+
+As discussed earlier, @acronym{DOS} file systems have severe restrictions
+on possible file names: they must follow an 8.3 format.  @xref{DOS
+Filename Restrictions}.
+@ignore
+1999-12-04  Leah Williams
+
+        Say section/chap.
+
+2000-05-31  Gary V. Vaughan
+
+        This comes out in the generated typeset document.
+@end ignore
+
+This is quite a severe limitation, and affects some of the inner
+workings of COLLECTIVE in two ways.  The first is handled automatically,
+in that if @code{.libs} isn't a legal directory name on the host system,
+Libtool and Automake will use the directory @code{_libs} instead.  The
+other is that the traditional @file{config.h.in} file is not legal under
+this scheme, and it must be worked around with a little known feature of
+Autoconf:
+
+@ignore
+2000-01-12  Alexandre Oliva
+
+	Well, it will only use _libs if it finds that .libs doesn't
+	work.
+
+2000-06-21  Gary V. Vaughan
+
+	Good point.
+@end ignore
+
+@smallexample
+AC_CONFIG_HEADER(config.h:config.hin)
+@end smallexample
+
+@node Separators and Drive Letters
+@subsubsection Separators and Drive Letters
+@cindex directory separator character
+@cindex path element separator character
+
+As discussed earlier (@pxref{Windows Separators and Drive Letters}), the
+Windows file systems use different delimiters for separating directories
+and path elements than their Unix cousins.  There are three places
+where this has an effect:
+
+@table @asis
+@item the shell command line
+@ignore
+1999-12-04  Leah Williams
+
+        bullet (also, above in xref--say chap/sect)
+
+2000-05-31  Gary V. Vaughan
+
+        See STYLE and generated file respectively.
+@end ignore
+Up until Cygwin b20.1, it was possible to refer to drive letter prefixed
+paths from the shell using the @samp{//c/path/to/file} syntax to refer
+to the directory root at @samp{C:\path\to\file}.  Unfortunately, the
+Windows kernel confused this with the its own network share notation,
+causing the shell to pause for a short while to look for a machine named
+@samp{c} in its network neighbourhood.  Since release 1.0 of Cygwin, the
+@samp{//c/path/to/file} notation now really does refer to a machine
+named @samp{c} from Cygwin as well as from Windows.  To refer to drive
+letter rooted paths on the local machine from Cygwin there is a new
+hybrid @samp{c:/path/to/file} notation.  This notation also works in
+Cygwin b20, and is probably the system you should use.
+
+
+On the other hand, using the new hybrid notation in shell scripts means
+that they won't run on old Cygwin releases.  Shell code embedded In
+@file{configure.in} scripts, should test whether the hybrid notation
+works, and use an alternate macro to translate hybrid notation to the
+old style if necessary.
+
+I must confess that from the command line I now use the longer
+@samp{/cygdrive/c/path/to/file} notation, since @key{TAB} completion
+doesn't yet work for the newer hybrid notation.  It is important to use
+the new notation in shell scripts however, or they will fail on the latest
+releases of Cygwin.
+@ignore
+2000-01-12  Alexandre Oliva
+
+	OTOH, using the new notation in shell-scripts means they won't
+	run on old releases.  For configure scripts, it would probably
+	be better to have a macro to detect which convention should be
+	used and to define an alternate macro to translate pathnames to
+	the old style if the new one isn't supported.
+
+2000-06-21  Gary V. Vaughan
+
+	That's true.  Thanks.
+
+2000-04-18  Akim Demaille
+
+        Well, you gave so much details that now there is not enough :)
+        Why did they change their mind?
+
+2000-06-02  Gary V. Vaughan
+
+        Not so much changed their mind as made a wrong initial choice.
+        Added some elucidation.
+@end ignore
+
+@item shell scripts
+For a shell script to work correctly on non-Cygwin development
+environments, it needs to be aware of and handle Windows path and
+directory separator and drive letters.  The Libtool scripts use the
+following idiom:
+
+@smallexample
+@group
+case "$path" in
+# Accept absolute paths.
+[\\/]* | [A-Za-\]:[\\/]*)
+  # take care of absolute paths
+  insert some code here
+  ;;
+*)
+  # what is left must be a relative path
+  insert some code here
+  ;;
+esac
+@end group
+@end smallexample
+@ignore
+1999-12-04  Leah Williams
+
+        Insert some code here to each other/reader?
+
+2000-05-31  Gary V. Vaughan
+
+        ...to the reader.
+
+2000-04-18  Akim Demaille
+
+        Maybe you should stress that \\ should be first in the classes.  I
+        suppose you mean the last star to be outside in [A-Za-\]:[\\/*].
+
+2000-06-02  Gary V. Vaughan
+
+        Thanks for the typo.  I'll add some notes about the [\\] thing
+        in my portable-sh chapter rather than cloud the discussion here.
+@end ignore
+
+@item source code
+@cindex path separator, mixed mode
+When porting Unix software to Cygwin, this is much less of an issue
+because these differences are hidden beneath the emulation layer, and by
+the @command{mount} command respectively; although I have found that
+@sc{gcc}, for example, returns a mixed mode @samp{/} and @samp{\} delimited
+include path which upsets Automake's dependency tracking on occasion.
+
+Cygwin provides convenience functions to convert back and forth between
+the different notations, which we call @dfn{POSIX paths} or path lists,
+and @dfn{WIN32 paths} or path lists:
+
+@ignore
+1999-12-04  Leah Williams
+
+        bullet  (does actual term start at "int"?) & should it be
+        return/s?
+
+2000-05-31  Gary V. Vaughan
+
+        See typeset output.
+@end ignore
+@deftypefn Function int posix_path_list_p (const char *@var{path})
+Return @samp{0}, unless @var{path} is a @samp{/} and @samp{:} separated
+path list.  The determination is rather simplistic, in that a string
+which contains a @samp{;} or begins with a single letter followed by a
+@samp{:} causes the @samp{0} return.
+@end deftypefn
+
+@ignore
+2000-04-18  Akim Demaille
+
+        You must leave a separator between the fn name and the paren,
+        otherwise it is incorrectly parsed by Texinfo.  Have a look at a
+        TeX or HTML copy to see what's wrong.  You must write
+
+        @deftypefn Function int posix_path_list_p (const char *@var{path})
+
+        This applies to all your entries.
+
+2000-06-02  Gary V. Vaughan
+
+        You know what?  I've been doing that for years, and never
+        noticed the adverse effects in the dvi file until you pointed it
+        out to me!  Good call, man!
+@end ignore
+
+@deftypefn Function void cygwin_win32_to_posix_path_list (const char *@var{win32}, char *@var{posix})
+Converts the @samp{\} and @samp{;} delimiters in @var{win32}, into the
+equivalent @samp{/} and @samp{:} delimiters while copying into the
+buffer at address @var{posix}.  This buffer must be preallocated before
+calling the function.
+@end deftypefn
+
+@deftypefn Function void cygwin_conv_to_posix_path (const char *@var{path}, char *@var{posix_path})
+If @var{path} is a @samp{\} delimited path, the equivalent, @samp{/}
+delimited path is written to the buffer at address @var{posix_path}.
+This buffer must be preallocated before calling the function.
+@end deftypefn
+
+@deftypefn Function void cygwin_conv_to_full_posix_path (const char *@var{path}, char *@var{posix_path})
+If @var{path} is a, possibly relative, @samp{\} delimited path, the
+equivalent, absolute, @samp{/} delimited path is written to the buffer
+at address @var{posix_path}.  This buffer must be preallocated before
+calling the function.
+@end deftypefn
+
+@deftypefn Function void cygwin_posix_to_win32_path_list (const char *@var{posix}, char *@var{win32})
+Converts the @samp{/} and @samp{:} delimiters in @var{posix}, into the
+equivalent @samp{\} and @samp{;} delimiters while copying into the
+buffer at address @var{win32}.  This buffer must be preallocated before
+calling the function.
+@end deftypefn
+
+@deftypefn Function void cygwin_conv_to_win32_path (const char *@var{path}, char *@var{win32_path})
+If @var{path} is a @samp{/} delimited path, the equivalent, @samp{\}
+delimited path is written to the buffer at address @var{win32_path}.
+This buffer must be preallocated before calling the function.
+@end deftypefn
+
+@deftypefn Function void cygwin_conv_to_full_win32_path (const char *@var{path}, char *@var{win32_path})
+If @var{path} is a, possibly relative, @samp{/} delimited path, the
+equivalent, absolute, @samp{\} delimited path is written to the buffer
+at address @var{win32_path}.  This buffer must be preallocated before
+calling the function.
+@end deftypefn
+@end table
+
+You can use these functions something like this:
+
+@example
+@group
+void
+display_canonical_path(const char *maybe_relative_or_win32)
+@{
+    char buffer[MAX_PATH];
+    cygwin_conv_to_full_posix_path(maybe_relative_or_win32,
+                                   buffer);
+    printf("canonical path for %s:  %s\n",
+           maybe_relative_or_win32, buffer);
+@}
+@end group
+@end example
+
+For your code to be fully portable however, you cannot rely on these Cygwin
+functions as they are not implemented on Unix, or even mingw or
+@sc{djgpp}.  Instead you should add the following to a shared header, and be
+careful to use it when processing and building paths and path lists:
+
+@example
+@group
+#if defined __CYGWIN32__ && !defined __CYGWIN__
+   /* For backwards compatibility with Cygwin b19 and
+      earlier, we define __CYGWIN__ here, so that
+      we can rely on checking just for that macro. */
+#  define __CYGWIN__  __CYGWIN32__
+#endif
+@end group
+
+@group
+#if defined _WIN32 && !defined __CYGWIN__
+   /* Use Windows separators on all _WIN32 defining
+      environments, except Cygwin. */
+#  define DIR_SEPARATOR_CHAR		'\\'
+#  define DIR_SEPARATOR_STR		"\\"
+#  define PATH_SEPARATOR_CHAR		';'
+#  define PATH_SEPARATOR_STR		";"
+#endif
+#ifndef DIR_SEPARATOR_CHAR
+   /* Assume that not having this is an indicator that all
+      are missing. */
+#  define DIR_SEPARATOR_CHAR		'/'
+#  define DIR_SEPARATOR_STR		"/"
+#  define PATH_SEPARATOR_CHAR		':'
+#  define PATH_SEPARATOR_STR		":"
+#endif /* !DIR_SEPARATOR_CHAR */
+@end group
+@end example
+
+@ignore
+2000-04-18  Akim Demaille
+
+        Why don't you use && in the first section?  It seems natural.
+        Also, you don't follow the GNU coding std.  For the space before
+        the () I wouldn't fight ;) but for the `!' at the end of negated
+        clause I will!  I'm referring to
+
+          #  endif /* __CYGWIN__ */
+
+        which should be
+
+          #  endif /*! __CYGWIN__ */
+
+2000-06-02  Gary V. Vaughan
+
+        Sure thing (wrt !__CYGWIN__).
+
+2000-04-18  Akim Demaille
+
+        So I propose
+
+          #if defined __CYGWIN32__ && !defined  __CYGWIN__
+           /* @r{For backwards compatibility with Cygwin b19 and}
+              @r{earlier, we define} __CYGWIN__ @r{here, so that}
+              @r{we can rely on checking just for that macro.} */
+           # define __CYGWIN__  __CYGWIN32__
+          #endif
+
+2000-06-02  Gary V. Vaughan
+
+        I have a (perhaps irrational) fear the there are preprocessors
+        out there that won't grok the `defined foo' syntax.  I always
+        try to use `#if', and if that can't express what I want I'll use
+        `#ifdef' and `#ifndef'.  I would love to be told that I am
+        paranoid and delusional though -- bear in mind that I am anal
+        enough to always support K&R compilers before you try and tell
+        me to stop worrying about obsolete compilers =)O|
+
+2000-06-05  Akim Demaille
+
+        Jim Meyering uses them in his files, which is definitely a sign
+        of portability.
+
+2000-06-05  Gary V. Vaughan
+
+        Okay, I'm convinced.  Thanks for the pep talk =)O|
+
+2000-04-18  Akim Demaille
+
+        Gary, I've always wondered whether Autoconf should provide
+        macros to define those CPP symbols.  What do you think?  The
+        main win would be to finally have uniformized names, people are
+        using many different names.
+
+2000-06-02  Gary V. Vaughan
+
+        I think that would be very cool.  But are there really all that
+        many people who care?  I wouldn't sweat too much while there is
+        all this other important stuff to do.  But eventually, I would
+        like to see it in.  Perhaps people will adopt my naming
+        convention after the book is published?
+@end ignore
+
+With this in place we can use the macros defined above to write code
+which will compile and work just about anywhere:
+
+@smallexample
+@group
+char path[MAXBUFLEN];
+snprintf(path, MAXBUFLEN, "%ctmp%c%s\n",
+         DIR_SEPARATOR_CHAR, DIR_SEPARATOR_CHAR, foo);
+file = fopen(path, "tw+");
+@end group
+@end smallexample
+
+@node Executable Filename Extensions
+@subsection Executable Filename Extensions
+
+As I already noted in @ref{Package Installation}, the fact that Windows
+requires that all program files be named with the extension @samp{.exe},
+is the cause of several inconsistencies in package behaviour between
+Windows and Unix.
+
+For example, where Libtool is involved, if a package
+builds an executable which is linked against an as yet uninstalled
+library, @command{libtool} puts the real executable in the @file{.libs}
+(or @file{_libs}) subdirectory, and writes a shell script to the
+original destination of the executable@footnote{@xref{Executing
+Uninstalled Binaries}.}, which ensures the runtime library search paths
+are adjusted to find the  correct (uninstalled) libraries that it
+depends upon.  On Windows, only a @sc{pe-coff} executable is allowed to bear
+the @code{.exe} extension, so the wrapper script has to be named
+differently to the executable it is substituted for (i.e the script is
+only executed correctly by the operating system if it does @strong{not}
+have an @file{.exe} extension). The result of this confusion is that the
+@file{Makefile} can't see some of the executables it builds with Libtool
+because the generated rules assume an @file{.exe} extension will be in
+evidence.  This problem will be addressed in some future revision of
+Automake and Libtool.  In the mean time, it is sometimes necessary to
+move the executables from the @file{.libs} directory to their install
+destination by hand.  The continual rebuilding of wrapped executables at
+each invocation of @command{make} is another symptom of using wrapper
+scripts with a different name to the executable which they represent.
+
+It is very important to correctly add the @samp{.exe} extension to
+program file names in your @file{Makefile.am}, otherwise many of the
+generated rules will not work correctly while they await a file without
+the @samp{.exe} extension.  Fortunately, Automake will do this for you
+where ever it is able to tell that a file is a program -- everything
+listed in @samp{bin_PROGRAMS} for example.  Occasionally you will find
+cases where there is no way for Automake to be sure of this, in which
+case you must be sure to add the @samp{$(EXEEXT)} suffix.  By
+structuring your @file{Makefile.am} carefully, this can be avoided in
+the majority of cases:
+
+@example
+TESTS = $(check_SCRIPTS) script-test bin1-test$(EXEEXT)
+@end example
+
+@noindent
+could be rewritten as:
+
+@example
+check_PROGRAMS = bin1-test
+TESTS = $(check_SCRIPTS) script-test $(check_PROGRAMS)
+@end example
+
+The value of @samp{EXEEXT} is always set correctly with respect to the
+host machine if you use Libtool in your project.  If you don't use
+Libtool, you must manually call the Autoconf macro, @samp{AC_EXEEXT} in
+your @file{configure.in} to make sure that it is initialiased
+correctly.  If you don't call this macro (either directly or implicitly
+with @samp{AC_PROG_LIBTOOL}), your project will almost certainly not
+build correctly on Cygwin.
+
+
+@node DLLs with Libtool
+@section DLLs with Libtool
+@ignore
+1999-12-04  Leah Williams
+
+        I guess I'm still confused about what all is discussed in this
+        chapter.  Shared libraries I have trouble understanding where it
+        is now. Be sure to be clear in the introduction what topics are
+        included (& list them in order-- whether as sentences or
+        bulleted lists) and make sure the headings match--Also,
+        transitions connecting the various sections help. Such as "Just
+        as autools do x when installed, they do x when you try to create
+        a friendly package"  etc.
+
+2000-05-31  Gary V. Vaughan
+
+        Okay.  Point taken:  I have reworded accordingly.
+@end ignore
+
+Windows' @sc{dll}s, are very different to their nearest equivalent on
+Unix: shared libraries.  This makes Libtool's job of hiding both
+behind the same abstraction extremely difficult --  it is not fully
+implemented at the time of writing.  As a package author that wants to
+use @sc{dll}s on Windows with Libtool, you must construct your packages
+very carefully to enable them to build and link with @sc{dll}s in the
+same way that they build and link with shared libraries on Unix.
+
+@ignore
+1999-12-04  Leah Williams
+
+        You're really talking about how Windows is worse/problematic,
+        not just how they differ. You might consider word choice.
+
+2000-05-31  Gary V. Vaughan
+
+        Good point.  Thanks.
+@end ignore
+Some of the difficulties that must be addressed follow:
+
+@itemize @bullet
+@item
+At link time, a @sc{dll} effectively consists of two parts; the @sc{dll}
+itself which contains the shared object code, and an import library
+which consists of the @dfn{stub}@footnote{In general, a stub function will
+satisfy the linker's requirements to resolve an undefined symbol at
+link time, but has no functionality of its own.  In this context, the
+stubs do have some boilerplate code to pass execution flow into the
+correct full function in the @sc{dll}.} functions which are actually
+linked into the executable, at a rate of one stub per entry point.  Unix
+has a run time loader which links shared libraries into the main program
+as it is executed, so the shared library is but a single file.
+@ignore
+1999-12-04  Leah Williams
+
+        What does unix do?
+
+2000-05-31  Gary V. Vaughan
+
+        Added.  Thanks.
+
+2000-04-18  Akim Demaille
+
+        Should `stub' be explained?  In the glossary probably.
+
+2000-06-02  Gary V. Vaughan
+
+        We have no glossary, so I added a footnote.
+@end ignore
+
+@item
+Pointer comparisons do not always work as expected when the pointers
+cross a @sc{dll} boundary, since you can be comparing the addresses of
+the stubs in the import library rather than the addresses of the actual
+objects in the @sc{dll}.  @sc{gcc} provides the @code{__declspec}
+extension to alleviate this problem a little.
+
+@item
+The search algorithm for the runtime library loader is very different to
+the algorithms typically used on Unix; I'll explain how to dela with
+this in @ref{Runtime Loading of DLLs}.
+@ignore
+1999-12-04  Leah Williams
+
+        say where it's discussed later.
+
+2000-05-31  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+@item
+All of the symbols required by a @sc{dll} at runtime, must be resolved at
+link time.  With some creative use of import libraries, it is usually
+possible to work around this shortcoming, but it is easy to forget this
+limitation if you are developing on a modern system which has lazy
+symbol resolution.  Be sure to keep it at the back of your mind if you
+intend to have your package portable to Windows.
+@ignore
+1999-12-04  Leah Williams
+
+        Not true of alternative?
+
+2000-05-31  Gary V. Vaughan
+
+        Correct.  I think the implication is strong enough without
+        rewording.
+@end ignore
+
+@item
+Worst of all, is that it is impossible to reference a non-pointer item
+imported from a @sc{dll}.  In practice, when you think you have exported a
+data item from a @sc{dll}, you are actually exporting it's address (in fact
+the address of the address if you take the import library into
+consideration), and it is necessary to add an extra level of indirection
+to any non-pointers imported from a @sc{dll} to take this into account.  The
+@sc{gnu} gcc @code{__declspec} extension can handle this automatically
+too, at the expense of obfuscating your code a little.
+@end itemize
+
+Cygwin support in Libtool is very new, and is being developed very
+quickly, so newer versions generally improve vastly over their
+predecessors when it comes to Cygwin, so you should get the newest
+release you can.  The rest of this section is correct with respect to
+Libtool version 1.3.5.
+@ignore
+1999-12-04  Leah Williams
+
+        By this do you mean versions?
+
+2000-05-25  Ben Elliston
+
+        Yes, he does.
+@end ignore
+
+In some future version, Libtool might be able to work as transparently
+as Autoconf and Automake, but for now designing your packages as
+described in this chapter will help Libtool to help us have @sc{dll}s
+and Unix shared libraries from the same codebase.
+
+The bottom line here is that setting a package up to build and use
+modules and libraries as both @sc{dll}s @emph{and} Unix shared libraries
+is not straightforward, but the rest of this section provides a recipe
+which I have used successfully in several projects, including the module
+loader for @sc{gnu} @command{m4} 1.5 which works correctly with
+@sc{dll}s on Windows.  Lets create @dfn{hello world} as a @sc{dll}, and
+an executable where the runtime loader loads the @sc{dll}.
+
+@ignore
+1999-12-04  Leah Williams
+
+        The topics we'll cover are as follows: (preferably something
+        less generic).
+
+2000-05-31  Gary V. Vaughan
+
+        See STYLE.
+@end ignore
+@menu
+* DLL Support with COLLECTIVE::
+* A Makefile.am for DLLs::
+* A configure.in for DLLs::
+* Handling Data Exports from DLLs::
+* Runtime Loading of DLLs::
+@end menu
+
+@ignore
+1999-12-04  Leah Williams
+
+        Isn't COLLECTIVE concerned with all that's in this chapter?
+
+2000-05-31  Gary V. Vaughan
+
+        All that's in the book in fact.  But TeXinfo wants unique
+        headings for every node -- besides the extra description can't
+        hurt.
+@end ignore
+@node DLL Support with COLLECTIVE
+@subsection DLL Support with COLLECTIVE
+
+Here are the contents of the three source files used as an example for
+the remainder of this chapter (for brevity, they are missing most of the
+special code one would normally use to maximise portability):
+@ignore
+1999-12-04  Leah Williams
+
+        Say where in book
+
+2000-05-31  Gary V. Vaughan
+
+        Almost everywhere, the various ``Portability...'' chapters, the
+        worked example I built over three large chapters, and probably
+        more could be gleaned from other examples and prose.  I couldn't
+        point to a specific section, so I removed the reference entirely.
+@end ignore
+
+@file{hello.h} documents the interface to @file{libhello.dll}:
+@example
+@group
+#ifndef HELLO_H
+#define HELLO_H 1
+
+extern int hello (const char *who);
+
+#endif /* !HELLO_H */
+@end group
+@end example
+
+@file{hello.c} is the implementation of @file{libhello.dll}:
+@example
+@group
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#include <stdio.h>
+
+#include "hello.h"
+
+int
+hello (const char *who)
+@{
+    printf("Hello, %s!\n", who);
+    return 0;
+@}
+@end group
+@end example
+
+@file{main.c} is the source for the executable which uses
+@file{libhello.dll}:
+@example
+@group
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#include "hello.h"
+
+int
+main (int argc, const char *const argv[])
+@{
+    return hello("World");
+@}
+@end group
+@end example
+
+@node A Makefile.am for DLLs
+@subsection A Makefile.am for DLLs
+
+First of all we will @dfn{autoconfiscate}@footnote{Some people prefer
+to use the term @dfn{autoconfuse} -- if you should meet any, be sure to
+tell them about this book} the source files above with a minimal setup:
+@ignore
+2000-01-12  Alexandre Oliva
+
+	It might be funny to mention that some people prefer the term
+	autoconfuse, but that those people should be reading this book.
+
+2000-06-21  Gary V. Vaughan
+
+	:-D :-D  I like that.  I'll be in touch next time I have to give
+	a wedding speech. =)O|
+@end ignore
+
+@file{Makefile.am} is used to generate the @file{Makefile.in} template
+for the @file{configure} script:
+@example
+@group
+## Process this file with automake to produce Makefile.in.
+
+lib_LTLIBRARIES		= libhello.la
+libhello_la_SOURCES     = hello.c
+libhello_la_LDFLAGS     = -no-undefined -version-info 0:0:0
+
+include_HEADERS         = hello.h
+
+bin_PROGRAMS            = hello
+hello_SOURCES           = main.c
+hello_LDADD             = libhello.la
+@end group
+@end example
+
+The new feature introduced in this file is the use of the
+@samp{-no-undefined} flag in the @code{libhello_la_LDFLAGS} value.
+This flag is required for Windows @sc{dll} builds.  It asserts to the linker
+that there are no undefined symbols in the @file{libhello.la} target,
+which is one of the requirements for building a @sc{dll} outlined
+earlier.  @xref{Creating Libtool Libraries with Automake}.
+
+For an explanation of the contents of the rest of this @file{Makefile.am},
+@xref{Introducing GNU Automake, , Introducing GNU automake}.
+
+@node A configure.in for DLLs
+@subsection A configure.in for DLLs
+
+@file{configure.in} is used to generate the @file{configure} script:
+@example
+@group
+# Process this file with autoconf to create configure.
+
+AC_INIT(hello.h)
+AM_CONFIG_HEADER(config.h:config.hin)
+AM_INIT_AUTOMAKE(hello, 1.0)
+
+AC_PROG_CC
+AM_PROG_CC_STDC
+AC_C_CONST
+AM_PROG_LIBTOOL
+
+AC_OUTPUT(Makefile)
+@end group
+@end example
+
+@ignore
+2000-04-18  Akim Demaille
+
+        `config.hin' is often used, and seems more understandable.
+
+2000-06-02  Gary V. Vaughan
+
+        Alrighty then.
+@end ignore
+
+The @samp{AC_PROG_CC} and @samp{AM_PROG_CC_STDC} macros in the
+@file{configure.in} above will conspire to find a suitable compiler for
+the C code in this example, and to discover any extra switches required
+to put that compiler into an @acronym{ANSI} mode.  I have used the
+@code{const} keyword in the sources, so I need to specify the
+@samp{AC_C_CONST} macro, in case the compiler doesn't understand it, and
+finally I have specified the @samp{AM_PROG_LIBTOOL} macro since I want
+the library to be built with Libtool.
+
+In order to set the build environment up we need to create the
+autogenerated files:
+
+@smallexample
+@group
+$ ls
+Makefile.in    hello.c   main.c
+configure.in   hello.h
+$ aclocal
+$ autoheader
+$ libtoolize --force --copy
+$ automake --foreign --add-missing --copy
+automake: configure.in: installing `./install-sh'
+automake: configure.in: installing `./mkinstalldirs'
+automake: configure.in: installing `./missing'
+$ autoconf
+$ ls
+Makefile.am    config.hin     hello.c       ltmain.sh      stamp-h.in
+Makefile.in    config.sub     hello.h       main.c
+aclocal.m4     configure      install-sh    missing
+config.guess   configure.in   ltconfig      mkinstalldirs
+@end group
+@end smallexample
+
+@ignore
+2000-04-18  Akim Demaille
+
+        Huh???
+
+        $ autoheader
+        $ mv config.h.in config.in
+
+        What's the point?  Autoheader does this properly!!!
+
+2000-06-02  Gary V. Vaughan
+
+        Banished.  Bad cut and paste I guess -- I vaguely remember
+        having trouble with this at the time.  Works for me now though!
+
+2000-01-12  Alexandre Oliva
+
+	aclocal must be run before autoheader, otherwise autoheader
+        won't figure out AM_CONFIG_HEADER calls AC_CONFIG_HEADER, and
+        will output to config.h.in instead of config.in.  But autoheader
+        should be run before automake, at least for the first time,
+        otherwise automake will complain about the lack of config.in and
+        will not add it to the dist rules.  So the bootstrapping order,
+        contrary to widespread advice and even autoconf's autoreconf, is
+
+        	aclocal -> autoheader -> automake -> autoconf
+
+2000-06-21  Gary V. Vaughan
+
+	Thanks Alexandre, it all makes sense now!  This information is
+	already in my dependencies appendix.  Perhaps I should read that
+        at some point =)O|  Doh!
+@end ignore
+
+If you have already tried to build @sc{dll}s with Libtool, you have
+probably noticed that the first point of failure is during the
+configuration process.  For example, running the new @command{configure}
+script you might see:
+@ignore
+1999-12-04  Leah Williams
+
+        Sentence confusing. Would help to rearrange/split If you have
+        tried to build @sc{dll}s with libtool, you have probably noticed that
+        the first point of failure is during the configuration process.
+        When you run the x script, you see---just one option.
+
+2000-05-31  Gary V. Vaughan
+
+        Thanks.  Done.
+@end ignore
+
+@smallexample
+@group
+...
+checking if libtool supports shared libraries... yes
+checking if package supports dlls... no
+checking whether to build shared libraries... no
+...
+@end group
+@end smallexample
+
+@cindex AC_LIBTOOL_WIN32_DLL
+@command{libtool} provides a macro, @samp{AC_LIBTOOL_WIN32_DLL}, which
+must be added to a package's @file{configure.in} to communicate to the
+@command{libtool} machinery that the package supports @sc{dll}s.
+Without this macro, @command{libtool} will never try to build a @sc{dll}
+on Windows.  Add this macro to @file{configure.in} before the
+@samp{AM_PROG_LIBTOOL} macro, and try again:
+
+@ignore
+2000-04-18  Akim Demaille
+
+        Err, you said three times `a macro', but I confess the reader
+        would appreciate that you give its name :)  Before the end of
+        the section.
+
+2000-06-02  Gary V. Vaughan
+
+        Just checking that you were still awake =)O|
+@end ignore
+
+@smallexample
+@group
+$ make
+cd . && aclocal
+cd . && automake --foreign Makefile
+cd . && autoconf
+@end group
+...
+@group
+checking if libtool supports shared libraries... yes
+checking if package supports dlls... yes
+checking whether to build shared libraries... yes
+@end group
+...
+@group
+gcc -DHAVE_CONFIG_H -I. -I. -I. -g -O2 -Wp,-MD,.deps/hello.pp \
+-c  -DDLL_EXPORT -DPIC hello.c -o .libs/hello.lo
+gcc -DHAVE_CONFIG_H -I. -I. -I. -g -O2 -Wp,-MD,.deps/hello.pp \
+-c hello.c -o hello.o >/dev/null 2>&1
+mv -f .libs/hello.lo hello.lo
+@end group
+...
+@group
+gcc -g -O2 -o ./libs/hello main.o .libs/libimp-hello-0-0-0.a \
+-Wl,--rpath -Wl,/usr/local/lib
+creating hello
+@end group
+...
+@group
+$ ./hello
+Hello, World!
+@end group
+@end smallexample
+
+If you run this and watch the full output of the @samp{make} command,
+Libtool uses a rather contorted method of building @sc{dll}s, with
+several invocations each of @command{dlltool} and @command{gcc}.  I have
+omitted these from the example above, since they really are very ugly,
+and in any case are almost incomprehensible to most people.  To see it
+all in its full horror you can always examine the output after running
+the commands yourself!  In a future release of Cygwin, recent work on
+the binutils linker by DJ Delorie, will allow @command{gcc} to link
+@sc{dll}s in a single pass using the same syntax used on other systems
+to produce shared libraries. Libtool will adopt this method when it
+becomes available, deprecating the use of @command{dlltool}.
+@ignore
+1999-12-04  Leah Williams
+
+        Part in ()s could be a footnote.
+
+2000-05-31  Gary V. Vaughan
+
+        Done.  Thankyou.
+@end ignore
+
+@noindent
+I have extracted the interesting lines from amongst the many calls to
+@command{dlltool}@footnote{Part of the Binutils port to Windows, and
+necessary to massage compiler objects into a working @sc{dll}.} and
+@command{gcc} generated by @command{make} in the shell log.  The main
+thing to notice is that we have a @samp{hello} binary, which is
+executable, and which gives the right result when we run it! From the
+partial log above, it certainly appears that it has built
+@samp{libhello} as a @sc{dll} and linked that into @samp{hello}, but
+just to double check we can use @command{ldd}@footnote{This is a shell
+script for Cygwin which emulates the behaviour of @command{ldd} on
+@sc{gnu}/Linux, available online from
+@uref{http://www.oranda.demon.co.uk/dist/ldd}.}:
+
+@ignore
+2000-01-12  Alexandre Oliva
+
+	The output of the full comand does not contain any invocations
+        of dlltool!  In fact, the commands to build the dll have been
+        omitted.  Was this intentional?
+
+2000-06-21  Gary V. Vaughan
+
+	Yup.  I've added a note by way of explanation now.
+
+2000-04-18  Akim Demaille
+
+        Sorry, but I see no remaining call to dlltool.  And what is it?
+
+2000-06-02  Gary V. Vaughan
+
+        On the editor's floor =)O|  Added a footnote to explain what it
+        is, but it is _very_ ugly, so I don't want to show it...
+
+1999-12-04  Leah Williams
+
+        What are you checking?
+
+2000-05-31  Gary V. Vaughan
+
+        Bad sentence.  Better now.  Thanks.
+@end ignore
+
+@smallexample
+@group
+$ libtool --mode=execute ldd ./hello
+lt-hello.exe    -> /tmp/.libs/lt-hello.exe
+libhello-0-0-0.dll      -> /tmp/.libs/libhello-0-0-0.dll
+cygwin1.dll     -> /usr/bin/cygwin1.dll
+kernel32.dll    -> /WINNT/system32/kernel32.dll
+ntdll.dll       -> /WINNT/system32/ntdll.dll
+advapi32.dll    -> /WINNT/system32/advapi32.dll
+user32.dll      -> /WINNT/system32/user32.dll
+gdi32.dll       -> /WINNT/system32/gdi32.dll
+rpcrt4.dll      -> /WINNT/system32/rpcrt4.dll
+@end group
+@end smallexample
+
+So now you know how to build and link a simple Windows @sc{dll} using
+COLLECTIVE:  You add @samp{-no-undefined} to the Libtool library
+@samp{LDFLAGS}, and include the @samp{AC_LIBTOOL_WIN32_DLL} macro in
+your @file{configure.in}.
+
+@node Handling Data Exports from DLLs
+@subsection Handling Data Exports from DLLs
+
+Unfortunately, things are not quite that simple in reality, except in
+the rare cases where no data symbols are exported across a @sc{dll} boundary.
+If you look back at the example in @ref{A configure.in for DLLs, , A
+configure.in for DLLs}, you will notice that the Libtool object,
+@file{hello.lo} was built with the preprocessor macro @samp{DLL_EXPORT}
+defined.  Libtool does this deliberately so that it is possible to
+distinguish between a static object build and a Libtool object build,
+from within the source code.
+
+Lets add a data export to the @sc{dll} source to illustrate:
+
+The @file{hello.h} header must be changed quite significantly:
+@example
+@group
+#ifndef HELLO_H
+#define HELLO_H 1
+
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+@end group
+
+@group
+#ifdef _WIN32
+#  ifdef DLL_EXPORT
+#    define HELLO_SCOPE         __declspec(dllexport)
+#  else
+#    ifdef LIBHELLO_DLL_IMPORT
+#      define HELLO_SCOPE       extern __declspec(dllimport)
+#    endif
+#  endif
+#endif
+#ifndef HELLO_SCOPE
+#  define HELLO_SCOPE           extern
+#endif
+
+HELLO_SCOPE const char *greet;
+extern int hello (const char *who);
+
+#endif /* !HELLO_H */
+@end group
+@end example
+
+@noindent
+The nasty block of preprocessor would need to be shared among all the
+source files which comprise the @file{libhello.la} Libtool library,
+which in this example is just @file{hello.c}.  It needs to take care of
+five different cases:
+
+@table @asis
+@item compiling @file{hello.lo}
+When compiling the Libtool object which will be included in the
+@sc{dll}, we need to tell the compiler which symbols are exported data
+so that it can  do the automatic extra dereference required to refer to
+that data from a program which uses this @sc{dll}.  We need to flag the
+data with @code{__declspec(dllexport)}, @xref{DLLs with Libtool}.
+
+@item compilation unit which will link with @file{libhello-0-0-0.dll}
+When compiling an object which will import data from the @sc{dll}, again we
+need to tell the compiler so that it can perform the extra dereference,
+except this time we use @code{extern __declspec(dllimport)}.  From the
+preprocessor block, you will see that we need to define
+@samp{LIBHELLO_DLL_IMPORT} to get this define, which I will describe
+shortly.
+
+@ignore
+2000-04-18  Akim Demaille
+
+        s/extern__declspec/extern __declspec/
+
+2000-06-02  Gary V. Vaughan
+
+        Thanks.
+
+2000-01-12  Alexandre Oliva
+
+	There should be a space between extern and __declspec.
+
+2000-06-21  Gary V. Vaughan
+
+	Great minds think alike?
+@end ignore
+
+@item compiling @file{hello.o}
+When compiling the object for inclusion in the static archive, we must be
+careful to hide the @code{__declspec()} declarations from the compiler,
+or else it will start dereferencing variables for us by mistake at
+runtime, and in all likelihood cause a segmentation fault.  In this case
+we want the compiler to see a simple @code{extern} declaration.
+
+@item compilation unit which will link with @file{libhello.a}
+Similarly, an object which references a data symbol which will be
+statically linked into the final binary from a static archive must not
+see any of the @w{@code{__declspec()}} code, and requires a simple
+@code{extern}.
+
+@item non Windows host
+It seems obvious, but we must also be careful not to contaminate the
+code when it is compiled on a machine which doesn't need to jump through
+the @sc{dll} hoops.
+@end table
+
+The changes to @file{hello.c} are no different to what would be required
+on a Unix machine.  I have declared the @code{greet} variable to
+allow the caller to override the default greeting:
+
+@ignore
+2000-01-12  Alexandre Oliva
+
+	Shouldn't hello.c include config.h too?  If not for anything
+        else, to be able to test whether standard headers are available
+        (stdio.h), and if const is supported?
+
+2000-06-21  Gary V. Vaughan
+
+	Oops, yes.  I'm not sure about the stdio thing though.  Many of
+        my examples assume that where there is a (working) C compiler,
+        there is a stdio.h.  Is this a bad assumption?
+@end ignore
+
+@example
+@group
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#include <stdio.h>
+
+#include "hello.h"
+
+const char *greet = "Hello";
+@end group
+
+@group
+int
+hello (const char *who)
+@{
+    printf("%s, %s!\n", greet, who);
+    return 0;
+@}
+@end group
+@end example
+
+Again, since the @sc{dll} specific changes have been encapsulated in the
+@file{hello.h} file, enhancements to @file{main.c} are unsurprising too:
+
+@ignore
+2000-01-12  Alexandre Oliva
+
+	The GNU coding standards seem to recommend #if instead of
+        #ifdef, so that one can define -DHAVE_CONFIG_H=0 to disable the
+        use of config.h. Not that it matters much, but it's always good
+        to follow principles...
+
+2000-06-21  Gary V. Vaughan
+
+	Francois Pinard (I think it was) told me much the same after
+        looking at some other code of mine several months ago, whereupon
+        I adopted the convention.  I must have written this chapter
+        before then.  Thanks for pointing it out to me.
+@end ignore
+
+@example
+@group
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#include "hello.h"
+
+int
+main (int argc, const char *const argv[])
+@{
+    if (argc > 1)
+      @{
+        greet = argv[1];
+      @}
+    return hello("World");
+@}
+@end group
+@end example
+
+The final thing to be aware of is to be careful about ensuring that
+@samp{LIBHELLO_DLL_IMPORT} is defined when we link an executable against
+the @file{libhello} @sc{dll}, but not defined if we link it against the
+static archive.  It is impossible to automate this completely,
+particularly when the executable in question is from another package and
+is using the installed @file{hello.h} header.  In that case it is the
+responsibility of the author of that package to probe the system with
+@command{configure} to decide whether it will be linking with the
+@sc{dll} or the static archive, and defining @samp{LIBHELLO_DLL_IMPORT}
+as appropriate.
+@ignore
+2000-01-12  Alexandre Oliva
+
+        Not even within a single package is it possible to tell for sure
+        whether libtool is going to build a DLL or only a static
+        library.  For example, if some dependencies are dropped for
+        being static, libtool will disregard -no-undefined (or, if it
+        doesn't, it should!).
+
+        One possible solution to this problem is to define a function in
+        the library that returns 1 in the DLL and 0 in the static
+        library (that's easy to accomplish thanks to -DDLL_EXPORT).
+
+        Then, you must link a program with the library, to check whether
+        it is a DLL, and output a header file, that all of the clients
+        of the library include.  Too ugly, but I think it's the only
+        100% safe way :-(
+
+        And even then, it does not support cross builds.  To get cross
+        builds, you'd have to define the function in only one of the
+        versions of the library, and test whether the link succeeds or
+        not to tell whether to define *_DLL_IMPORT or not.  Gee!  It
+        keeps getting uglier!  :-(
+
+2000-06-21  Gary V. Vaughan
+
+	I was going to leave that as an exercise for the reader =)O|
+        But since you spelled it out so nicely, I hope you don;t mind ,e
+        paraphrasing you in the text of the chapter.  I don't see why
+	I owould need to output the header dynamically though -- isn't
+        it enough that *_DLL_IMPORT gets defined correctly?
+
+1999-12-04  Leah Williams
+
+        "The final thing" confusing because we've been listed cases, not
+        things to do. Seems like a fine line--but I'd say be more
+        explicit--the final thing we must take of when x"
+
+2000-05-31  Gary V. Vaughan
+
+        Agreed.  Danke sch:on.
+@end ignore
+
+Things are a little simpler when everything is under the control of a
+single package, but even then it isn't quite possible to tell for sure
+whether Libtool is going to build a @sc{dll} or only a static  library.
+For example, if some dependencies are dropped for being static, Libtool
+may disregard @option{-no-undefined} (@pxref{Creating Libtool Libraries
+with Automake}).  One possible solution is:
+
+@enumerate 1
+@item
+Define a function in the library that invokes @samp{return 1} from a
+@sc{dll}.   Fortunately that's easy to accomplish thanks to
+@option{-DDLL_EXPORT}, in this case, by adding the following to
+@file{hello.c}:
+
+@example
+#if defined WIN32 && defined DLL_EXPORT
+char
+libhello_is_dll (void)
+@{
+  return 1;
+@}
+#endif /* WIN32 && DLL_EXPORT */
+@end example
+
+@item
+Link a program with the library, and check whether it is a @sc{dll} by
+seeing if the link succeeded.
+
+@item
+To get cross builds to work, you must, in the same vein, test whether
+linking a program which calls @samp{libhello_is_dll} succeeds to tell
+whether or not to define @samp{LIBHELLO_DLL_IMPORT}.
+@end enumerate
+
+As an example of building the @file{hello} binary we can add the
+following code to @file{configure.in}, just before the call
+to @samp{AC_OUTPUT}:
+
+@smallexample
+@group
+# ----------------------------------------------------------------------
+# Win32 objects need to tell the header whether they will be linking
+# with a dll or static archive in order that everything is imported
+# to the object in the same way that it was exported from the
+# archive (extern for static, __declspec(dllimport) for dlls)
+# ----------------------------------------------------------------------
+LIBHELLO_DLL_IMPORT=
+case "$host" in
+*-*-cygwin* | *-*-mingw* )
+  if test X"$enable_shared" = Xyes; then
+    AC_TRY_LINK_FUNC([libhello_is_dll],
+                     [LIBHELLO_DLL_IMPORT=-DLIBHELLO_DLL_IMPORT])
+  fi
+  ;;
+esac
+AC_SUBST(LIBHELLO_DLL_IMPORT)
+@end group
+@end smallexample
+
+@ignore
+2000-04-18  Akim Demaille
+
+        I would use @i instead of @r, it doesn't come right on the
+        paper.
+
+2000-06-05  Gary V. Vaughan
+
+        The advice in the texinfo manual is to use @r.  On the other
+        hand, this was the only chapter I used that convention and I
+        don't know whether to carry it through, or remove the @r's
+        entirely.
+
+2000-04-18  Akim Demaille
+
+        Also, what is this os2 doing here?  I want to know more!  How does
+        libtool behave there?  You said some, say more!
+
+2000-06-05  Gary V. Vaughan
+
+        Cut and paste from the libtool sources!  I certainly don't want
+        to get into that here... besides I'm not even entirey sure what
+        OS2 is. =)O|
+@end ignore
+
+And we must also arrange for the flag to be passed while compiling any
+objects which will end up in a binary which links with the dll.  For
+this simple example, only @file{main.c} is affected, and we can add the
+following rule to the end of @file{Makefile.am}:
+
+@smallexample
+@group
+main.o: main.c
+        $(COMPILE) @@LIBHELLO_DLL_IMPORT@@ -c main.c
+@end group
+@end smallexample
+
+In a more realistic project, there would probably be dozens of files
+involved, in which case it would probably be easier to move them all
+to a separate subdirectory, and give them a @file{Makefile.am} of their
+own which could include:
+
+@ignore
+2000-04-18  Akim Demaille
+
+        s/to to/to/.
+
+2000-06-02  Gary V. Vaughan
+
+        Thanks again.
+@end ignore
+
+@smallexample
+CPPFLAGS        = @@LIBHELLO_DLL_IMPORT@@
+@end smallexample
+
+Now, lets put all this into practice, and check that it works:
+
+@example
+@group
+$ make
+cd . && aclocal
+cd . && automake --foreign Makefile
+cd . && autoconf
+@end group
+...
+@group
+checking for gcc option to produce PIC ... -DDLL_EXPORT
+checking if gcc PIC flag  -DDLL_EXPORT works... yes
+...
+checking whether to build shared libraries... yes
+@end group
+...
+@group
+gcc -DHAVE_CONFIG_H -I. -I. -I. -g -O2 -Wp,-MD,.deps/hello.pp \
+-c  -DDLL_EXPORT -DPIC hello.c -o .libs/hello.lo
+gcc -DHAVE_CONFIG_H -I. -I. -I. -g -O2 -Wp,-MD,.deps/hello.pp \
+-c hello.c -o hello.o >/dev/null 2>&1
+@end group
+...
+@group
+gcc -DHAVE_CONFIG_H -I. -I. -I.     -g -O2 -DLIBHELLO_DLL_IMPORT \
+-c main.c
+@end group
+...
+@group
+gcc -g -O2 -o ./libs/hello main.o .libs/libimp-hello-0-0-0.a \
+-Wl,--rpath -Wl,/usr/local/lib
+creating hello
+@end group
+...
+@group
+$ ./hello
+Hello, World!
+$ ./hello Howdy
+Howdy, World!
+@end group
+@end example
+
+The recipe also works if I use only the static archives:
+
+@example
+@group
+$ make clean
+...
+$ ./configure --disable-shared
+...
+checking whether to build shared libraries... no
+...
+@end group
+@group
+$ make
+...
+gcc -DHAVE_CONFIG_H -I. -I. -I. -f -O2 -Wp,-MD,.deps/hello.pp \
+-c hello.c -o hello.o
+...
+ar cru ./libs/libhello.a  hello.o
+...
+gcc -DHAVE_CONFIG_H -I. -I. -I.     -g -O2 -c main.c
+...
+gcc -g -O2 -o hello main.o ./.libs/libhello.a
+$ ./hello
+Hello, World!
+$ ./hello "G'Day"
+G'day, World!
+@end group
+@end example
+
+And just to be certain that I am really testing a new statically linked
+executable:
+
+@smallexample
+@group
+$ ldd ./hello
+hello.exe       -> /tmp/hello.exe
+cygwin1.dll     -> /usr/bin/cygwin1.dll
+kernel32.dll    -> /WINNT/system32/kernel32.dll
+ntdll.dll       -> /WINNT/system32/ntdll.dll
+advapi32.dll    -> /WINNT/system32/advapi32.dll
+user32.dll      -> /WINNT/system32/user32.dll
+gdi32.dll       -> /WINNT/system32/gdi32.dll
+rpcrt4.dll      -> /WINNT/system32/rpcrt4.dll
+@end group
+@end smallexample
+
+@node Runtime Loading of DLLs
+@subsection Runtime Loading of DLLs
+
+@sc{dll}s built using the recipe described in this chapter can be loaded at
+runtime in at least three different ways:
+
+@itemize @bullet
+@item
+Using the Cygwin emulation of the @sc{posix}
+@code{dlopen}/@code{dlclose}/@code{dlsym} @sc{api}.  Note however that
+the emulation is broken up until at least version b20.1, and
+@code{dlopen(NULL)} doesn't work at all.
+@ignore
+1999-12-04  Leah Williams
+
+        Doesn't work in which version? I'm confused.
+        Does whether it's complete/not matter if it doesn't work at
+        all?
+
+2000-05-31  Gary V. Vaughan
+
+        Agreed. And addressed.
+@end ignore
+
+@ignore
+2000-04-18  Akim Demaille
+
+        @itemize needs an argument, which is the sign used at each new item.
+        Often @minus or @bullet is used.
+
+2000-06-02  Gary V. Vaughan
+
+        Done.
+@end ignore
+
+@item
+Using the Windows
+@code{LoadLibrary}/@code{FreeLibrary}/@code{GetProcAddress} @sc{api}.
+@ignore
+1999-12-04  Leah Williams
+
+	Using the windows? What do you mean by "the Windows"? Or will
+        that be clear to the reader?
+
+2000-05-31  Gary V. Vaughan
+
+        See typeset document.
+@end ignore
+
+@item
+Using libltdl, which is covered in more detail in @ref{Using GNU
+libltdl, , Using GNU libltdl}.
+@end itemize
+
+@node Package Installation
+@section Package Installation
+
+@ignore
+1999-12-04  Leah Williams
+
+        From description in the beginning, I thought this would be the
+        main part of the chapter--with sections on porting your own &
+        for porting others.
+
+2000-05-31  Gary V. Vaughan
+
+        That was not the intention... better now?  Otherwise how can I
+        fix that?
+
+1999-12-04  Leah Williams
+
+        Also, doesn't sound like a first paragraph in a section.  Give
+        more of an intro here to command itself before saying when it's
+        thwarted (even if just to say, "as we discussed in section x,
+        the y command is z)
+
+2000-05-31  Gary V. Vaughan
+
+        Agreed.
+@end ignore
+Having successfully built a COLLECTIVE managed package, a Systems
+Administrator will typically want to install the binaries, libraries and
+headers of the package.  The @sc{gnu} standards dictate that this be
+done with the command @command{make install}, and indeed Automake always
+generates @file{Makefile}s which work in this way.
+
+Unfortunately, this @command{make install} command is often thwarted by
+the peculiarities of Window's file system, and after an apparently
+successful installation, often the Windows installation conventions are
+not always satisfied, so the installed package may not work, even though
+the uninstalled build is fully operational.
+
+There are a couple of issues which are worthy of discussion:
+
+Prior to release 1.1.0, the Cygwin @command{install} program did not
+understand the @code{.exe} file extension.  Fixing it was only a
+matter of writing a shell script wrapper for the @command{install}
+binary.  Even though the current release is well behaved
+in this respect, @code{.exe} handling is still the cause of some
+complications. @xref{Executable Filename Extensions}.
+
+If a package builds any @sc{dll}s with @command{libtool}, they are
+installed to @code{$prefix/lib} by default, since this is where shared
+libraries would be installed on Unix.  Windows searches for @sc{dll}s at
+runtime using the user's executable search path (@code{$PATH}), which
+generally doesn't contain library paths.  The first evidence you will
+see of this problem is when @sc{dll}s you have installed are not found
+by executables which depend on them, and there are two ways to fix it:
+The installed @sc{dll}s can be moved by hand from their installation
+directory into the equivalent executable destination, say from
+@file{/usr/local/lib} to @file{/usr/local/bin}; or better, you can
+extend your binary search path to include library directories.  Adding
+the following to your @file{.profile} would be a good start:
+
+@smallexample
+PATH=$PATH:/usr/local/lib:/usr/lib:/lib
+@end smallexample
+
+Once you are comfortable with setting your packages up like this, they
+will be relatively well behaved on Windows and Unix.  Of course, you
+must also write portable code, see @ref{Writing Portable C, ,Writing
+Portable C with COLLECTIVE}.
+
+@ignore
+2000-04-18  Akim Demaille
+
+        s/Ofcourse/Of course/.
+
+        Use @xref only at the start of a sentence, it comes out badly.
+
+        There are some of the issues discussed here which are not really
+        `package installation', but `running the package' or so.
+        Specifically the PATH stuff.
+
+2000-06-02  Gary V. Vaughan
+
+        Okay.
+
+        Well spotted.
+
+        Not enough to warrant another section though, methinks.  I could
+        stretch credibility a little and say I am talking about how to
+        run  the installed package...
+@end ignore
+
+@c Local variables:
+@c fill-column: 72
+@c End:

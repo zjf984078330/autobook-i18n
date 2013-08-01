@@ -1,0 +1,177 @@
+-*- Outline -*-
+
+* Typesetting notes (for the printed book)
+** Interactive shell logs (where the results of commands are displayed
+   interpspersed with lines typed at a CLI prompt by the user), should be
+   in a Courier font, with the lines typed by the user (those starting with
+   a ``$ '' prompt) emboldened.
+** text between "@quotation" and "@end quotation", is out-of-band data which
+   should be in a typeset in a box with a margin icon to show that the
+   marked text is a ``tip''.
+** for consistency, refer to ``compilation units'' throughout and not
+   ``translation units''.
+** use the following typographical conventions:
+
+	@sc{aix}
+	@acronym{AT&T}
+	@acronym{BSD}
+	@sc{gcc}
+	@sc{hp-ux}
+	@sc{posix}
+	@sc{ansi} and @sc{iso}
+	@sc{dll}
+	@acronym{ELF}
+	@acronym{FTP}
+	@sc{api}
+	@sc{pic} and non-@sc{pic}
+	Unix
+	Win32
+	Windows
+	Cygwin
+	@sc{gnu}/Linux; we must keep RMS happy!
+	built-in
+
+   except in @chapter headings where @sc and @acronym look *really* bad!
+
+** Refer to the projects as Autoconf, Automake and Libtool.
+** Refer to the actual programs as @code{autoconf}, @code{automake}, etc.
+** Refer to configure scripts as @file{configure} scripts.
+** Use @uref for URLs, not @code, @url, or anything else.
+** Beware of the construction ``COLLECTIVE tools''.
+** Use that nasty American `ized' form. :-)
+
+
+* Examples
+** use @smallexample whenever the text of the example is more than 50
+   characters (or so) wide.
+** use @group/@end group to break examples in sensible places
+** always use ``$ '' as the shell prompt, unless something else would
+   make the example clearer.
+** whereever possible, maintain the example sources separately, where
+   they can be compiled and tested, and m4 include them into the text
+   (after appropriate preprocessing).
+
+
+* Writing style
+** begin each chapter with a paragraph or two summarising what the reader
+   can expect to learn by reading the remainder of that chapter.
+** use third person when walking through an example:
+   If you look at the contents of the @command{hello} program you built...
+** use first person when describing prior art:
+   I need to know that I have to @emph{bless} my library with @command{ranlib}
+** if you start a sentence with a tool name (libtool), don't capitalise it!
+
+
+* Use of texinfo directives
+** use @code for shell (or C) code quotes inside normal text
+** use @command for command line examples and switch names inside normal text
+** use @file for references to the filesystem
+** use @samp for any other courier font inside normal text
+** use @command to refer to the autoconf, automake or libtool commands,
+   but _not_ as part of a phrase like `libtool library' or `automake macro'
+** use @command for other commands like `gcc', `make', etc.
+** use @option for command line options
+
+
+A BRIEF GUIDE TO TEXINFO MARKUP FOR A PRINTED BOOK
+
+I can generate a fully typeset postscript document from the texinfo sources
+for you too look at to demonstrate exactly what was intended by the tags.
+
+* Basics
+** Any character preceded by an ``@'', or any token delimitted by @xxx{yyy} is
+  a markup tag.  For the latter, xxx is the tag and yyy is the text being
+  operated on.
+*** except @@, @{ and @} which are typeset as @, { and } respectively.
+
+* Fonts
+** @b and @i are bold and italic respectively.
+** @strong and @emph are bold and italic respectively.
+** @sc means ``small-caps'', where the tagged text is typeset in block
+   capitals but 2 points smaller than the surrounding text since acronyms
+   in fullsize roman capitals can jar the eye.
+** @acronym is the same as @sc I think.
+** @r is for a proportional font (think ``roman'') in a block of courier
+   such as a code example.  We like comments in courier code blocks to be
+   typeset with a proportional font.
+** @dfn is italic.
+** @uref and @code are in a monospaced font.
+** @file, @option and @command are in a monospaced font set between single ` and '.
+** @example ... @end example and @smallexample ... @smallexample should be
+   typeset in a monospaced font (courier).
+
+* Headers
+** @chapter/@appendix/@unnumbered =>  a heading    1. Chapter Name
+** @section                       =>  c heading    1.2 Section Name
+** @subsection                    =>  d heading    1.2.3 Subsection Name
+** @subsubsection                 =>  e heading    1.2.3.4 Subsubsection Name
+** etc.
+
+* Cross references
+** The @node tag for chapter, section and subsection headings are unique
+   throughout the entire book, and are used by the typesetting tools to
+   find page and section numbers for the cross reference dynamically.
+** @xref and @pxref are typeset as:
+     See section N.N.N [name of section], page x
+** @ref is typeset as:
+     section N.N.N [name of section], page x
+
+* Lists
+** @itemize ... @end itemize contain a list of some sort, where each item in
+   the list is preceded by an @item tag.  The tag after @itemize is usually
+   either @bullet, if a bullet point should be typeset before each new list
+   item, or @asis if the items are layed out (and indented) as a bullet list
+   but the bullet mark itself omitted.
+** @enumerate ... @end enumberate also contain a bullet list, however instead
+   of bullet points, the items are preceded by sequential numbers starting at
+   1.
+** @table ... @end table delimit a two column table (no lines should be drawn
+   however), with about an inch and a half for the left column, and the
+   remainder of the width for the other column.  Each row in the list is
+   started with an @item tagm, with the balance of the @item line forming
+   the text for the left column, and the text between there and the next @item
+   tag justified in the right column.  If the text for the left column spills
+   into the right column, the text for the right column starts one line below
+   the spilled line.  If the table starts with @table @bullet, there should
+   be a bullet point before each left column entry.
+
+   eg:      one    this is the text for the first
+                   table entry.
+
+            two    this is the text for the second
+                   entry, though it would normally
+                   share a right margin with the
+                   normal text.
+
+            this is the third item
+                   see how this text simply begins
+                   on the next line.
+
+* Function Definitions
+** @deftypefn Function int posix_path(char *@var{path})
+   blah blah blha
+   @end deftypefn
+
+   is typeset as
+
+   int posix_path (char *path)                         Function
+
+       blah blah blah
+
+   Function name in bold, @var tag in italic, `blah blah blah' indented
+   one level, `Function' right justified, `int posix_path (char *path)'
+   all in monospaced font.
+
+* Misc
+** @menu ... @end menu tags are for the hypertext document, not the
+   printed book.
+** @node tags are not relevant to the printed book.
+** COLLECTIVE is a placeholder that will be replaced by whatever we
+   eventually agree is a good collective name for `GNU autoconf, automake
+   and libtool'.
+** `@group ... @end group' denotes that the contained lines should not be 
+   split across the page.
+** `@example ... @end example' denotes that the contained lines should not
+   be refilled, and should appear layed out exactly (excepting texinfo control
+   sequences such as `@{' etc.) as shown in a fixed width font.
+** `@smallexample ... @end smallexample' is exactly the same.

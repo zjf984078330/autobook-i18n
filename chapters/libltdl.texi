@@ -1,0 +1,1959 @@
+@c -*-texinfo-*-
+
+Now that you are conversant with the mechanics and advantages of
+using dynamic run time modules in your projects, you can probably
+already imagine a hundred and one uses for a plugin architecture.  As I
+described in the last chapter, there are several gratuitously different
+architecture dependent dynamic loading @sc{api}s, and yet several more
+shortcomings in many of those.
+@ignore LW
+Great how you link from the last chapter here.
+
+This chapter is well organized.  There are quite a few subsections in the 
+"Using" section--I might go into what we'll be addressed a little when "Using"
+begins just for the sake of clarity.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+
+2000-06-12  Akim Demaille
+I must confess I don't like ``libltdl'' at all.  It comes out
+extremely badly in the whole chapter.  Frankly, let's drop @file: we
+don't care it's a file, it's a package, it's a framework, just like C,
+or Autoconf (the language and the package) etc.
+
+I found it extremely painful to have this @file: it really interrupts
+the continuity of the reading.  It is much worse than @code since in
+addition you get quotes for free, but anyway, imho, @code would have
+been wrong.  In fact, you cannot use @file here: that's just not the
+name of the file!
+
+Go for libltdl and just this.
+
+Of course, this applies to the whole chapter, and actually, the whole
+book.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+If you have Libtool installed on your machine, then you almost certainly
+have libltdl which has shipped as part of the standard Libtool
+distribution since release 1.3.In this chapter I will describe
+@dfn{@sc{gnu} libltdl}, the @strong{L}ib@strong{T}ool @strong{D}ynamic
+@strong{L}oading @strong{lib}rary, and explain some of its features and
+how to make use of them.
+@ignore LW
+Not sure how this strong part is supposed to be formatted--
+Like how you introduce what you're describing in the chapter here.  I
+would like to see you switch these 2 sentences--makes more sense that
+way.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.  See style file for @strong.
+@end ignore
+
+@menu
+* Introducing libltdl::
+* Using libltdl::
+* Portable Library Design::
+* dlpreopen Loading::
+* User Module Loaders::
+@end menu
+
+@node Introducing libltdl
+@section Introducing libltdl
+
+Probably the best known and supported Unix run time linking @sc{api} is
+the @samp{dlopen} interface, used by Solaris and @sc{gnu}/Linux amongst
+others, and discussed earlier in @ref{Dynamic Loading}.  libltdl
+is based on the @samp{dlopen} @sc{api}, with a few small differences and
+several enhancements.
+@ignore LW
+differences so that you can tell....sounds a bit strange. Not sure the
+part in parentheses is needed.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+The following libltdl @sc{api} functions are declared in
+@file{ltdl.h}:
+
+@deftypefn Function {lt_dlhandle} lt_dlopen (@w{const char *@var{filename}})
+This function brings the code from a named module into the address space
+of the running program that calls it, and returns a handle which is used
+by the other @sc{api} functions.  If @var{filename} is not an absolute
+path, libltdl  will search for it in directories named in the
+@samp{LTDL_LIBRARY_PATH} environment variable, and then in the standard
+library directories before giving up. It is safe to call this
+function many times, libltdl will keep track of the number of calls
+made, but will require the same number of calls to @samp{lt_dlclose}
+to actually unload the module.
+@end deftypefn
+
+@ignore Didier Verna Mon Jun 19 16:49:10 CEST 2000
+You should avoid any references to /lib and /usr/lib (which what's more
+are in the wrong order ?) as these are particular cases: I think "standard
+system libraries" is enough. Otherwise, you would have to mention
+LD_LIBRARY_PATH and other goodies I'm probably not aware of on weird systems.
+
+2000-07-01 Gary V. Vaughan
+
+        Okay.  Thanks.
+@end ignore
+
+@deftypefn Function {lt_ptr_t} lt_dlsym (@w{lt_dlhandle @var{handle},} @w{const char *@var{name}})
+Returns the address of the named symbol in the module which returned
+@var{handle} when it was @code{lt_dlopen}ed.  You must cast the returned
+address to a known type before using it.
+@end deftypefn
+
+@deftypefn Function int lt_dlclose (@w{lt_dlhandle @var{handle}})
+When you are finished with a particular module, it can be removed from
+memory using this function.
+@end deftypefn
+
+@deftypefn Function {const char *} lt_dlerror (void)
+If any of the libltdl  @sc{api} calls fail, this function returns
+a string which describes the last error that occurred.
+@end deftypefn
+
+In order to use these functions, you must @code{#include <ltdl.h>} for
+the function prototypes, and link with @option{-lltdl} to provide the
+@sc{api} implementation.  Assuming you link your application with
+@command{libtool}, and that you call the necessary macros from your
+@file{configure.in} (@pxref{Using libltdl}), then any host specific
+dependent libraries (for example, @file{libdl} on @sc{gnu}/Linux) will
+automatically be added to the final link line by @command{libtool}.
+
+@ignore Didier Verna Mon Jun 19 16:49:10 CEST 2000
+I mark this paragraph as (*) for future reference.
+@end ignore
+
+You don't limit yourself to using only Libtool compiled modules when you
+use libltdl.  By writing the module loader carefully, it will be able to
+load native modules too---although you will not be able to preload
+non-Libtool modules (@pxref{dlpreopen Loading}.  The loader in
+@ref{libltdl Module Loader, Module Loader} is written in this way.  It
+is useful to be able to load modules flexibly like this, because you
+don't tie your users into using Libtool for any modules they write. 
+
+Compare the descriptions of the functions above with the @sc{api}
+described in @ref{Module Access Functions}.  You will notice that they
+are very similar.
+@ignore LW
+"The above" may not be specific enough for your reader--also this sounds
+like a note, not part of the general text.
+
+2000-07-01  Gary V. Vaughan
+
+	Should be part of the text.  Better now.
+@end ignore
+
+@cindex back-linking
+@quotation
+@c Begin sidebar entitled: Back-linking
+Back-linking is the process of resolving any remaining symbols by
+referencing back into the application that loads the library at runtime
+-- a mechanism implemented on almost all modern Unices.
+
+For instance, your main application may provide some utility function,
+@samp{my_function}, which you want a module to have access to.  There are
+two ways to do that:
+
+@itemize @bullet
+@item
+You could use Libtool to link your application, using the
+@option{-export-dynamic} option to ensure that the global application
+symbols are available to modules.  When libltdl loads a module into an
+application compiled like this, it will @dfn{back-link} symbols from the
+application to resolve any otherwise undefined symbols in a module.
+When the module is @samp{ltdlopen}ed, libltdl will arrange for
+calls to @samp{my_function} in the module, to execute the
+@samp{my_function} implementation in the application.
+
+If you have need of this functionality, relying on back-linking is the
+simplest way to achieve it.  Unfortunately, this simplicity is at the
+expense of portability:  some platforms have no support for
+back-linking at all, and others will not allow a module to be created
+with unresolved symbols.  Never-the-less, libltdl allows you to do this
+if you want to.
+
+@item
+You could split the code that implements the symbols you need to share
+with modules into a separate library.  This library would then be used
+to resolve the symbols you wish to share, by linking it into modules and
+application alike.  The definition of @samp{my_function} would be
+compiled separately into a library, @file{libmy_function.la}.
+References to @samp{my_function} from the application would be resolved
+by linking it with @file{libmy_function.la}, and the library would be
+installed so that modules which need to call @samp{my_function} would be
+able to resolve the symbol by linking with @option{-lmy_function}.
+
+This method requires support for neither back-linking nor unresolved
+link time symbols from the host platform.  The disadvantage is that when
+you realise you need this functionality, it may be quite complicated to
+extract the shared functionality from the application to be compiled in
+a stand alone library.
+@end itemize
+@end quotation
+
+On those platforms which support @dfn{back-linking}, libltdl can
+be configured to resolve external symbol references in a dynamic module
+with any global symbols already present in the main application.
+This has two implications for the libltdl @sc{api}:
+
+@ignore Didier Verna Mon Jun 19 16:49:10 CEST 2000
+This paragraph is not very well formulated (it mentions "back-linking"
+before defining it which will confuse the reader) and would benefit from the
+inclusion of a short example. You could for instance reorganize it like
+this (that's just a short prototype):
+
+ ,----
+| Sometimes, you might want to write modules which contain references to
+| variables defined in the main code. For instance, your application might
+| define `my_errno', and you'd like to give the modules the ability to set
+| it also. This means that libltdl must be able to resolve [...] application.
+|
+| libltdl can do that, provided that your system supports back-linking.
+| Back-linking is the process of [...] Unices. This has two
+| implications for the libltdl api:
+`-----
+
+2000-07-02  Gary V. Vaughan
+
+	I guess this refers to a slihhhtly older version of this
+        chapter.  But you're right that an example would make the whole
+        concept a lot clearer.  Thanks.
+@end ignore
+
+@itemize @bullet
+@item
+There is no need to pass @samp{RTLD_GLOBAL} (or equivalent) to
+@code{lt_dlopen} as might be necessary with the native module loading
+@sc{api}.
+@ignore
+2000-06-12  Akim Demaille
+RTLD_GLOBAL has never been defined, and in fact, not even used!  We need
+more details (or less), but as is, if you didn't know while reading, you
+still don't know after :)
+
+2000-07-01  Gary V. Vaughan
+
+	Added to the previous chapter.  Thanks.
+@end ignore
+
+@item
+You should be aware that your application will not work on some
+platforms---most notably, Windows and @sc{aix}---if you rely on
+a back-linking.
+@end itemize
+
+@ignore
+2000-06-12  Akim Demaille
+footnote: capitalization and period.  But do you need a footnote?  How
+about a --most notably, Windows and @sc{aix}--?
+
+2000-07-01  Gary V. Vaughan
+
+        Okay.
+
+Didier Verna Mon Jun 19 16:49:10 CEST 2000
+This is a bit redundant with the paragraph just before the @itemize,
+which is very close to here. But this issue is worth being repeated
+twice within 10 lines, one might think :-)
+
+In any case, you should avoid using the expression "to rely on NATIVE
+back-linking". This makes the reader think that libltdl can EITHER use
+native back-linking, or emulate it, which is wrong. It is not relying on
+native back-linking which is not portable. It is designing modules this way.
+
+2000-07-02  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+Similarly, there is no need to specify whether the module should be
+integrated into the application core before @code{lt_dlopen} returns, or
+else when the symbols it provides are first referenced.  libltdl
+will use @dfn{lazy loading} if it is supported, since this is a slight
+performance enhancement, or else fall back to loading everything
+immediately.  Between this feature and the support of back-linking,
+there is no need to pass flags into @code{lt_dlopen} as there is with
+most native @code{dlopen} @sc{api}s.
+
+There are a couple of other important @sc{api} functions which you will
+need when using libltdl:
+
+@deftypefn Function int lt_dlinit (void)
+You must call this function to initialise libltdl before calling
+any of the other libltdl @sc{api} functions.  It is safe to call this
+function many times, libltdl will keep track of the number of calls
+made, but will require the same number of calls to @samp{lt_dlexit}
+to actually recycle the library resources.  If you don't call
+@samp{lt_dlinit} before any other @sc{api} call, the other calls,
+including @samp{lt_dlerror}, will return their respective failure codes
+(@samp{NULL} or @samp{1}, as appropriate).
+@end deftypefn
+
+@ignore Didier Verna Mon Jun 19 16:49:10 CEST 2000
+And what if you call another before this one ? Does this generate an
+error, is the behavior unpredictable ? Please specify it.
+
+2000-07-02  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@deftypefn Function int lt_dlexit (void)
+When you are done with libltdl and all dynamic modules have been
+unloaded you can call this function to finalise the library, and recycle
+its resources.  If you forget to unload any modules, the call to
+@samp{lt_dlexit} will @samp{lt_dlclose} them for you.
+@end deftypefn
+
+@ignore
+Didier Verna Mon Jun 19 16:49:10 CEST 2000
+Ditto. What happens if forget to unload a module ?
+
+2000-07-02  Gary V. Vaughan
+
+	Okay.
+
+2000-06-12  Akim Demaille
+Final period.
+
+2000-07-01  Gary V. Vaughan
+
+	Oops.  Thanks.
+@end ignore
+
+Another useful departure that the libltdl @sc{api} makes from a
+vanilla @code{dlopen} implementation is that it also will work correctly
+with old K&R C compilers, by virtue of not relying on @samp{void *}
+pointers.  libltdl uses @code{lt_dlhandle}s to pass references to
+loaded modules, and this also improves @sc{ansi} C compiler's type
+checking compared to the untyped addresses typically used by native
+@code{dlopen} @sc{api}s.
+
+@ignore
+2000-06-12  Akim Demaille
+Huh?!?  There are systems which support dlopen, but are K&R!?!
+
+2000-07-01  Gary V. Vaughan
+
+	dlopen is a function of the binary object format, so in
+        principle at least, such systems might exist.
+
+2000-06-12  Akim Demaille
+BTW, I never heard of a system that does not support `void *'.
+Personally, I never ever took care of it, and I have never received any
+complaints.  And yes, a2ps has been compiled in many environments that
+are K&R.
+
+2000-07-01  Gary V. Vaughan
+
+        Perhaps there are no real systems in this category?  void*
+        is not part of the original K&R language though.
+
+2000-06-12  Akim Demaille
+s/and the also improves/and this also improves/ I guess.
+
+2000-07-01  Gary V. Vaughan
+
+        Thanks.
+@end ignore
+
+
+@node Using libltdl
+@section Using libltdl
+
+@ignore Didier Verna Mon Jun 19 16:49:10 CEST 2000
+GENERAL REMARK:
+
+1/ There is something very unclear in this section: it is not obvious at
+all that one can use libltdl without actually using libtool for the
+linking. This introuces several inconsistencies in this section, that I
+will note from paragraph to paragraph.
+
+2/ As for the beginning of this section (below and up to "memory
+management"), I think it should be given a subsection number. In the
+current version, this means that should be 18.2.1 and the next one
+(memory management) should be the second one etc.
+
+2000-07-02  Gary V. Vaughan
+
+	1/  Well spotted. I am too close to the code to notice things
+        like that.  Better now.
+
+        2/  Okay.
+@end ignore
+
+Various aspects of libltdl are addressed in the following subsections,
+starting with a step by step guide to adding libltdl to your own
+COLLECTIVE projects (@pxref{libltdl Configury, Configury}) and an
+explanation of how to initialise libltdl's memory management
+(@pxref{libltdl Memory Management, Memory Management}).  After this
+comes a simple libltdl module loader which you can use as the basis for
+a module loader in your own projects (@pxref{libltdl Module Loader,
+Module Loader}), including an explanation of how libltdl finds and links
+any native dynamic module library necessary for the host platform.  The
+next subsection (@pxref{libltdl Dependent Libraries, Dependent
+Libraries}) deals with the similar problem of dynamic modules which
+depend on other libraries -- take care not to confuse the problems
+discussed in the previous two subsections.  Following that, the source
+code for and use of a simple dynamic module for use with this section's
+module loader is detailed (@pxref{libltdl Dynamic Module, Dynamic Module}).
+
+@menu
+* libltdl Configury::
+* libltdl Memory Management::
+* libltdl Module Loader::
+* libltdl Dependent Libraries::
+* libltdl Dynamic Module::
+@end menu
+
+@node libltdl Configury
+@subsection Configury
+
+Because libltdl supports so many different platforms@footnote{As I
+always like to say, ``from BeOS to Windows!''.  And yes, I do think that
+it is a better catchphrase than ``from @sc{aix} to Xenix''!} it needs to
+be configured for the host platform before it can be used.
+
+@quotation
+The path of least resistance to successfully integrating libltdl into
+your own project, dictates that the project use Libtool for linking its
+module loader with libltdl.  This is certainly the method I use and
+recommend, and is the method discussed in this chapter.   However, I
+have seen projects which did not use Libtool (specifically because
+Libtool's poor C++ support made it difficult to adopt), but which wanted
+the advantages of libltdl.  It is possible to use libltdl entirely
+without Libtool, provided you take care to use the configuration macros
+described here, and use the results of those running these macros to
+determine how to link your application with libltdl.
+@end quotation
+
+The easiest way to add libltdl support to your own projects is with the
+following simple steps:
+@ignore LW
+Should the part in ()s be a footnote?
+
+2000-07-01  Gary V. Vaughan
+
+	It already is!!
+@end ignore
+
+@enumerate 1
+@ignore LW
+If this is a series of chronological steps, these should be numbered, not
+bulleted.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+@end ignore
+@item
+You must add the libltdl sources to your project distribution.
+If you are not already using Libtool in some capacity for your project,
+you should add @samp{AC_PROG_LIBTOOL}@footnote{Use @samp{AM_PROG_LIBTOOL}
+if you have @command{automake} version 1.4 or older or a version of
+@command{libtool} earlier than 1.4.}  to your @file{configure.in}.  That
+done, move to the top level directory of the project, and execute:
+
+@ignore
+2000-06-12  Akim Demaille
+footnote: Capitalization and period.  In fact, a full sentence would be
+better.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+
+2000-06-12  Akim Demaille
+And better yet: remove it.  Forget about oldies.  The major
+PITA in the Autotools is the past.  Get rid of it.  This book should
+promote the future, and ignore oldies.  Require from your users LT
+1.3.5, AC 2.13 (or 2.50 if released on time) and AM 1.4, forget the rest.
+
+2000-07-01  Gary V. Vaughan
+
+	The AC.. vs. AM... is a real problem that users may encounter.
+        We can't just pretend it doesn't exist.  Also, we shouldn't
+        @strong{force} users to upgrade if they are happy with the tools
+        they have.  We must provide improvements and features that make
+        them want to upgrade.
+
+Didier Verna Mon Jun 19 16:49:10 CEST 2000
+footnote: saying an "older version of automake or libtool" is not
+enough. Precise the versions needed.
+
+2000-07-02  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@example
+$ libtoolize --ltdl
+$ ls -F
+aclocal.m4    configure.in    libltdl/
+$ ls libltdl/
+COPYING.LIB   README         aclocal.m4    configure.in   stamp-h.in
+Makefile.am   acconfig.h     config.h.in   ltdl.c  
+Makefile.in   acinclude.m4   configure     ltdl.h 
+@end example
+@ignore LW
+To editor--Lisa, this would be l2/lx
+@end ignore
+
+@item
+libltdl has its own configuration to run in addition to the
+configuration for your project, so you must be careful to call the
+subdirectory configuration from your top level @file{configure.in}:
+
+@example
+AC_CONFIG_SUBDIRS(libltdl)
+@end example
+
+And you must ensure that Automake knows that it must descend into the
+libltdl source directory at make time, by adding the name of that
+subdirectory to the @samp{SUBDIRS} macro in your top level
+@file{Makefile.am}:
+
+@example
+SUBDIRS = libltdl src
+@end example
+@ignore LW
+To Lisa--l2/lx--true for all code in listing
+@end ignore
+
+@item
+You must also arrange for the code of libltdl to be linked into
+your application.  There are two ways to do this: as a regular Libtool
+library; or as a convenience library (@pxref{Creating Convenience
+Libraries with libtool, Creating Convenience Libraries}).  Either way
+there are catches to be aware of, which will be addressed in a future
+release.  Until libltdl is present on the average user's machine, I
+recommend  building a convenience library.  You can do that in
+@file{configure.in}: 
+
+@ignore Didier Verna Mon Jun 19 16:49:10 CEST 2000
+Since these names (CONVENIENCE and INSTALLABLE) are IMHO very poorly
+choosen, you should be much more explicit in what they really do. In
+particular, people might not well understand what you mean by
+"convenience library". I suggest that you reorganize the remaining text
+of this item like this:
+
+ ,----
+| AC_LIBLTDL_CONVENIENCE: <explain what it does>
+| AC_LIBLTDL_INSTALLABLE: <explain what it does>
+|
+| In either case, there are catches to be aware of. [...]
+| AC_LIBLTDL_CONVENIENCE: <explain the catches>
+| AC_LIBLTDL_INSTALLABLE: <explain the catches>
+`-----
+
+2000-07-02  Gary V. Vaughan
+
+	Fair point on name choice, and I have added an xref to an
+        explanation of convenience libraries, and tried to be a little
+        clearer in my text -- but I thing changing back and forth as you
+        suggest inside an enumerated list would be much worse...
+@end ignore
+
+@example
+AC_LIBLTDL_CONVENIENCE
+AC_PROG_LIBTOOL
+@end example
+
+The main thing to be aware of when you follow these steps, is that you
+can only have one copy of the code from libltdl in any
+application. Once you link the objects into a library, that library will
+not work with any other library which has also linked with
+libltdl, or any application which has its own copy of the
+objects.  If you were to try, the libltdl symbol names would
+clash.
+@ignore LW
+Explain what you mean by "work this way" in first sentence.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+The alternative is to substitute @samp{AC_LIBLTDL_CONVENIENCE} with@*
+@samp{AC_LIBLTDL_INSTALLABLE}.  Unfortunately there are currently many
+potential problems with this approach.  This macro will try to find an
+already installed libltdl and use that, or else the embedded
+libltdl will be built as a standard shared library, which must be
+installed along with any libraries or applications that use it.  There
+is no testing for version compatibility, so it is possible that two or
+more applications that use this method will overwrite one another's
+copies of the installed libraries and headers.  Also, the code which
+searches for the already installed version of libltdl tends not
+to find the library on many hosts, due to the native libraries it
+depends on being difficult to predict.
+
+Both of the @samp{AC_LIBLTDL_...} macros set the values of
+@samp{INCLTDL} and @samp{LIBLTDL} so that they can be used to add the
+correct include and library flags to the compiler in your Makefiles.
+They are not substituted by default.  If you need to use them you must
+also add the following macros to your @file{configure.in}:
+
+@example
+AC_SUBST(INCLTDL)
+AC_SUBST(LIBLTDL)
+@end example
+
+@item
+Many of the libltdl supported hosts require that a separate
+shared library be linked into any application that uses dynamic runtime
+loading.  libltdl is wrapped around this native implementation on
+these hosts, so it is important to link that library too.  Adding
+support for module loading through the wrapped native implementation is
+independent of Libtool's determination of how shared objects are
+compiled.  On @sc{gnu}/Linux, you would need to link your program with
+libltdl and @file{libdl}, for example.
+
+Libtool installs a macro, @samp{AC_LIBTOOL_DLOPEN}, which adds tests to
+your @file{configure} that will search for this native library.
+Whenever you use libltdl you should add this macro to your
+@file{configure.in} before @samp{AC_PROG_LIBTOOL}: 
+@ignore LW
+This isn't a step you perform, as the others are--which is confusing if
+these are supposed to be numerical steps.  This is more of an explanation
+of a process.
+
+2000-07-01  Gary V. Vaughan
+
+	It is the step of adding AC_LIBTOOL_DLOPEN to configure.in.
+        With explanation of how and why...
+
+Didier Verna Mon Jun 19 16:49:10 CEST 2000
+The 2 paragraphs above are very confusing once you have read the one
+noted (*) before: in (*), you said "[...] any host specific dependent
+libraries [...] will be added automatically [...]", and here, you're
+saying the opposite; that you need to do manual stuff for the same
+issue.
+
+It took me some time and several re-reading to understand that here,
+you're assuming that libtool is NOT used for the linking. But even then,
+it remains unclear to me if you have to put manually AC_LIBTOOL_DLOPEN
+in your configure script if you're linking with libtool.
+
+2000-07-02  Gary V. Vaughan
+
+	You still misunderstand.  `libtool gcc ... -lltdl' will
+        automatically generate `gcc ... -lltdl -ldl' on hosts which
+        require it, provided you have used AC_LIBTOOL_DLOPEN.  I have
+        rewritten (*) to clarify.
+@end ignore
+
+@example
+AC_LIBTOOL_DLOPEN
+AC_LIBLTDL_CONVENIENCE
+AC_PROG_LIBTOOL
+...
+AC_SUBST(INCLTDL)
+AC_SUBST(LIBLTDL)
+@end example
+
+@ignore
+2000-06-12  Akim Demaille
+I don't understand why I have to call the macro myself.  You seem to say
+we *need* to run it, so at first sight, AC_LIBLTDL_CONVENIENCE should
+handle it by itself.  Why doesn't it?
+
+2000-07-01  Gary V. Vaughan
+
+        Good point.  You might need a convenience library, but not want
+        to load modules with lt_dlopen.  Explanation added.
+
+	On reflection, AC_LIB_LTDL should probably AC_REQUIRE
+        AC_LIBTOOL_DLOPEN.  I'll experiment with that for the next
+        release.  Thanks.
+
+Didier Verna Mon Jun 19 16:49:10 CEST 2000
+Remove the AC_SUBST calls here. They are unnecessary.
+
+2000-07-02  Gary V. Vaughan
+
+	They are *not* unnecessary.  The Makefile fragment below uses
+        them, and neither AC_LIBTOOL_CONVENIIENCE nor
+        AC_LIBTOOL_INSTALLABLE substs them in their own right.  Are you
+        saying that the -I and -L options they provide are unnecessary?
+        That is false too:  without these options the link may pick up
+        an installed version instead of the local convenience version
+        for example.
+@end ignore
+
+@samp{AC_LIBTOOL_DLOPEN} takes care to substitute a suitable value of
+@samp{LIBADD_DL} into your @file{Makefile.am}, so that your code will
+compile correctly wherever the implementation library is discovered:
+
+@example
+INCLUDES        += @@INCLTDL@@
+
+bin_PROGRAMS     = your_app
+your_app_SOURCES = main.c support.c
+your_app_LDADD   = @@LIBLTDL@@ @@LIBADD_DL@@
+@end example
+@end enumerate
+
+Libtool 1.4 has much improved inter-library dependency tracking code
+which no longer requires @samp{@@LIBADD_DL@@} be explicitly referenced
+in your @file{Makefile.am}.    When you install libltdl, Libtool 1.4 (or
+better) will make a note of any native library that libltdl depends on --
+linking it automatically, provided that you link @file{libltdl.la} with
+@command{libtool}.  You might want to omit the @samp{@@LIBADD_DL@@} from
+your @file{Makefile.am} in this case, if seeing the native library twice
+(once as a dependee of libltdl, and again as an expansion of
+@samp{@@LIBADD_DL@@}) on the link line bothers you.
+
+@ignore Didier Verna Mon Jun 19 16:49:10 CEST 2000
+This paragraph is also very confusing for the same reason. Is that to
+understand that all you said before about the 2 methods (INSTALLABLE and
+CONVENIENCE) is only valid for libtool < 1.4 ??
+
+2000-07-02  Gary V. Vaughan
+
+	Nope.  Only that LIBADD_DL is not required for libtool >=
+        1.4. Reworded accordingly.
+@end ignore
+
+Beyond this basic configury setup, you will also want to write some code
+to form a module loading subsystem for your project, and of course some
+modules!  That process is described in @ref{libltdl Module Loader,
+Module Loader} and @ref{libltdl Dynamic Module, Dynamic Module}
+respectively.
+@ignore LW
+Configuring step? (sent. 1)
+
+2000-07-01  Gary V. Vaughan
+
+	Nope.  Setup of the configuration macros, tools and files --
+        configury.
+@end ignore
+
+
+@node libltdl Memory Management
+@subsection Memory Management
+
+@ignore Didier Verna Mon Jun 19 16:49:10 CEST 2000
+I find this subsection useless. It doesn't reveal any subtle trick or
+anything general one has to know and hence is out of the scope of this
+book.
+
+2000-07-02  Gary V. Vaughan
+
+	Far from it.  If you want libltdl to use the same mallocation
+        library as the rest of your code (for debugging or memory
+        accounting for example), this tells you how to do it.  The trick
+        is in the casting.
+@end ignore
+
+Internally, libltdl maintains a list of loaded modules and
+symbols on the heap.  If you find that you want to use it with a project
+that has an unusual memory management @sc{api}, or if you simply want to
+use a debugging @samp{malloc}, libltdl provides hook functions
+for you to set the memory routines it should call.
+
+The way to use these hooks is to point them at the memory allocation
+routines you want libltdl to use before calling any of its
+@sc{api} functions:
+
+@example
+    lt_dlmalloc = (lt_prt_t (*) PARAMS((size_t))) mymalloc;
+    lt_dlfree   = (void (*) PARAMS((lt_ptr_t))) myfree;
+@end example
+
+Notice that the function names need to be cast to the correct type
+before assigning them to the hook symbols.  You need to do this because
+the prototypes of the functions you want libltdl to use will vary
+slightly from libltdls own function pointer types--- 
+libltdl uses @code{lt_ptr_t} for compatibility with K&R
+compilers, for example. 
+
+
+@node libltdl Module Loader
+@subsection Module Loader
+
+This section contains a fairly minimal libltdl based dynamic
+module loader that you can use as a base for your own code.  It
+implements the same @sc{api} as the simple module loader in @ref{A
+Simple GNU/Linux Module Loader}, and because of the way libltdl
+is written is able to load modules written for that loader, too.  The
+only part of this code which is arguably more complex than the
+equivalent from the previous example loader, is that @code{lt_dlinit}
+and @code{lt_dlexit} must be called in the appropriate places.  In
+contrast, The module search path initialisation is much simplified 
+thanks to another relative improvement in the libltdl @sc{api}:
+@ignore LW
+be clearer about what "previous" means here--say the section.  Also, it
+looks odd just to have one term put apart like this--I'd incorporate it
+into the graf above.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.  It would be too repetitive to give exactly the same xref
+        twice in the same paragraph.
+@end ignore
+
+@deftypefn Function int lt_dlsetsearchpath (@w{const char *@var{path}})
+This function takes a colon separated list of directories, which
+will be the first directories libltdl will search when trying to
+locate a dynamic module.
+@end deftypefn
+
+Another new @sc{api} function is used to actually load the module:
+@ignore LW
+"I" not really used in this chapter--I'd take it out.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+
+Didier Verna Mon Jun 19 16:49:10 CEST 2000
+When ? Which one ? :-)
+Rather, say something like "There's also another API function to load
+the modules: ...".
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@deftypefn Function lt_dlhandle lt_dlopenext (@w{const char *@var{filename}})
+This function is used in precisely the same way as @code{lt_dlopen}.
+However, if the search for the named module by exact match
+against @var{filename} fails, it will try again with a @samp{.la} extension,
+and then the native shared library extension (@samp{.sl} on @sc{hp-ux},
+for example).
+@end deftypefn
+@ignore LW
+Same thing--would be better pulled up.
+
+2000-07-01  Gary V. Vaughan
+
+	Nope.  It is a separate description paragraph.  See typeset
+        document. 
+
+Didier Verna Mon Jun 19 16:49:10 CEST 2000
+That sounds trivial, I know, but it is not stated clearly that the
+different extensions and stuff will be tried if the exact match search
+fails. Say something like: "However, if the searching for an exact match
+fails, it will try again [...]".
+
+2000-07-02  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+The advantage of using @code{lt_dlopenext} to load dynamic modules is
+that it will work equally well when loading modules not compiled with
+Libtool.  Also, by passing the module name parameter with no extension,
+this function allows module coders to manage without Libtool.
+
+@ignore
+2000-06-12  Akim Demaille
+I don't understand why it would work `equally well when loading modules
+not compiled with Libtool', since I was not under the impression that
+lt_dlopen's argument had to be compiled with Libtool.  Maybe that's what
+needs to be specified in `Introducing libltdl'.
+
+2000-07-01  Gary V. Vaughan
+
+        Okay.  Added a paragraph as you suggest.
+@end ignore
+
+@example
+m4_include(examples/ltdl-loader.texi)
+@end example
+
+@ignore
+2000-06-12  Akim Demaille
+Hm, EXIT_SUCCESS when $# != 3 seems weird to me.
+
+2000-07-01  Gary V. Vaughan
+
+        Yip.  Thanks.
+
+Didier Verna Mon Jun 19 16:49:10 CEST 2000
+This code arrives abruptly, without any introductory word. Besides, as I
+already stated in other chapters, I dislike full listings inclusion
+anywhere else than in the annex. You're darkening your points with
+details. Besides, in that particular case, the code depends on things
+that will be explained afterwards, like LTDL_SET_PRELOADED_SYMBOLS. This
+is annoying for inquiring minds.
+
+2000-07-02  Gary V. Vaughan
+
+	Okay on all points except the annex, I find flipping back and
+        forth extremely irritating as I explained before.  Sorry.
+
+Didier Verna Mon Jun 19 16:49:10 CEST 2000
+On my debian system, with the packaged libtool 1.3.5, the sample module loader
+code doesn't compile:
+
+didier(pts/1)% libtool --mode=link gcc -g -o ltdl-loader -rpath /tmp/lib test.c -lltdl
+gcc -g -o ltdl-loader test.c -lltdl -Wl,--rpath -Wl,/tmp/lib -Wl,--rpath -Wl,/tmp/lib
+/tmp/ccP5AfdV.o: In function `main':
+/home/lrde/masters/didier/tmp/test.c:45: undefined reference to `lt_preloaded_symbols'
+collect2: ld returned 1 exit status
+zsh: exit 1     libtool --mode=link gcc -g -o ltdl-loader -rpath /tmp/lib test.c -lltdl
+
+2000-07-01  Gary V. Vaughan
+
+	Good call.  Thanks for that -- I had bungled the link command
+        and in so doing forgotten something very important... I have
+        changed the code, and now talk about what you saw in the preload
+        section.
+@end ignore
+
+This file must be compiled with @command{libtool}, so that the dependent
+libraries (@file{libdl.so} on my @sc{gnu}/Linux machine) are handled
+correctly, and so that the dlpreopen support is compiled in correctly
+(@pxref{dlpreopen Loading}):
+
+@example
+$ libtool --mode=link gcc -g -o ltdl-loader -dlopen self \
+-rpath /tmp/lib ltdl-loader.c -lltdl
+gcc -g -o ltdl-loader -Wl,--rpath,/tmp/lib ltdl-loader.c -lltdl -ldl
+@end example
+
+By using @emph{both} of @code{lt_dlopenext} and
+@code{lt_dlsetsearchpath}, this module loader will make a valiant
+attempt at loading anything you pass to it -- including the module I
+wrote for the simple @sc{gnu}/Linux module loader earlier (@pxref{A
+Simple GNU/Linux Dynamic Module}).  Here, you can see the new
+@command{ltdl-loader} loading and using the @file{simple-module} module
+from @ref{A Simple GNU/Linux Dynamic Module}:
+@ignore LW
+Please introduce this code listing. It's unclear how it fits in.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@example
+$ ltdl-loader simple-module World
+Hello, World!
+        => 0
+@end example
+
+
+@node libltdl Dependent Libraries
+@subsection Dependent Libraries
+
+@ignore Didier Verna Mon Jun 19 16:49:10 CEST 2000
+Suggestion: To be very precise here, you could add a note saying that the
+problem you're adressing (MODULES that need libraries), although very
+similar, is not to be confused with the problem of libltdl requiring
+system libs like libdl.
+
+2000-07-02  Gary V. Vaughan
+
+	Excellent idea.  Thanks.
+@end ignore
+
+On modern Unices@footnote{Architectures which use @sc{elf} and
+@sc{ecoff} binary format for example.}, the shared library architecture
+is smart enough to encode all of the other libraries that a dynamic
+module depends on as part of the format of the file which is that
+module.  On these architectures, when you @code{lt_dlopen} a module, if
+any shared libraries it depends on are not already loaded into the main
+application, the system runtime loader will ensure that they too are
+loaded so that all of the module's symbols are satisfied.
+@ignore
+2000-06-12  Akim Demaille
+If you start talking about a.out (hm, @asis really?), elf and ecoff,
+then you'll have to say more about them, and about the others.
+Personally, I have only a vague idea of what they are, how they work,
+and I'd appreciate that the autobook gives me just enough to understand
+better what's going on.
+
+2000-07-01  Gary V. Vaughan
+
+        I only have a vague idea too!  Ian is the man with this sort
+        of knowledge.
+
+2000-06-12  Akim Demaille
+Sure this is not the purpose of the book, but it makes it more self
+contained, more understandable (I mean *really* understandable, i.e.,
+you also perfectly understand the reasoning of the authors).
+
+2000-07-01  Gary V. Vaughan
+
+	I'm in two minds as to whether we should cloud the issues at
+        hand with such gory details.  But since I don't know enough to
+        talk about them with any authority, I have to go with the
+        default.  Sorry.
+
+2000-06-12  Akim Demaille
+And, of course, missing period ;)  But do you want a footnote?
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+Less well endowed systems@footnote{Those which use a.out binary format,
+for example.}, cannot do this by themselves.  Since Libtool release 1.4,
+libltdl uses the record of inter-library dependencies in the
+libtool pseudo-library (@pxref{Introducing GNU Libtool}) to manually
+load dependent libraries as part of the @code{lt_dlopen} call.
+@ignore LW
+@c FIXME:  Check that pseudo library is defined elsewhere in the book
+Has this fixme been addressed? Still define it here, saying "pseudo
+library, as discussed in Chapter X, is ..."
+
+2000-07-01  Gary V. Vaughan
+
+	Yup.  Okay.
+@end ignore
+
+An example of the sort of difficulties that can arise from trying to
+load a module that has a complex library dependency chain is typified by a
+problem I encountered with @sc{gnu} Guile a few years ago:  Earlier
+releases of the libXt Athena widget wrapper library for @sc{gnu} Guile
+failed to load on my a.out based @sc{gnu}/Linux system.  When I tried to
+load the module into a running Guile interpreter, it couldn't resolve
+any of the symbols that referred to libXt.  I soon discovered that the
+libraries that the module depended upon were not loaded by virtue of
+loading the module itself.  I needed to build the interpreter itself
+with libXt and rely on back-linking to resolve the @samp{Xt} references
+when I loaded the module.  This pretty much defeated the whole point of
+having the wrapper library as a module.  Had Libtool been around in
+those days, it would have been able to load libXt as part of the process
+of loading the module.
+
+@ignore
+2000-06-12  Akim Demaille
+@file{libXt} seems wrong.  But less than in the case of libltdl.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+If you program with the X window system, you will know that the list of
+libraries you need to link into your applications soon grows to be very
+large.  Worse, if you want to load an X extension module into a non-X
+aware application, you will encounter the problems I found with Guile,
+unless you link your module with @command{libtool} and dynamically load
+it with libltdl.  At the moment, the various X Window libraries
+are not built with libtool, so you must be sure to list all of the
+dependencies when you link a module.  By doing this, Libtool can use the
+list to check that all of the libraries required by a module are loaded
+correctly as part of the call to @code{lt_dlopen}, like this:
+@ignore LW
+Please introduce code.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+
+2000-06-12  Akim Demaille
+Aaaaaaaaaaarg! s/X Windows/X Window/ :)
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+
+2000-06-12  Akim Demaille
+There is a `libtool' which is a @command{libtool}.
+
+2000-07-01  Gary V. Vaughan
+
+        Yup.  Quite deliberate, it is the command used to link.
+
+Didier Verna Mon Jun 19 16:49:10 CEST 2000
+I understand the sentence:
+ ,----
+| Worse, if you want to load an X extension module into a non-X
+| aware application, you will encounter the problems I found with Guile,
+| unless you link your module with @command{libtool} and dynamically load
+| it with @file{libltdl}.
+`-----
+I don't understand the sentence:
+ ,----
+| At the moment, the various X Windows libraries
+| are not built with libtool, so you must be sure to list all of the
+| dependencies when you link a module.
+`-----
+What building the X libs with libtool has to do with our problem ? The
+problem is for the modules to explicitely tell what they need.
+
+2000-07-02  Gary V. Vaughan
+
+	Reworded.  Thanks.
+@end ignore
+
+@example
+$ libtool --mode=link gcc -o module.so -module -avoid-version \
+source.c -L/usr/X11R6/lib -lXt -lX11
+...
+$ file .libs/module.so
+.libs/module.so: ELF 32-bit LSB shared object, Intel 80386,
+version 1, not stripped
+$ ldd .libs/module.so
+        libX11.so.6 => /usr/X11R6/lib/libX11.so.6 (0x4012f00)
+        libXt.so.6 => /usr/X11R6/lib/libXt.so.6 (0x4014500)
+@end example
+
+Or, if you are using Automake:
+
+@example
+...
+lib_LTLIBRARIES   = module.la
+module_la_SOURCES = source.c
+module_la_LDFLAGS = -module -avoid-version -L$(X11LIBDIR)
+module_la_LIBADD  = -lXt -lX11
+...
+@end example
+
+@ignore Didier Verna Mon Jun 19 16:49:10 CEST 2000
+In the two examples above (especially in the second one), you should
+remove Xext and Xi to simplify the code, and you should not make any
+direct reference to SM and ICE, as they are not always available. I
+agree that this is nit-picking, but there are chances that people will
+just copy the sample and complain that it doesn't work.
+
+2000-07-02  Gary V. Vaughan
+
+	Okay.
+
+On the other hand, this is an opportunity to introduce AC_PATH_XTRA ;-)
+
+2000-07-02  Gary V. Vaughan
+
+        You kill me =)O|
+@end ignore
+
+It is especially important to be aware of this if you develop on a
+modern platform which correctly handles these dependencies natively (as
+in the example above), since the code may still work on your machine
+even if you don't correctly note all of the dependencies.  It will only
+break if someone tries to use it on a machine that needs Libtool's help
+for it to work, thus reducing the portability of your project.
+
+@ignore
+2000-06-12  Akim Demaille
+Can't Libtool help us tracking the weaknesses of the portability?  It
+should probably be able to say we didn't mention all the deps?  Or I
+might have misunderstood something :(
+
+2000-07-01  Gary V. Vaughan
+
+        Maybe.  Perhaps it could link the library into a minimal main,
+        and use ``nm -B' to find undefined symbols.  I don't want to get
+        into that here though.
+@end ignore
+
+
+@node libltdl Dynamic Module
+@subsection Dynamic Module
+
+Writing a module for use with the libltdl based dynamic module
+loader is no more involved than before:  It must provide the correct
+entry points, as expected by the simple @sc{api} I designed -- the
+@samp{run} entry point described in @ref{A Simple GNU/Linux Module
+Loader}.  Here is such a module, @file{ltdl-module.c}:
+@ignore LW
+Is this code the exmaple you designed? If not, please introduce what this
+listing is here.
+
+2000-07-01  Gary V. Vaughan
+
+	Yup.
+
+2000-06-12  Akim Demaille
+Give the name of the file, it's obvious when you read the compilation
+log, but it would still be better with the name clearly given.
+
+2000-07-01  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+@example
+m4_include(examples/ltdl-module.texi)
+@end example
+
+@ignore
+2000-06-12  Akim Demaille
+I'm really bugged to see that you're writing K&R, but you include math.h
+unconditionally.  Something is wrong here, and it's... K&R :P
+
+Pleaaaaaaase, drop it dead, and teach ansi2knr instead.  Really, don't
+promote so bad habits, there is no point today not to program with
+prototypes and modern definitions of functions.
+
+Didier Verna Mon Jun 19 16:49:10 CEST 2000
+DON'T DO K&R !!!!!!!!!!!!!!!!!!!! :-)
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.  But ansi2knr is still a steaming pile of elephant dung! =)O|
+@end ignore
+
+To take full advantage of the new module loader, the module itself
+@strong{must} be compiled with Libtool.  Otherwise dependent libraries
+will not have been stored when libltdl tries to load the module
+on an architecture that doesn't load them natively, or which doesn't
+have shared libraries at all (@pxref{dlpreopen Loading}).
+
+@example
+@group
+$ libtool --mode=compile gcc -c ltdl-module.c
+rm -f .libs/ltdl-module.lo
+gcc -c ltdl-module.c  -fPIC -DPIC -o .libs/ltdl-module.lo
+gcc -c ltdl-module.c -o ltdl-module.o >/dev/null 2>&1
+mv -f .libs/ltdl-module.lo ltdl-module.lo
+@end group
+@group
+m4_changequote(,)m4_dnl
+$ libtool --mode=link gcc -g -o ltdl-module.la -rpath `pwd` \
+-no-undefined -module -avoid-version ltdl-module.lo -lm
+m4_changequote(`,')m4_dnl
+rm -fr .libs/ltdl-module.la .libs/ltdl-module.* .libs/ltdl-module.*
+gcc -shared  ltdl-module.lo  -lm -lc  -Wl,-soname \
+-Wl,ltdl-module.so -o .libs/ltdl-module.so
+ar cru .libs/ltdl-module.a  ltdl-module.o
+creating ltdl-module.la
+(cd .libs && rm -f ltdl-module.la && ln -s ../ltdl-module.la \
+ltdl-module.la)
+@end group
+@end example
+
+You can see from the interaction below that @file{ltdl-loader} does not
+load the math library, @file{libm}, and that the shared part of the
+Libtool module, @file{ltdl-module}, does have a reference to it.  The
+pseudo-library also has a note of the @file{libm} dependency so that
+libltdl will be able to load it even on architectures that can't
+do it natively:
+
+@example
+@group
+$ libtool --mode=execute ldd ltdl-loader
+        libltdl.so.0 => /usr/lib/libltdl.so.0 (0x4001a000)
+        libdl.so.2 => /lib/libdl.so.2 (0x4001f000)
+        libc.so.6 => /lib/libc.so.6 (0x40023000)
+        /lib/ld-linux.so.2 => /lib/ld-linux.so.2 (0x40000000)
+@end group
+@group
+$ ldd .libs/ltdl-module.so
+        libm.so.6 => /lib/libm.so.6 (0x40008000)
+        libc.so.6 => /lib/libc.so.6 (0x40025000)
+        /lib/ld-linux.so.2 => /lib/ld-linux.so.2 (0x80000000)
+@end group
+@group
+$ fgrep depend ltdl-module.la
+# Libraries that this one depends upon.
+dependency_libs=' -lm'
+@end group
+@end example
+
+This module is now ready to load from @file{ltdl-loader}:
+
+@example
+$ ltdl-loader ltdl-module 9
+Square root of 9 is 3.000000
+        => 0
+@end example
+
+@ignore Didier Verna Mon Jun 19 16:49:10 CEST 2000
+Whatever !! This is rather a proof that strtol works correctly. This has
+nothing to do with libm. Just remove that.
+
+2000-07-02  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@node Portable Library Design
+@section  Portable Library Design
+
+When partitioning the functionality of your project into libraries, and
+particularly loadable modules, it easy to inadvertently rely on modern
+shared library features such as @emph{back-linking} or @emph{dependent
+library loading}.  If you do accidentally use any of these features, you
+probably won't find out about it until someone first tries to use your
+project on an older or less featureful host.
+@ignore LW
+In which cases might you accidentally do so?
+
+2000-07-01  Gary V. Vaughan
+
+	If you inadvertantly rely on modern shared library features --
+        you might not know that it is bad to do that.  Or you might
+        forget .  This is already implicit -- I would be stating the
+        obvious by writing that,m I think.
+@end ignore
+
+I have already used the @option{-module} and @option{-avoid-version}
+libtool linking options when compiling the libltdl module in the
+last section, the others are useful to know also.  All of these are used
+with the @samp{link} mode of @command{libtool} (@samp{libtool
+--mode=link}): 
+
+@table @option
+@item -module
+This option tells @command{libtool} that the target is a dynamically
+loadable module (as opposed to a conventional shared library) and as
+such need not have the @samp{lib} prefix.
+
+@item -avoid-version
+When linking a dynamic module, this option can be used instead of the
+@option{-version-info} option, so that the module is not subject to the
+usual shared library version number suffixes.
+@ignore LW
+Wouldn't use "Again"--each item in a list should stand on its own.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+
+2000-06-12  Akim Demaille
+How come -module does not imply -avoid-version?
+
+2000-07-01  Gary V. Vaughan
+
+	Dunno.  Backwards compatibility?  I agree.  We should take this
+        up on the libtool list.
+@end ignore
+
+@item -no-undefined
+This is an extremely important option when you are aiming for maximum
+portability.  It declares that all of the symbols required by the target
+are resolved at link time.  Some shared library architectures do not
+allow undefined symbols by default (Tru64 Unix), and others do not allow
+them at all (@sc{aix}).  By using this switch, and ensuring that all
+symbols really are resolved at link time, your libraries will work on
+even these platforms.  @xref{Creating Libtool Libraries with Automake}.
+
+@item -export-dynamic
+Almost the opposite of @option{-no-undefined}, this option will compile
+the target so that the symbols it exports can be used to satisfy
+unresolved symbols in subsequently loaded modules.  Not all shared
+library architectures support this feature, and many that do support it,
+do so by default regardless of whether this option is supplied.  If you
+rely on this feature, then you should use this option, in the knowledge
+that you project will not work correctly on architectures that have no
+support for the feature.  For maximum portability, you should neither
+rely on this feature nor use the @option{-export-dynamic} option -- but,
+on the occasions you do need the feature, this option is necessary to
+ensure that the linker is called correctly.
+@end table
+
+When you have the option to do so, I recommend that you design your
+project so that each of the libraries and modules is self contained,
+except for minimal number of dependent libraries, arranged in a
+directional graph shaped like a tree.  That is, by relying on
+back-linking, or mutual or cyclic dependencies you reduce the
+portability of your project.
+@ignore LW
+Do they need an image of this?
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+@end ignore
+In the diagrams below, an arrow indicates that the compilation object
+relies on symbols from the objects that it points to:
+
+@example
+@group
+       main            .---> main                main
+         |             |       |                   |
+    .----+----,        |  .----+----,         .----+----,
+    v         v        |  v         v         v         v
+   liba      libb      liba        libb      liba<-----libb
+    |                     |                   |         ^
+    v                     v                   v         |
+   libc                  libc                libc-------'
+
+     Tree: good        Backlinking: bad       Cyclic: bad
+@end group
+@end example
+
+@node dlpreopen Loading
+@section dlpreopen Loading
+
+On machines which do not have any facility for shared libraries or
+dynamic modules, libltdl allows an application to
+@code{lt_dlopen} modules, provided that the modules are known at link
+time.  This works by linking the code for the modules into the
+application in advance, and then looking up the addresses of the already
+loaded symbols when @code{lt_dlsym} is called.  We call this mechanism
+@dfn{dlpreopening} -- so named because the modules must be loaded at
+link time, not because the @sc{api} to use modules loaded in this way is
+any different.
+
+This feature is extremely useful for debugging, allowing you to make a
+fully statically linked application from the executable and module
+objects, without changing any source code to work around the module
+loading calls.  As far as the code outside the libltdl @sc{api}
+can tell, these modules really are being loaded dynamically.  Driving a
+symbolic debugger across module boundaries is however much easier when
+blocks of code aren't moving in and out of memory during execution.
+
+You may have wondered about the purpose of the following line in the
+dynamic module code in @ref{libltdl Dependent Libraries, Dependent
+Libraries}:
+
+@example
+#define run ltdl_module_LTX_run
+@end example
+
+@ignore
+Didier Verna Mon Jun 19 16:49:10 CEST 2000
+I didn't find anything like this line in this chapter.
+
+2000-06-12  Akim Demaille
+I wondered nothing, I can't see that line :)
+
+2000-07-01  Gary V. Vaughan
+
+	Eek.  Pass the brown paper bag.
+@end ignore
+
+@noindent
+The reason for redefining the entry point symbol in this way is to
+prevent a symbol clash when two or more modules that provide
+identically named entry point functions are preloaded into an
+executable.  It would be otherwise impossible to preload both
+@file{simple-module.c} and @file{ltdl-module.c}, for example, since
+each defines the symbol @samp{run}.  To allow us to write dynamic
+modules that are potentially preloaded, @code{lt_dlsym} will first try
+to lookup the address of a named symbol with a prefix consisting of the
+canonicalized name of the module being searched, followed by the
+characters @samp{_LTX_}.  The module name part of this prefix is
+canonicalized by replacing all non-alphanumeric characters with an
+underscore.  If that fails, @code{lt_dlsym} resorts to the unadorned
+symbol name, which is how @samp{run} was found in
+@file{simple-module.la} by @file{ltdl-loader} earlier.
+
+Supporting this feature in your module loading code is a simple matter
+of initialising the address lookup table, and @file{ltdl.h} defines a
+convenient macro to do exactly that:
+
+@deffn Macro LTDL_SET_PRELOADED_SYMBOLS ()
+Add this macro to the code of your module loading code, before the first
+call to a libltdl function, to ensure that the dlopen address
+lookup table is populated.
+@end deffn
+@ignore LW
+Again, I think this should be pulled up into the graf above.
+
+2000-07-01  Gary V. Vaughan
+
+	Nope.  See typeset document.
+@end ignore
+
+Now change the contents of @file{ltdl-loader.c}, and add a call to this
+macro, so that it looks like this:
+
+@example
+  /* Initialise preloaded symbol lookup table. */
+  LTDL_SET_PRELOADED_SYMBOLS();
+
+  /* Initialise libltdl. */
+  errors = lt_dlinit ();
+@end example
+
+@noindent
+Libtool will now be able to fall back to using preloaded static modules
+if you tell it to, or if the host platform doesn't support native dynamic
+loading.
+
+@quotation
+If you use @samp{LTDL_SET_PRELOADED_SYMBOLS} in your module loader, you
+@strong{must} also specify something to preload to avoid compilation
+failure due to undefined @samp{lt_preloaded_symbols}.  You can name
+modules on the Libtool link command line using one of @option{-dlopen}
+or @option{-dlpreopen}.  This includes support for accessing the symbols
+of the main executable opened with @samp{lt_dlopen(NULL)}---you can ask
+Libtool to fall back to preopening the main modules like this:
+
+@example
+$ libtool gcc -g -o ltdl-loader -dlopen self -rpath /tmp/lib \
+ltdl-loader.c -lltdl
+rm -f .libs/ltdl-loader.nm .libs/ltdl-loader.nmS \
+.libs/ltdl-loader.nmT
+creating .libs/ltdl-loaderS.c
+(cd .libs && gcc -c -fno-builtin -fno-rtti -fno-exceptions
+"ltdl-loaderS.c")
+rm -f .libs/ltdl-loaderS.c .libs/ltdl-loader.nm .libs/ltdl-loader.nmS
+.libs/ltdl-loader.nmT
+gcc -o ltdl-loader .libs/ltdl-loaderS.o ltdl-loader.c
+-Wl,--export-dynamic  /usr/lib/libltdl.so -ldl -Wl,--rpath -Wl,/tmp/lib
+rm -f .libs/ltdl-loaderS.o
+@end example
+
+It doesn't make sense to add preloaded module support to a project, when
+you have no modules to preopen, so the compilation failure in that case
+is actually a feature of sorts.
+@end quotation
+
+The @samp{LTDL_SET_PRELOADED_SYMBOLS} macro does not interfere with the
+normal operation of the code when modules are dynamically loaded,
+provided you use the @option{-dlopen} option on the link line.  The
+advantage of referencing the macro by default is that you can recompile
+the application with or without preloaded module, and all without
+editing the sources.
+
+If you have no modules to link in by default, you can force Libtool to
+populate the preload symbol table by using the @option{-dlopen force}
+option.  This is the option used to preload the symbols of the main
+executable so that you can subsequently call @samp{lt_dlopen(NULL)}.
+
+@ignore Didier Verna Mon Jun 19 16:49:10 CEST 2000
+This needs clarification:
+1/ this macro must always be called before the first call to any libltdl
+   function; but this is always a call to lt_dlinit, right ?
+2/ then, if you say that "it doesn't interfere with the normal operation
+   of the code when the modules really are dynamically loaded", why do
+   we need to do it manually, that is, why lt_dlinit doesn't do the job
+   itself ?
+
+Note: I know the answer, I think :-). I'm just emulating the reasoning
+of somebody else.
+
+2000-07-02  Gary V. Vaughan
+
+	Hmm.  Seems I became confused when I converted the example and
+        the chapter to integrate dlpreloading.  Much reworking is afoot
+        :-/
+@end ignore
+
+Multiple modules can be preloaded, although at the time of writing only
+Libtool compiled modules can be used.  If there is a demand, Libtool will
+be extended to include native library preloading in a future revision.
+
+To illustrate, I have recompiled the @file{simple-module.c} module with
+@command{libtool}:
+
+@example
+@group
+$ libtool --mode=compile gcc -c simple-module.c
+rm -f .libs/simple-module.lo
+gcc -c simple-module.c  -fPIC -DPIC -o .libs/simple-module.lo
+gcc -c simple-module.c -o simple-module.o >/dev/null 2>&1
+mv -f .libs/simple-module.lo simple-module.lo
+@end group
+@group
+m4_changequote(,)m4_dnl
+$ libtool --mode=link gcc -g -o simple-module.la -rpath `pwd`
+-no-undefined -module -avoid-version simple-module.lo
+m4_changequote(`,')m4_dnl
+rm -fr .libs/simple-module.la .libs/simple-module.*
+.libs/simple-module.*
+gcc -shared  simple-module.lo  -lc  -Wl,-soname \
+-Wl,simple-module.so -o .libs/simple-module.so
+ar cru .libs/simple-module.a  simple-module.o
+creating simple-module.la
+(cd .libs && rm -f simple-module.la && ln -s ../simple-module.la \
+simple-module.la)
+@end group
+@end example
+
+@noindent
+The names of the modules that may be subsequently @code{lt_dlopen}ed are
+added to the application link line.  I am using the @option{-static}
+option to force a static only link, which must use dlpreopened modules
+by definition.  I am only specifying this because my host has native
+dynamic loading, and Libtool will use that unless I force a static only
+link, like this:
+
+@example
+@group
+$ libtool --mode=link gcc -static -g -o ltdl-loader ltdl-loader.c \
+-lltdl -dlopen ltdl-module.la -dlopen simple-module.la
+rm -f .libs/ltdl-loader.nm .libs/ltdl-loader.nmS \
+.libs/ltdl-loader.nmT
+creating .libs/ltdl-loaderS.c
+extracting global C symbols from `./.libs/ltdl-module.a'
+extracting global C symbols from `./.libs/simple-module.a'
+(cd .libs && gcc -c -fno-builtin -fno-rtti -fno-exceptions \
+"ltdl-loaderS.c")
+rm -f .libs/ltdl-loaderS.c .libs/ltdl-loader.nm \
+.libs/ltdl-loader.nmS .libs/ltdl-loader.nmT
+gcc -g -o ltdl-loader ltdl-loader.c .libs/ltdl-loaderS.o \
+./.libs/ltdl-module.a -lm ./.libs/simple-module.a \
+/usr/lib/libltdl.a -ldl
+rm -f .libs/ltdl-loaderS.o
+@end group
+@group
+$ ./ltdl-loader ltdl-module 345
+Square root of 345 is 18.574176
+        => 0
+@end group
+@group
+$ ./ltdl-loader simple-module World
+Hello, World!
+        => 0
+@end group
+@end example
+
+Note that the current release of Libtool requires that the
+pseudo-library be present for any libltdl loaded module, even
+preloaded ones.  Once again, if there is sufficient demand, this may be
+fixed in a future release. Until then, if the pseudo-library was deleted
+or cannot be found, this will happen: 
+
+@example
+@group
+$ rm -f simple-module.la
+$ ./ltdl-loader simple-module World
+./ltdl-loader: file not found.
+@end group
+@end example
+
+A side effect of using the @samp{LTDL_SET_PRELOADED_SYMBOLS} macro is
+that if you subsequently link the application without Libtool, you will
+get an undefined symbol for the Libtool supplied
+@samp{lt_preloaded_symbols}.  If you need to link in this fashion, you
+will need to provide a stub that supplies the missing definition.
+Conversely, you must be careful not to link the stub file when you
+@emph{do} link with Libtool, because it will clash with the Libtool
+generated table it is supposed to replace: 
+
+@ignore Didier Verna Mon Jun 19 16:49:10 CEST 2000
+There it is! The long awaited statement that you can do libltdl without
+doing libtool linking :-). But why would you want to do that ?  I mean
+doing libltdl, but "subsequently link the application without Libtool" ?
+Or are there cases where this is necessary ?
+
+2000-07-02  Gary V. Vaughan
+
+	Thankyou for catching this before I embarrased myself infront of
+        the whole world!! =)O|
+@end ignore
+
+@example
+@group
+#include <ltdl.h>
+const lt_dlsymlist lt_preloaded_symbols[] = @{ @{ 0, 0 @} @};
+@end group
+@end example
+
+@noindent
+Of course, if you use this stub, and link the application without the
+benefits of Libtool, you will not be able to use any preloaded modules
+-- even if you statically link them, since there is no preloaded symbol
+lookup table in this case.
+
+
+@node User Module Loaders
+@section User Module Loaders
+
+While writing the module loading code for @sc{gnu} M4 1.5, I found that
+libltdl did not provide a way for loading modules in exactly the way I
+required:  As good as the preloading feature of libltdl may be, and as
+useful as it is for simplifying debugging, it doesn't have all the
+functionality of full dynamic module loading when the host platform is
+limited to static linking.  After all, you can only ever load modules
+that were specified at link time, so for access to user supplied modules
+the whole application must be relinked to preload these new modules
+before @code{lt_dlopen} will be able to make use of the additional
+module code.
+
+In this situation, it would be useful to be able to automate this
+process.  That is, if a libltdl using process is unable to
+@code{lt_dlopen} a module in any other fashion, but can find a suitable 
+static archive in the module search path, it should relink itself along
+with the static archive (using @command{libtool} to preload the module),
+and then @code{exec} the new executable.  Assuming all of this is
+successful, the attempt to @code{lt_dlopen} can be tried again -- if the
+``suitable'' static archive was chosen correctly it should now be
+possible to access the preloaded code.
+
+
+@menu
+* libltdl Loader Mechanism::
+* libltdl Loader Management::
+* libltdl Loader Errors::
+@end menu
+
+@node libltdl Loader Mechanism
+@subsection  Loader Mechanism
+
+@cindex loaders
+Since Libtool 1.4, libltdl has provided a generalized method for loading
+modules, which can be extended by the user.  libltdl has a default built
+in list of module loading mechanisms, some of which are peculiar to a
+given platform, others of which are more general.  When the
+@file{libltdl} subdirectory of a project is configured, the list is
+narrowed to include only those @emph{mechanisms}, or simply
+@dfn{loaders}, which can work on the host architecture.  When
+@samp{lt_dlopen} is called, the loaders in this list are tried, in
+order, until the named module has loaded, or all of the loaders in the
+list have been exhausted.  The entries in the final list of loaders each
+have a unique name, although there may be several candidate loaders for
+a single name before the list is narrowed.  For example, the
+@samp{dlopen} loader is implemented differently on BeOS and Solaris --
+for a single host, there can be only one implementation of any named
+loader.  The name of a module loader is something entirely different to
+the name of a loaded module, something that should become clearer as you
+read on.
+
+In addition to the loaders supplied with libltdl, your project can add
+more loaders of its own.  New loaders can be added to the end of the
+existing list, or immediately before any other particular loader, thus
+giving you complete control of the relative priorities of all of the
+active loaders in your project. 
+
+In your module loading @sc{api}, you might even support the dynamic
+loading of user supplied loaders:  that is your users would be able to
+create dynamic modules which added more loading mechanisms to the
+existing list of loaders!
+
+@ignore Didier Verna Mon Jun 19 16:49:10 CEST 2000
+The remaining part of this section is not well organized, and thus a bit
+obscure: for instance, you're saying first that libltdl "will attempt to
+load using one of several builtin methods", which is a lie, since
+afterwards you show that one can add other methods to try.
+
+I think that part should be a bit reorganized as follows:
+
+Subsection 1: the general module loader mechanism
+<explain it in general: there is a list of module loaders that can be
+tried in order. Some of them are builtin, the user can add other ones at
+different places in the list etc.>
+
+Subsection 2: the API
+<describe the API, as you did. But then, given the preceding subsection,
+you can probably do it in a more concise fashion.>
+
+Also, a final remark: don't write about the list of builtin methods you
+give as if it were exhaustive. It has changed already and is probably
+subject to future additions.
+
+2000-07-02  Gary V. Vaughan
+
+	That's great!  I was not entirely happy with this part of the
+        chapter, but no-one complained and I forgot to revisit it.  I am
+        adopting your organisation, it is much clearer than mine was.
+        Thanks. 
+@end ignore
+
+Version 1.4 of Libtool has a default list that potentially contains an
+implementation of the following loaders (assuming all are supported by
+the host platform):
+
+@table @code
+@item dlpreopen
+If the named module was preloaded, use the preloaded symbol table for
+subsequent @code{lt_dlsym} calls.
+
+@item dlopen
+If the host machine has a native dynamic loader @sc{api} use that to try
+and load the module.
+
+@item dld
+If the host machine has @sc{gnu}
+dld@footnote{@uref{http://www.gnu.org/software/dld}}, use that to try
+and load the module.
+@end table
+
+@ignore
+2000-06-12  Akim Demaille
+What is GNU dld?  How can such a beast be portable?  How is it different
+from libltdl?
+
+2000-07-01  Gary V. Vaughan
+
+	Gord Matzigkeits other orphaned child!  url added.
+@end ignore
+
+Note that loader names with a @samp{dl} prefix are reserved for future
+use by Libtool, so you should choose something else for your own module
+names to prevent a name clash with future Libtool releases.
+
+
+@node libltdl Loader Management
+@subsection Loader Management
+
+The @sc{api} supplies all of the functions you need to implement your
+own module loading mechanisms to solve problems just like this:
+
+@deftypefn Function {lt_dlloader_t *} lt_dlloader_find (@w{const char *@var{loader_name}})
+Each of the module loaders implemented by libltdl is stored
+according to a unique name, which can be used to lookup the associated
+handle.  These handles operate in much the same way as
+@code{lt_dlhandle}s:  They are used for passing references to modules in
+and out of the @sc{api}, except that they represent a kind of
+@emph{module loading method}, as opposed to a loaded module instance.
+
+This function finds the @samp{lt_dlloader_t} handle associated with the
+unique name passed as the only argument, or else returns @samp{NULL} if
+there is no such module loader registered.
+@end deftypefn
+
+@deftypefn Function int lt_dlloader_add (@w{lt_dlloader_t *@var{place},} @w{lt_user_dlloader *@var{dlloader},} @w{const char *@var{loader_name}})
+This function is used to register your own module loading mechanisms
+with libltdl.  If @var{place} is given it must be a handle for an
+already registered module loader, which the new loader @var{dlloader}
+will be placed in front of for the purposes of which order to try
+loaders in.  If @var{place} is @samp{NULL}, on the other hand, the new
+@var{dlloader} will be added to the end of the list of loaders to try
+when loading a module instance. In either case @var{loader_name} must be
+a unique name for use with @code{lt_dlloader_find}.
+
+The @var{dlloader} argument must be a C structure of the following
+format, populated with suitable function pointers which determine the
+functionality of your module loader:
+
+@example
+struct lt_user_dlloader @{
+  const char         *sym_prefix;
+  lt_module_open_t   *module_open;
+  lt_module_close_t  *module_close;
+  lt_find_sym_t      *find_sym;
+  lt_dlloader_exit_t *dlloader_exit;
+  lt_dlloader_data_t dlloader_data;
+@};
+@end example
+@end deftypefn
+
+@deftypefn Function int lt_dlloader_remove (@w{const char *@var{loader_name}})
+When there are no more loaded modules that were opened by the given
+module loader, the loader itself can be removed using this function. 
+@end deftypefn
+
+@noindent
+When you come to set the fields in the @code{lt_user_dlloader}
+structure, they must each be of the correct type, as described below:
+@ignore LW
+Should more be said here? Pretty vague...
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@deftypevr Type {const char *} sym_prefix
+If a particular module loader relies on a prefix to each symbol being
+looked up (for example, the Windows module loader necessarily adds a
+@samp{_} prefix to each symbol name passed to @code{lt_dlsym}), it should
+be recorded in the @samp{sym_prefix} field.
+@end deftypevr
+
+@deftypefn Type lt_module_t lt_module_open_t (@w{lt_dlloader_data_t @var{loader_data},} @w{const char *@var{module_name}})
+When @code{lt_dlopen} has reached your registered module loader when
+attempting to load a dynamic module, this is the type of the
+@code{module_open} function that will be called.  The name of the module
+that libltdl is attempting to load, along with the module loader
+instance data associated with the loader being used currently, are
+passed as arguments to such a function call.
+
+The @code{lt_module_t} returned by functions of this type can be
+anything at all that can be recognised as unique to a successfully
+loaded module instance when passed back into the @code{module_close} or
+@code{find_sym} functions in the @code{lt_user_dlloader} module loader
+structure.
+@end deftypefn
+
+@deftypefn Type int lt_module_close_t (@w{lt_dlloader_data_t @var{loader_data},} @w{lt_module_t @var{module}})
+In a similar vein, a function of this type will be called by
+@code{lt_dlclose}, where @var{module} is the returned value from the
+@samp{module_open} function which loaded this dynamic module instance.
+@end deftypefn
+
+@deftypefn Type lt_ptr_t lt_find_sym_t (@w{lt_dlloader_data_t @var{loader_data},} @w{lt_module_t @var{module}, } @w{const char *@var{symbol_name}})
+In a similar vein once more, a function of this type will be called by
+@code{lt_dlsym}, and must return the address of @var{symbol_name} in
+@var{module}.
+@end deftypefn
+
+@deftypefn Type int lt_dlloader_exit_t (@w{lt_dlloader_data_t @var{loader_data}})
+When a user module loader is @code{lt_dlloader_remove}d, a function of
+this type will be called.  That function is responsible for releasing
+any resources that were allocated during the initialisation of the
+loader, so that they are not ``leaked'' when the @code{lt_user_dlloader}
+structure is recycled.
+
+Note that there is no initialisation function type:  the initialisation
+of a user module loader should be performed before the loader is
+registered with @code{lt_dlloader_add}.
+@end deftypefn
+
+@deftypevr Type lt_dlloader_data_t dlloader_data
+The @var{dlloader_data} is a spare field which can be used to store or
+pass any data specific to a particular module loader.  That data will
+always be passed as the value of the first argument to each of the
+implementation functions above.
+@end deftypevr
+
+@c Time permitting, it would be nice to include the code for the reexec
+@c module loader here.
+@ignore LW
+Did you determine whether to do this?
+
+2000-07-01  Gary V. Vaughan
+
+	Time didn't permit I'm afraid.  Something for the 2nd edition
+        perhaps?
+@end ignore
+
+@node libltdl Loader Errors
+@subsection Loader Errors
+
+When writing the code to fill out each of the functions needed to
+populate the @code{lt_user_dlloader} structure, you will often need to
+raise an error of some sort.  The set of standard errors which might be
+raised by the internal module loaders are available for use in your own
+loaders, and should be used where possible for the sake of uniformity if
+nothing else.  On the odd occasion where that is not possible,
+libltdl has @sc{api} calls to register and set your own error
+messages, so that users of your module loader will be able to call
+@code{lt_dlerror} and have the error message you set returned:
+
+@deftypefn Function int lt_dlseterror (@w{int @var{errorcode}})
+By calling this function with one of the error codes enumerated in the
+header file, @file{ltdl.h}, @code{lt_dlerror} will return the associated
+diagnostic until the error code is changed again.
+@end deftypefn
+
+@deftypefn Function int lt_dladderror (@w{const char *@var{diagnostic}})
+Often you will find that the existing error diagnostics do not describe
+the failure you have encountered.  By using this function you can
+register a more suitable diagnostic with libltdl, and subsequently
+use the returned integer as an argument to @code{lt_dlseterror}.
+@end deftypefn
+
+@c FIXME:  Do I really need to describe these too??
+libltdl provides several other functions which you may find
+useful when writing a custom module loader.  These are covered in the
+Libtool manual, along with more detailed descriptions of the functions
+described in the preceding paragraphs.
+@ignore LW
+iF the information is already provided in the manual, my vote would be not to
+describe them here.  Just reference them.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay, thanks.
+
+Also, I'd like to see you transition into the next chapter more.
+
+2000-07-01  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+In the next chapter, we will discuss the more complex features of
+Automake, before moving on to show you how to use those features and add
+libltdl module loading to the Sic project from @ref{A Large
+COLLECTIVE Project} in the chapter after that.
+
+@c Local variables:
+@c fill-column: 72
+@c End:

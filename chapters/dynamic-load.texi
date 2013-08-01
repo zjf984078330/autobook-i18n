@@ -1,0 +1,772 @@
+@c -*-texinfo-*-
+
+An increasingly popular way of adding functionality to a project is to
+give a program the ability to dynamically load plugins, or modules.   By
+doing this your users can extend your project in new ways, which even you
+perhaps hadn't envisioned.  @dfn{Dynamic Loading}, then, is the process
+of loading compiled objects into a running program and executing some or
+all of the code from the loaded objects in the same context as the main
+executable.
+
+@ignore
+2000-06-01  Leah Williams
+
+        I'd do more than this here--also explain why the reader needs to
+        know about dynamic loading, and how it fits into the context of
+        the book.  I'd also like to see a brief description of what's
+        covered in the chapter--how it all fits together.
+
+2000-06-01  Gary V. Vaughan
+
+        Okay.  I think the new text addresses each of these points.
+
+Didier
+
+        Appart from the usual ... DON'T DO K&R !!! thing.
+
+2000-06-29  Gary V. Vaughan
+
+	Working on it!!!
+
+Didier
+
+As usual, I'm generaly opposed to putting full listings in chapters. This
+brings nothing to the chapter itself. Rather, put the listing in an annex if
+you really want to see it appear somewhere.
+
+2000-06-29  Gary V. Vaughan
+
+	On the contrary, I hate it when I read a book and have to hunt
+        for the listings at the back of the book and then continually
+        thumb back and forth as I continue to read.  I guess it's
+        subjective.
+@end ignore
+
+This chapter begins with a discussion of the mechanics of dynamic
+modules and how they are used, and ends with example code for very
+simple module loading on @sc{gnu}/Linux, along with the 
+example code for a complementary dynamically loadable module.  Once you
+have read this chapter and understand the principles of dynamic loading,
+the next chapter will explain how to use COLLECTIVE to write portable
+dynamic module loading code and address some of the shortcomings of
+native dynamic loading @sc{api}s.
+
+@ignore
+2000-06-06 Akim
+
+Hm, probably a problem with my English, but I'm surprised to see
+
+        Once you have read [...] and understand
+
+I would have said (but I confess I dunno, and I'm willing to learn :)
+
+        Once you have read [...] and understood
+
+2000-06-29  Gary V. Vaughan
+
+	Either is fine.  They are shortened versions of:
+
+	Once you have read [...] and you understand
+	Once you have read [...] and have understood
+
+2000-06-06 Akim
+
+Also, COLLECTIVE yields a GNU not in @sc, which is unfortunate (BTW<
+congrats for the impressive work on the harmonization of the notations
+in the book, it's great as is).  I guess this is because of @chapter
+etc.  Maybe you should avoid COLLECTIVE in @chapter, but still change
+COLLECTIVE to use @sc.
+
+2000-06-29  Gary V. Vaughan
+
+	I guess we can ditch the replacement entirely now, since the
+	argument over what to call the is finished.
+@end ignore
+
+@menu
+* Dynamic Modules::
+* Module Access Functions::
+* Finding a Module::
+* A Simple GNU/Linux Module Loader::
+* A Simple GNU/Linux Dynamic Module::
+@end menu
+
+@node Dynamic Modules
+@section Dynamic Modules
+
+In order to dynamically load some code into your executable, that code
+must be compiled in some special but architecture dependent fashion.
+Depending on the compiler you use and the platform you are compiling
+for, there are different conventions you must observe in the code for
+the module, and for the particular combination of compiler options you
+need to select if the resulting objects are to be suitable for use in
+a dynamic module.  For the rest of this chapter I will concentrate on
+the conventions used when compiling dynamic modules with @sc{gcc} on
+@sc{gnu}/Linux, which although peculiar to this particular combination
+of compiler and host architecture, are typical of the sorts of
+conventions you would need to observe on other architectures or with
+a different compiler. 
+
+@ignore
+2000-06-01  Leah Williams
+
+        Just a wording opinion--not sure I'd use "specially"--maybe just
+        "compile that code for the particular compiler and platform."
+        Also, I'd pull the next section into the paragraph above--same
+        thought. 
+
+2000-06-01  Gary V. Vaughan
+
+        Eek!  Then I haven't explained it correctly.  I think the
+        replacement is clearer.
+@end ignore
+With @sc{gcc} on @sc{gnu}/Linux, you must compile each of the source
+files with @option{-fPIC}@footnote{Not essential but will be slower
+without this option, see @ref{Position Independent Code}.}, the resulting
+objects must be linked into a loadable module with @command{gcc}'s
+@option{-shared} option:
+
+@ignore
+2000-06-01  Leah Williams
+
+        Can we introduce the examples in the chapter?  Maybe even end
+        the previous graf with a colon:
+
+2000-06-01  Gary V. Vaughan
+
+        Agreed.
+
+2000-06-06  Akim
+
+        footnote, period.
+
+2000-06-29  Gary V. Vaughan
+
+        Thanks.
+@end ignore
+
+@example
+$ gcc -fPIC -c foo.c
+$ gcc -fPIC -c bar.c
+$ gcc -shared -o baz.so foo.o bar.o
+@end example
+
+This is pretty similar to how you might go about linking a shared
+library, except that the @file{baz.so} module will never be linked with
+a @option{-lbaz} option, so the @samp{lib} prefix isn't necessary.  In
+fact, it would probably be confusing if you used the prefix.
+Similarly, there is no constraint to use any particular filename
+suffix, but it is sensible to use the target's native shared library
+suffix (@sc{gnu}/Linux uses @samp{.so}) to make it obvious that the
+compiled file is some sort of shared object, and not a normal
+executable.
+
+Apart from that, the only difference between a shared library built for
+linking at compile-time and a dynamic module built for loading at
+run-time is that the module must provide known @dfn{entry points} for
+the main executable to call.  That is, when writing code destined for a
+dynamic module, you must provide functions or variables with known names
+and semantics that the main executable can use to access the
+functionality of the module.  This @emph{is} different to the function
+and variable names in a regular library, which are already known when
+you write the client code, since the libraries are always  written
+@emph{before} the code that uses them;  a runtime module loading system
+must, by definition, be able to cope with modules that are written
+@emph{after} the code that uses those modules.
+
+@ignore
+2000-06-01  Leah Williams
+
+        Not sure I understand what you mean by "the point of a module
+        system"--last sentence in the paragraph
+
+2000-06-01  Gary V. Vaughan
+
+        Okay.  I guess my exmplanation was unclear.  How about now?
+@end ignore
+
+
+@node Module Access Functions
+@section Module Access Functions
+
+In order to access the functionality of dynamic modules, different
+architectures provide various @sc{api}s to bring the code from the
+module into the address space of the loading program, and to access the
+symbols exported by that module.
+@ignore
+2000-06-01  Leah Williams
+
+        Good transition
+@end ignore
+
+@sc{gnu}/Linux uses the dynamic module @sc{api} introduced by Sun's
+Solaris operating system, and widely adopted (and adapted!) by the
+majority of modern Unices@footnote{@sc{hp-ux} being the most notable
+exception.}.  The interface consists of four functions.  In practice, you
+really ought not to use these functions, since you would be locking your
+project into this single @sc{api}, and the class of machines that
+supports it.  This description is over-simplified to serve as a
+comparison with the fully portable libltdl @sc{api} described in
+@ref{Using GNU libltdl}.  The minutiae are not discussed, because therein
+lie the implementation peculiarities that spoil the portability of this
+@sc{api}.  As they stand, these descriptions give a good overview of
+how the functions work at a high level, and are broadly applicable to
+the various implementations in use.  If you are curious, the details of
+your machines  particular dynamic loading @sc{api} will be available in
+its system manual pages.   
+
+@ignore
+2000-06-01  Leah Williams
+
+        Rather than putting this in parentheses--(I know we discussed
+        this in the email chain), let's explain a bit more.  If you're
+        giving a description that is just an oversimplified description
+        of what they can find elsewhere, let them know why you're giving
+        it--in order to explain your concept, for the sake of clarity etc.
+
+2000-06-01  Gary V. Vaughan
+
+        You're right.  It seemed rather rushed now that you mention it.
+        Thanks.  Better now.
+
+2000-06-06  Akim
+
+        footnote, period.
+
+2000-06-29  Gary V. Vaughan
+
+	Thanks.
+@end ignore
+
+@deftypefn Function {void *} dlopen (@w{const char *@var{filename},} @w{int @var{flag}})
+This function brings the code from a named module into the address space
+of the running program that calls it, and returns a handle which is used
+by the other @sc{api} functions.  If @var{filename} is not an absolute
+path, @sc{gnu}/Linux will search for it in directories named in the
+@samp{LD_LIBRARY_PATH} environment variable, and then in the standard
+library directories before giving up.
+
+The flag argument is made by ``OR''ing together various flag bits
+defined in the system headers.  On @sc{gnu}/Linux, these flags are
+defined in @file{dlfcn.h}:
+
+@table @samp
+@item RTLD_LAZY
+Resolve undefined symbols when they are first used.
+
+@item RTLD_NOW
+If all symbols cannot be resolved when the module is loaded,
+@code{dlopen} will fail and return @samp{NULL}.
+
+@item RTLD_GLOBAL
+All of the global symbols in the loaded module will be available to
+resolve undefined symbols in subsequently loaded modules.
+@end table
+@end deftypefn
+
+@ignore
+2000-06-06  Akim
+
+        Please, a few words on flag :)
+
+2000-06-29  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@deftypefn Function {void *} dlsym (@w{void *@var{handle},} @w{char *@var{name}})
+Returns the address of the named symbol in the module which returned
+@var{handle} when it was @code{dlopen}ed.  You must cast the returned
+address to a known type before using it.
+@end deftypefn
+
+@deftypefn Function int dlclose (@w{void *@var{handle}})
+When you are finished with a particular module, it can be removed from
+memory using this function.
+@end deftypefn
+
+@deftypefn Function {const char *} dlerror (void)
+If any of the other three @sc{api} calls fails, this function returns a
+string which describes the last error that occurred.
+@end deftypefn
+
+In order to use these functions on @sc{gnu}/Linux, you must
+@code{#include <dlfcn.h>} for the function prototypes, and link with
+@option{-ldl} to provide the @sc{api} implementation.  Other Unices use
+@option{-ldld} or provide the implementation of the @sc{api} inside the
+standard C library.
+
+
+@node Finding a Module
+@section Finding a Module
+
+When you are writing a program that will load dynamic modules, a major
+stumbling block is writing the code to find the modules you wish to 
+load.  If you are worried about portability (which you must be, or you
+wouldn't be reading this book!), you can't rely on the default search
+algorithm of the vendor @code{dlopen} function, since it varies from
+implementation to implementation.  You can't even rely on the name of
+the module, since the module suffix will vary according to the
+conventions of the target host (though you could insist on a particular
+suffix for modules you are willing to load).
+@ignore
+2000-06-01  Leah Williams
+
+        Good! I like how you point out the problems your reader will have.
+@end ignore
+
+Unfortunately, this means that you will need to implement your own
+searching algorithm and always use an absolute pathname when you call
+@code{dlopen}.  A widely adopted mechanism is to look for each module in
+directories listed in an environment variable specific to your
+application, allowing your users to inform the application of the
+location of any modules they have written.  If a suitable module is not
+yet found, the application would then default to looking in a list of
+standard locations -- say, in a subdirectory of the user's home
+directory, and finally a subdirectory of the application installation
+tree.  For application @samp{foo}, you might use
+@file{/usr/lib/foo/module.so} -- that is, @samp{$(pkglibdir)/module.so}
+if you are using Automake.
+
+This algorithm can be further improved:
+
+@itemize @bullet
+@item
+If you try different module suffixes to the named module for every
+directory in the search path, which will avoid locking your code into a
+subset of machines that use the otherwise hardcoded module suffix.  With
+this in place you could ask the module loader for module
+@file{foomodule}, and if it was not found in the first search directory,
+the module loader could try @file{foomodule.so}, @file{foomodule.sl} and
+@file{foomodule.dll} before moving on to the next directory.
+
+@item
+You might also provide command line options to your application which
+will preload modules before starting the program proper or to modify the
+module search path.  For example, @sc{gnu} M4, version 1.5, will have
+the following dynamic loading options:
+@end itemize
+
+@example
+$ m4 --help
+Usage: m4 [OPTION]... [FILE]...
+...
+Dynamic loading features:
+  -M, --module-directory=DIRECTORY  add DIRECTORY to the search path
+  -m, --load-module=MODULE          load dynamic MODULE from M4MODPATH
+...
+Report bugs to <bug-m4@@gnu.org>.
+@end example
+
+@ignore
+2000-06-01  Leah Williams
+
+        These last two paragraphs don't flow very smoothy--you might tie
+        them together: "Two other things you can do to improve x are to
+        increase portability by...and to increase functionality by...
+
+2000-06-01  Gary V. Vaughan
+
+	Agreed.  I've used a bulleted list, and added examples.
+
+2000-06-06  Akim
+
+        Shrink the output?
+
+$ m4 --help
+Usage: m4 [OPTION]... [FILE]...
+...
+Dynamic loading features:
+  -M, --module-directory=DIRECTORY  add DIRECTORY to the search path
+  -m, --load-module=MODULE          load dynamic MODULE from M4MODPATH
+...
+Report bugs to <bug-m4@@gnu.org>.
+
+2000-06-29  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+
+@node A Simple GNU/Linux Module Loader
+@section A Simple GNU/Linux Module Loader
+
+Something to be aware of, is that when your users write dynamic modules
+for your application, they are subject to the interface you design.  It
+is very important to design a dynamic module interface that is clean and
+functional before other people start to write modules for your code.  If
+you ever need to change the interface, your users will need to rewrite
+their modules.  Of course you can carefully change the interface  to
+retain backwards compatibility to save your users the trouble of
+rewriting their modules, but that is no substitute for designing a
+good interface from the outset.  If you do get it wrong, and
+subsequently discover that the design you implemented is misconceived
+(this is the voice of experience speaking!), you will be left with a
+difficult choice: try to tweak the broken @sc{api} so that it does work
+while retaining backwards compatibility,  and the maintenance and
+performance penalty that brings? Or start again with a fresh design born
+of the experience gained last time, and rewrite all of the modules you
+have so far?
+
+If there are other applications which have similar module requirements
+to you, it is worth writing a loader that uses the same interface and
+semantics.  That way, you will (hopefully) be building from a known good
+@sc{api} design, and you will have access to all the modules for that
+other application too, and vice versa. 
+@ignore
+2000-06-01  Leah Williams
+
+        Why wouldn't you just use backwards compatibility then?
+
+2000-06-01  Gary V. Vaughan
+
+	Good point.  More explanation added.
+@end ignore
+
+For the sake of clarity, I have sidestepped any issues of @sc{api}
+design for the following example, by choosing this minimal interface:
+@ignore
+2000-06-01  Leah Williams
+
+        Say why you've chosen a minimal example
+
+2000-06-01  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+@deftypefn Function int run (@w{const char *@var{argument}})
+When the module is successfully loaded a function with the following
+prototype is called with the argument given on the command line.  If
+this entry point is found and called, but returns @samp{-1}, an error
+message is displayed by the calling program.
+@end deftypefn
+
+Here's a simplistic but complete dynamic module loading application you
+can build for this interface with the  @sc{gnu}/Linux dynamic loading
+@sc{api}:
+@ignore
+2000-06-01  Leah Williams
+
+        Maybe Here's a simplistic dynamic module ...you can build using
+        this interface?" or something a bit more dynamic?
+
+2000-06-01  Gary V. Vaughan
+
+	Much better, thanks.
+
+2000-06-06  Akim
+
+        synamic.  flyspell is your friend :)
+
+2000-06-29  Gary V. Vaughan
+
+	Oops.  Thankyou.
+@end ignore
+
+@example
+m4_include(examples/simple-loader.texi)
+@end example
+
+@ignore
+2000-06-06  Akim
+
+I confess I'm bugged to see HAVE_CONFIG_H, but unconditional inclusion
+of limits.h and dffcn.h.
+
+2000-06-29  Gary V. Vaughan
+
+        Force of habit.  I've removed config.h, this most definitely is
+	*not* portable code.
+
+2000-06-06  Akim
+
+Also, really, I am still frightened to see K&R code.  What is the point?
+You also have ansi2knr and Automake to help you.  In addition, because
+you prototype delerrordup, I really see no point at all to K&R your
+`main'.  Please, drop K&R dead, long life to ansi2knr.
+
+
+2000-06-29  Gary V. Vaughan
+
+	I am removing the K&R code.  But someone should figure out a
+        better way that the horrid _horrid_ HORRID ans2knr way of
+        supporting K&R.  A set of CPP macros or something would be much
+	cleaner, and easier to work with ;-)
+
+2000-06-06  Akim
+
+Stupid from me, I know, but I was really wondering where the delerrordup
+was doing.  And it is just because it is given afterwards.  Personally I
+would have defined it first, instead on prototyping, and later
+defining.  But this is definitely a matter of tastes.  Still, when you
+read a book, you prefer to see the used before the users.  IMHO :)
+
+2000-06-29  Gary V. Vaughan
+
+        You are a bottom-up programmer then?  I am a top-down
+	programmer!  I have commented the prototype so that main makes
+        sense first time through.  Thanks.
+
+2000-06-06  Akim
+
+This section is surprising:
+
+  if (!module)
+    ++errors;
+
+  /* Find the entry point. */
+  if (module)
+    ...
+  else
+    errors = 1;       <= this guy seems quite useless
+
+in fact, I don't understand why you base your tests on `module', and not
+on `errors'.
+
+2000-06-29  Gary V. Vaughan
+
+        I was sitting on the fence between the two.  It seems I came off
+        the fence, but with one foot on each side!  Thanks.
+
+2000-06-06  Akim
+
+Some of my personal opinion: I find
+
+        if (!errors)
+and
+        if (errors)
+
+much more readable than
+
+        if (errors == 0)
+and
+        if (errors != 0)
+
+2000-06-29  Gary V. Vaughan
+
+        Okay.
+
+2000-06-06  Akim
+
+  if (argc != 3)
+    {
+      fprintf (stderr, "USAGE: main MODULENAME ARGUMENT\n");
+      exit (EXIT_SUCCESS);
+    }
+
+SUCCESS???
+
+2000-06-29  Gary V. Vaughan
+
+        I was confusing it with servicing a --help.  Thanks.
+
+2000-06-06  Akim
+
+  /* Find the entry point. */
+  if (module)
+    {
+      run = dlsym (module, "run");
+      /* In principle, run might legitimately be NULL, so
+         I don't use `run == NULL' as an error indicator. */
+      errormsg = dlerrordup (errormsg);
+
+***   /* Be careful to save a copy of the error message,
+***      since the  next API call may overwrite the original. */
+      if (errormsg != NULL)
+        {
+          errors = dlclose (module);
+          module = NULL;
+        }
+    }
+
+I think you meant to remove these lines when you introduced dlerrordup.
+
+2000-06-29  Gary V. Vaughan
+
+        Yes I did.  Thanks.
+
+2000-06-06  Akim
+
+  module = dlopen (modulepath, RTLD_NOW);
+
+What is RTLD_NOW?  It doesn't seem to be introduced.
+
+2000-06-29  Gary V. Vaughan
+
+        Done.
+
+2000-06-06  Akim
+
+    /* Be careful to save a copy of the error message,
+       since the  next API call may overwrite the original. */
+                ^^
+    static char *
+    dlerrordup (errormsg)
+         char *errormsg;
+
+Same in the next chapter (i.e., examples/ltdl-loader.c).
+
+2000-06-29  Gary V. Vaughan
+
+        Thanks.
+
+2000-06-06  Akim
+
+        Wow, the end of `main' is amazing!  I know some people don't
+        want to rely on return in main (personally, I have never been
+        trapped, but I sure can be wrong), so they use `exit'.  But you
+        are the first guy I see who doubles an exit with a return!
+        Then, why don't you just `void' your main?  Hm, K&R I guess.
+
+        Anyway, I don't think we should think about broken main's
+        `return' when dealing with modules.
+
+2000-06-29  Gary V. Vaughan
+
+        The `int main' is to keep gcc -Wall happy.  `int main' requires
+        a return to keep `gcc -Wall' happy.  /*NOTREACHED*/ keeps lint
+        happy .  The exit(), as you say, keeps me happy.
+
+        You are right that it is complete overkill for such a simple
+        example though.
+@end ignore
+
+@noindent
+You would compile this on a @sc{gnu}/Linux machine like so:
+
+@example
+$ gcc -o simple-loader simple-loader.c -ldl
+@end example
+
+However, despite making reasonable effort with this loader, and ignoring
+features which could easily be added, it still has some seemingly
+insoluble problems:
+
+@enumerate
+@item
+It will fail if the user's platform doesn't have the @code{dlopen}
+@sc{api}.  This also includes platforms which have no shared libraries.
+
+@item
+It relies on the implementation to provide a working self-opening
+mechanism.  @samp{dlopen (NULL, RTLD_NOW)} is very often unimplemented,
+or buggy, and without that, it is impossible to access the symbols of
+the main program through the @samp{dlsym} mechanism.
+
+@ignore
+2000-06-06  Akim
+
+        It might rely somehow on dlopen (NULL, RTLD_NOW), but I can't
+        see why: you `dlopen (NULL, RTLD_NOW)' when `module != NULL'.
+        In addition, what is this magic incantation supposed to do?
+
+2000-06-29  Gary V. Vaughan.
+
+	I have reiterated the meaning if dlopen(NULL) now, and RTLD_NOW
+        is explained in response to an earlier comment of your.  Thanks.
+@end ignore
+
+@item
+It is quite difficult to figure out at compile time whether the target
+host needs @file{libdl.so} to be linked.
+@end enumerate
+
+I will use COLLECTIVE to tackle these problems in the next chapter.
+@ignore
+2000-06-01  Leah Williams
+
+        I like how you direct them here--if you know the section, point
+        that out too.
+
+2000-06-01  Gary V. Vaughan
+
+	Gradually throughout the whole next chapter! =)O|
+@end ignore
+
+
+@node A Simple GNU/Linux Dynamic Module
+@section A Simple GNU/Linux Dynamic Module
+
+As an appetiser for working with dynamic loadable modules, here is a
+minimal module written for the interface used by the loader in the
+previous section: 
+@ignore
+2000-06-01  Leah Williams
+
+        Above is an ambiguous term--might want to explain a bit
+        more--even "in the previous section." 
+
+2000-06-01  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+@example
+m4_include(examples/simple-module.texi)
+@end example
+
+@noindent
+Again, to compile on a @sc{gnu}/Linux machine:
+
+@example
+$ gcc -fPIC -c simple-module.c
+$ gcc -shared -o simple-module.so
+@end example
+
+@noindent
+Having compiled both loader and module, a test run looks like this:
+
+@example
+$ ./simple-loader simple-module World
+Hello, World!
+        => 0
+@end example
+
+If you have a @sc{gnu}/Linux system, you should experiment with the
+simple examples from this chapter to get a feel for the relationship
+between a dynamic module loader and its modules -- tweak the interface
+a little; try writing another simple module.  If you have a machine with
+a different dynamic loading @sc{api}, try porting these examples to that
+machine to get a feel for the kinds of problems you would encounter if
+you wanted a module system that would work with both @sc{api}s.
+
+@ignore
+2000-06-06  Akim
+
+        s/it's/its/ modules.
+
+2000-06-29  Gary V. Vaughan
+
+	Thanks.
+@end ignore
+
+The next chapter will do just that, and develop these examples into a
+fully portable module loading system with the aid of COLLECTIVE.  In
+@ref{A Module Loading Subsystem}, I will add a more realistic module
+loader into the Sic project last discussed in @ref{A Large COLLECTIVE
+Project}.
+@ignore
+2000-06-01  Leah Williams
+
+        In these two sections, I'd like to see you explain more how
+        these examples can help them, and perhaps why you chose these
+        examples in particular. 
+
+        I'd like to see you sum up a bit more here/lead into the next
+        chapter.  It seems like an abrupt end, and doesn't flow as well
+        as it could, making it more difficult for the reader to read.
+
+2000-06-01  Gary V. Vaughan
+
+        Agreed.  It must have been approaching bedtime when I wrote this!
+        Somewhat improved now , I think.  I don't want to harp on too
+        much about these examples -- they are barely functional, and
+        serve merely to introduce the reader to the relationship between
+        shared libraries, dynamic modules and dynamic loading.  The real
+        meat (and stuff that can be reused) is in the next chapter.
+@end ignore
+
+@c Local variables:
+@c fill-column: 72
+@c End:

@@ -1,0 +1,431 @@
+@c -*-texinfo-*-
+
+@ignore DV
+Remember my ranting about chapter 8 "Bootstraping" ? I complained about
+the fact that this chapter was completely useless (I still think so
+;-). Gary, if you really want to keep its contents somewhere, this annex
+might be the appropriate place. The reason is that when talking about
+generated file dependencies, you implicitely have to mention the order
+in which the tools must be called.
+
+GVV
+That Tom's chapter really, I just donated some content.
+@end ignore
+
+These diagrams show the data flows associated with each of the tools you
+might need to use when bootstrapping a project with COLLECTIVE.  A lot
+of files are consumed and produced by these tools, and it is important
+that all of the required input files are present (and correct) at each
+stage -- @command{configure} requires @file{Makefile.in} and produces
+@file{Makefile} for example.  There are many of these relationships, and
+these diagrams should help you to visualize the dependencies.  They will
+be invaluable while you learn your way around COLLECTIVE, but before
+long you will find that you need to refer to them rarely, if at all.
+
+They do not show how the individual files are laid out in a project
+directory tree, since some of them, @file{config.guess} for example,
+have no single place at which they must appear, and others,
+@file{Makefile.am} for example, may be present in several places,
+depending on how you want to structure your project directories.
+
+@ignore
+LW
+I'd like to see more introduction here--Say more about why these diagrams are
+helpful.  Do you need the tools or data flows?
+
+GVV
+Agreed.  Done -- Not sure what you mean by that question though!
+
+LW
+I'd also like to see you introduce the following list by saying
+something like, "Following is a key to the diagram:"
+Each figure needs to be introduced, have a number, and a caption.  It
+needs to be clear why it's important to describe each.
+
+GVV
+Agreed on all counts and done.  However, texinfo markup has no way to
+express diagram numbers an captions.  If you want to add them to the
+printed book, please number and name them according to the @section they 
+appear in -- e.g. The first diagram is in `@section aclocal', so should
+have the number/caption `A4.1 -- aclocal'
+
+DV
+In order for the reader to understand the diagrams, you propose a list of 9
+points, which I think is far too many. The diagrams are rather easy to
+read, but by giving so many `keys', you actually give the reader the
+impression that they will be very complex, and make him anxious. Here are
+the items you could just remove:
+
+   - item 1 (box = tool)
+   - item 3 (arrows in / out)
+   - item 5 and item 7 (double arrows / multiple files). And don't make
+     the drawings more complex by using double arrows at all. Reading `{user
+     macro files}', `{project sources}' and `{project targets}' is enough to
+     understand that there are multiple files.
+   - item 9 (literal file names)
+
+That makes 4 items instead of 9, and the drawings are still very clear.
+
+GVV
+Okay.  Thanks.
+@end ignore
+
+The key to the diagrams in this appendix follows:
+
+@itemize @bullet
+@item
+The boxes are the individual tools which comprise COLLECTIVE.
+@item
+Where multiple interlinked boxes appear in a single diagram, this
+represents one tool itself running other helper programs.  If a box is
+`behind' another box, it is a (group of) helper program(s) that may be
+automatically run by the boxes `in front'.
+@item
+Dotted arrows are for optional files, which may be a part of the
+process.
+@item
+Where an input arrow and output arrow are aligned horizontally, the
+output is created from the input by the process between the two.
+@item
+words in parentheses, "()", are for deprecated files which are supported 
+but no longer necessary.
+@end itemize
+
+@ignore
+akim
+s/tooos/tools/
+
+GVV
+Nope, you've lost me there.  I can't even find it in the version of this
+chapter you sent me.
+
+LW
+Please introduce the example--introduce each diagram, describing it briefly
+and giving it a name such as A4.1, A4.2.  Captions will be needed as well.
+
+GVV
+Done -- excepting the limits of texinfo I described above
+@end ignore
+
+Notice that in some cases, a file output during one stage of the whole
+process becomes the driver for a subsequent stage.
+
+Each of the following diagrams represents the execution of one of the
+tools in COLLECTIVE; they are presented in the order that we recommend
+you run them, though some stages may not be required for your project.
+You shouldn't run @command{libtoolize} if your project doesn't use
+@command{libtool}, for example.
+
+@menu
+* aclocal process::
+* autoheader process::
+* automake and libtoolize process::
+* autoconf process::
+* configure process::
+* make process::
+@end menu
+
+@node aclocal process
+@section aclocal
+
+The @command{aclocal} program creates the file @file{aclocal.m4} by
+combining stock installed macros, user defined macros and the contents
+of @file{acinclude.m4} to define all of the macros required by
+@file{configure.in} in a single file.  @command{aclocal} was created as
+a fix for some missing functionality in Autoconf, and as such we
+consider it a wart.  In due course @command{aclocal} itself will
+disappear, and Autoconf will perform the same function unaided.
+
+@ignore
+LW
+I'm confused--what's the example and what's the group?
+
+GVV
+texinfo markup.  I'll add entries to the STYLE file.
+@end ignore
+@smallexample
+m4_changequote(,)m4_dnl
+@group
+user input files   optional input     process          output files
+================   ==============     =======          ============
+
+                    acinclude.m4 - - - - -.
+                                          V
+                                      .-------,
+configure.in ------------------------>|aclocal|
+                 @{user macro files@} ->|       |------> aclocal.m4
+                                      `-------'
+@end group
+m4_changequote(`,')m4_dnl
+@end smallexample
+@c caption:  C.1 -- `aclocal'
+
+@ignore akim
+I would stress again that aclocal is meant to disappear from Earth, it
+was here to fix a missing feature of autoconf, which will be fixed in
+the future.
+
+GVV
+Indeed.  `tis done.
+
+akim
+Also, the user files belong to optional input imho, but debatable.
+Still, I don't see why there would be a difference between the status of
+acinclude.m4 and user's m4 files.
+
+GVV
+Your last sentence conviced me.
+@end ignore
+
+@node autoheader process
+@section autoheader
+
+@command{autoheader} runs @command{m4} over @file{configure.in}, but
+with key macros defined differently than when @command{autoconf} is
+executed, such that suitable @command{cpp} definitions are output to
+@file{config.h.in}.
+
+@smallexample
+m4_changequote(,)m4_dnl
+@group
+user input files    optional input     process          output files
+================    ==============     =======          ============
+
+                    aclocal.m4 - - - - - - - .
+                    (acconfig.h) - - - -.    |
+                                        V    V
+                                     .----------,
+configure.in ----------------------->|autoheader|----> config.h.in
+                                     `----------'
+@end group
+m4_changequote(`,')m4_dnl
+@end smallexample
+@c caption: C.2 -- `autoheader'
+
+@ignore akim
+Hm, I wouldn't put aclocal.m4 in the picture, although technically it is
+right.  Well, up to you: aclocal.m4 is included implicitly by
+configure.in, but autoheader doesn't care directly.  Hm, don't know the
+best choice :(
+
+GVV
+It is important that aclocal is run before autoheader, or
+AM_CONFIG_HEADER (for example) doesn't work properly.  I'm leaving
+aclocal in the diagram so that the reader knows that it should be
+present by the time autoheader is executed.
+@end ignore
+
+
+@node automake and libtoolize process
+@section automake and libtoolize
+
+@command{automake} will call @command{libtoolize} to generate some extra 
+files if the macro @samp{AC_PROG_LIBTOOL} is used in
+@file{configure.in}.  If it is not present then @command{automake} will
+install @file{config.guess} and @file{config.sub} by itself.
+
+@command{libtoolize} can also be run manually if desired;
+@command{automake} will only run @command{libtoolize} automatically
+if @file{ltmain.sh} and @file{ltconfig} are missing.
+
+@ignore
+LW
+Need an introduction of the new diagram--plus name, caption, etc.
+This follows for the rest of the appendix as well.
+
+GVV
+Done -- excepting the limits of texinfo I described above
+@end ignore
+@smallexample
+m4_changequote(,)m4_dnl
+@group
+user input files   optional input   processes          output files
+================   ==============   =========          ============
+
+                                     .--------,
+                                     |        | - - -> COPYING
+                                     |        | - - -> INSTALL
+                                     |        |------> install-sh
+                                     |        |------> missing
+                                     |automake|------> mkinstalldirs
+configure.in ----------------------->|        |
+Makefile.am  ----------------------->|        |------> Makefile.in
+                                     |        |------> stamp-h.in
+                                 .---+        | - - -> config.guess
+                                 |   |        | - - -> config.sub
+                                 |   `------+-'
+                                 |          | - - - -> config.guess
+                                 |libtoolize| - - - -> config.sub
+                                 |          |--------> ltmain.sh
+                                 |          |--------> ltconfig
+                                 `----------'
+@end group
+m4_changequote(`,')m4_dnl
+@end smallexample
+@c caption:  C.3 -- `automake and libtoolize'
+
+@ignore akim
+I would make two diagrams: one for `automake --add-missing' and another
+for the regular use of automake.
+
+GVV
+I don't think it is difficult to read as is, and I would like to have a
+single diagram to describe automake.
+@end ignore
+
+@quotation
+@c begin sidebar entitled: config.guess and config.sub
+The versions of @file{config.guess} and @file{config.sub} installed
+differ between releases of Automake and Libtool, and might be different
+depending on whether @command{libtoolize} is used to install them or
+not.  Before releasing your own package you should get the latest
+versions of these files from @uref{ftp://ftp.gnu.org/gnu/config}, in
+case there have been changes since releases of the COLLECTIVE.
+@end quotation
+@ignore
+LW
+What about making it an aside with a heading that describes it?
+
+GVV
+Sure.  Whatever is in keeping with the rest of the book.
+@end ignore
+
+@node autoconf process
+@section autoconf
+
+@command{autoconf} expands the @command{m4} macros in
+@file{configure.in}, perhaps using macro definitions from
+@file{aclocal.m4}, to generate the @command{configure} script.
+
+@smallexample
+m4_changequote(,)m4_dnl
+@group
+user input files   optional input   processes          output files
+================   ==============   =========          ============
+
+                   aclocal.m4 - - - - - -.
+                                         V
+                                     .--------,
+configure.in ----------------------->|autoconf|------> configure
+                                     `--------'
+@end group
+m4_changequote(`,')m4_dnl
+@end smallexample
+@c caption:  C.4 -- `autoconf'
+
+@node configure process
+@section configure
+
+The purpose of the preceding processes was to create the input files
+necessary for @command{configure} to run correctly.  You would ship your
+project with the generated @command{script} and the files in columns,
+@dfn{other input} and @dfn{processes} (except @file{config.cache}), but
+@command{configure} is designed to be run by the person installing your
+package.  Naturally, you will run it too while you develop your project,
+but the files it produces are specific to your development machine, and
+are not shipped with your package -- the person installing it later will
+run @command{configure} and generate @dfn{output files} specific to
+their own machine.
+
+Running the @command{configure} script on the build host executes the
+various tests originally specified by the @file{configure.in} file, and
+then creates another script, @file{config.status}.  This new script
+generates the @file{config.h} header file from @file{config.h.in}, and
+@file{Makefile}s from the named @file{Makefile.in}s.  Once
+@file{config.status} has been created, it can be executed by itself to
+regenerate files without rerunning all the tests.  Additionally, if
+@samp{AC_PROG_LIBTOOL} was used, then @command{ltconfig} is used to
+generate a @command{libtool} script.
+
+@smallexample
+m4_changequote(,)m4_dnl
+@group
+user input files   other input      processes          output files
+================   ===========      =========          ============
+
+                                     .---------,
+                   config.site - - ->|         |
+                  config.cache - - ->|configure| - - -> config.cache
+                                     |         +-,
+                                     `-+-------' |
+                                       |         |----> config.status
+                   config.h.in ------->|config-  |----> config.h
+                   Makefile.in ------->|  .status|----> Makefile
+                                       |         |----> stamp-h
+                                       |         +--,
+                                     .-+         |  |
+                                     | `------+--'  |
+                   ltmain.sh ------->|ltconfig|-------> libtool
+                                     |        |     |
+                                     `-+------'     |
+                                       |config.guess|
+                                       | config.sub |
+                                       `------------'
+@end group
+m4_changequote(`,')m4_dnl
+@end smallexample
+@c caption:  C.5 -- `configure'
+
+@ignore akim
+I think that a book aiming at providing expertise on the GNU autotools
+should not hide `config.status'.  People should know configure just
+creates it, and it is it that creates the files.
+
+GVV
+Agreed.
+
+akim
+Also, maybe a word on CONFIG_SITE and config.site?
+
+GVV
+I've shown the file;  the reader can refer to the Autoconf manual to
+discover what it does and how to use it.
+@end ignore
+
+@node make process
+@section make
+
+The final tool to be run is @command{make}.  Like @command{configure},
+it is designed to execute on the build host.  @command{make} will use
+the rules in the generated @file{Makefile} to compile the project
+sources with the aid of various other scripts generated earlier on.
+
+@ignore
+akim
+s/It/it/.
+
+GVV
+Ta!
+
+LW
+What does finally mean here?
+
+GVV
+Sloppy english.  Replace with a clearer sentence.
+@end ignore
+
+@smallexample
+m4_changequote(,)m4_dnl
+@group
+user input files   other input      processes          output files
+================   ===========      =========          ============
+
+                                   .--------,
+                   Makefile ------>|        |
+                   config.h ------>|  make  |
+@{project sources@} ---------------->|        |--------> @{project targets@}
+                                 .-+        +--,
+                                 | `--------'  |
+                                 |   libtool   |
+                                 |   missing   |
+                                 |  install-sh |
+                                 |mkinstalldirs|
+                                 `-------------'
+@end group
+m4_changequote(`,')m4_dnl
+@end smallexample
+@c caption:  C.6 -- `make'
+
+@c Local variables:
+@c fill-column: 72
+@c End:

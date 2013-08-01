@@ -1,0 +1,10 @@
+*.texi
+*.so
+*.la
+*.lo
+*.o
+ltdl-loader
+simple-loader
+configure.scan
+Makefile.in
+Makefile

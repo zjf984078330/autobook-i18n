@@ -1,0 +1,156 @@
+@c -*-texinfo-*-
+
+There are many programs in the COLLECTIVE, each of which has a complex
+set of inputs.  When one of these inputs changes, it is important to run
+the proper programs in the proper order.  Unfortunately, it is hard to
+remember both the dependencies and the ordering.
+
+For instance, whenever you edit @file{configure.in}, you must remember
+to re-run @code{aclocal} in case you added a reference to a new macro.
+You must also rebuild @file{configure} by running @command{autoconf};
+@file{config.h} by running @command{autoheader}, in case you added a new
+@code{AC_DEFINE}; and @command{automake} to propagate any new
+@code{AC_SUBST}s to the various @file{Makefile.in}s.  If you edit a
+@file{Makefile.am}, you must re-run @command{automake}.  In both these
+cases, you must then remember to re-run @code{config.status --recheck}
+if @file{configure} changed, followed by @code{config.status} to rebuild
+the @file{Makefile}s.
+
+When doing active development on the build system for your project,
+these dependencies quickly become painful.  Of course, Automake knows
+how to handle this automatically.  By default, @command{automake}
+generates a @file{Makefile.in} which knows all these dependencies and
+which automatically re-runs the appropriate tools in the appropriate
+order.  These rules assume that the correct versions of the tools are
+all in your @code{PATH}.
+
+It helps to have a script ready to do all of this for you once, before
+you have generated a @file{Makefile} that will automatically run the
+tools in the correct order, or when you make a fresh checkout of the
+code from a @acronym{CVS} repository where the developers don't keep
+generated files under source control.  There are at least two opposing
+schools of thought regarding how to go about this -- the
+@code{autogen.sh} school and the @code{bootstrap} school:
+
+@ignore akim
+Hm, I think @table @code would be better than enumerate.
+
+2000-06-24  Gary V. Vaughan
+
+	Agreed.
+@end ignore
+
+@table @code
+@cindex autogen.sh
+@item autogen.sh
+From the outset, this is a poor name for a bootstrap script, since there
+is already a @sc{gnu} automatic text generation tool called AutoGen.
+Often packages that follow this convention have the script automatically
+run the generated @command{configure} script after the bootstrap process,
+passing @command{autogen.sh} arguments through to @command{configure}.
+Except you don't know what options you want yet, since you can't run
+@samp{configure --help} until @command{configure} has been generated.  I
+suggest that if you find yourself compiling a project set up in this way
+that you type:
+
+@ignore akim
+s/you don't what options/you don't know what options/
+
+2000-06-24  Gary V. Vaughan
+
+	Oops.  Thankyou.
+@end ignore
+
+@example
+$ /bin/sh ./autogen.sh --help
+@end example
+
+and ignore the spurious warning that tells you @command{configure} will
+be executed.
+
+@cindex bootstrap script
+@item bootstrap
+Increasingly, projects are starting to call their bootstrap scripts
+@file{bootstrap}.  Such scripts simply run the various commands required
+to bring the source tree into a state where the end user can simply:
+
+@example
+$ configure
+$ make
+$ make install
+@end example
+
+Unfortunately, proponents of this school of thought don't put the
+bootstrap script in their distributed tarballs, since the script is
+unnecessary except when the build environment of a developer's machine
+has changed.  This means the proponents of the autogen.sh school may
+never see the advantages of the other method.
+@end table
+
+Autoconf comes with a program called @code{autoreconf} which essentially
+does the work of the @code{bootstrap} script.  @code{autoreconf} is
+rarely used because, historically, has not been very well known, and only
+in Autoconf 2.13 did it acquire the ability to work with Automake.
+Unfortunately, even the Autoconf 2.13 @code{autoreconf} does not handle
+@code{libtoolize} and some @code{automake}-related options that are
+frequently nice to use.
+
+We recommend the @code{bootstrap} method, until @code{autoreconf} is
+fixed.  At this point @code{bootstrap} has not been standardized, so
+here is a version of the script we used while writing this book
+@footnote{This book is built using @code{automake} and @code{autoconf}.
+We couldn't find a use for @code{libtool}.}:
+
+@example
+#! /bin/sh
+
+aclocal \
+&& automake --gnu --add-missing \
+&& autoconf
+@end example
+
+We don't use @code{autoreconf} here because that script (as of Autoconf
+2.13) also does not handle the @samp{--add-missing} option, which we
+want.  A typical @code{bootstrap} might also run @code{libtoolize} or
+@code{autoheader}.
+
+It is also important for all developers on a project to have the same
+versions of the tools installed so that these rules don't inadvertently
+cause problems due to differences between tool versions.  This version
+skew problem turns out to be fairly significant in the field.  So,
+@command{automake} provides a way to disable these rules by default,
+while still allowing users to enable them when they know their
+environment is set up correctly.
+
+In order to enable this mode, you must first add
+@code{AM_MAINTAINER_MODE} to@* @file{configure.in}.  This will add the
+@samp{--enable-maintainer-mode} option to @file{configure}; when
+specified this flag will cause these so-called ``maintainer rules'' to
+be enabled.
+
+Note that maintainer mode is a controversial feature.  Some people like
+to use it because it causes fewer bug reports in some situations.  For
+instance, @acronym{CVS} does not preserve relative timestamps on
+files.  If your project has both @file{configure.in} and
+@file{configure} checked in, and maintainer mode is not in use, then
+sometimes @code{make} will decide to rebuild @file{configure} even
+though it is not really required.  This in turn means more headaches for
+your developers -- on a large project most developers won't touch
+@file{configure.in} and many may not even want to install the COLLECTIVE
+@footnote{Shock, horror}.
+
+The other camp claims that end users should use the same build system
+that developers use, that maintainer mode is simply unaesthetic, and
+furthermore that the modality of maintainer mode is dangerous---you can
+easily forget what mode you are in and thus forget to rebuild, and thus
+correctly test, a change to the configure or build system.  When
+maintainer mode is not in use, the Automake-supplied @code{missing}
+script will be used to warn users when it appears that they need a
+maintainer tool that they do not have.
+
+The approach you take depends strongly on the social structures
+surrounding your project.
+
+@c Local variables:
+@c fill-column: 72
+@c End:

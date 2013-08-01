@@ -1,0 +1,4 @@
+AC_INIT(Makefile.in)
+AM_INIT_AUTOMAKE(autobook, 0.5a)
+AC_PATH_PROGS(M4, gnum4 gm4 m4, false)
+AC_OUTPUT(Makefile examples/Makefile)

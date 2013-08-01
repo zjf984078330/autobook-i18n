@@ -1,0 +1,6 @@
+-*-Outline-*-
+
+* Collect configure/make output into .texi files for m4_inclusion
+* Write a perl program to convert either the texi, or generated tex
+  (perhaps based on texi2html?) to NewRiders markup format
+* Make sure the peculiarities of VPATH and srcdir vs. builddir are explored

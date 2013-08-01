@@ -1,0 +1,2226 @@
+@c -*-texinfo-*-
+
+@ignore LW
+I found this opening section confusing-first I thought from the 2nd graf 
+that there were no problems using other libraries, then I thought from the 5th
+graf that doing so would cause problems.  In short, I'm unclear on what
+the chapter is about from this opening-Would you condense the section in
+order to clarify the meaning?  Also, I'd remove the first sentence-you
+explain that elsewhere, and it's too abruptly introduced here. Thanks.
+
+2000-06-18  Gary V. Vaughan
+
+	First sentence has gone already!
+
+akim
+I'm being extremely picky, but the authors should decide a common naming
+policy.  In particular, in Automake and Autoconf people say `Autoconf'
+when they mean the package and everything that goes with it, and
+`autoconf' when they refer to the executable.
+
+In the title of the chapter for instance, I'd say it's either `GNU
+Libtool', or @samp{libtool}.  There are occurrences in this chapter
+where I'd say Libtool instead of @command{libtool}.  But of course Gary
+will know better than me what is the tradition in the Libtool world.
+
+2000-06-18  Gary V. Vaughan
+
+	The recent overhaul of the entire book fixes all of these.
+        Thanks for the push =)O|
+
+Bruce
+Almost noone who uses @command{libtool} need concern themselves
+... it is possible to use @command{libtool} by itself, ...
+
+The goal of @command{libtool} is to ... by a host's system
+libraries.  Non-libtool libraries are fully supported....
+...to your project.  That is what this chapter is all about.
+
+2000-06-27  Gary V. Vaughan
+
+	Bitrotted with respect to recent rewrte.
+
+Bruce
+It should be noted that the mumble.lo target is the file used
+in libtool dependencies, and not the mumble.o file.
+
+2000-06-27  Gary V. Vaughan
+
+	That is discussed in the next chapter.  Thanks.
+
+Bruce
+Before going on  to describe the zillions of things libtool
+does, FIRST mention the "modes", THEN describe what each mode
+accomplishes THEN go into the details of -DPIC, etc.  You
+start talking about all these wonderful things that libtool
+handles for you before I understand the full picture of what
+it is doing.
+
+2000-06-27  Gary V. Vaughan
+
+	The --mode argument is not required in normal use of libtool,
+        it is a rather advanced feature which you only need to
+        understand to be able to do advanced things from the command
+        line.  I think the problem with the flow is less prevalent in
+        the current version of this chapter, and I'm loathe to try and
+        restructure what I have now.  Hopefully we are not in violent
+        disagreement =)O|  Cheers.
+@end ignore
+
+Libtool takes care of all the peculiarities of creating, linking and
+loading shared and static libraries across a great number of platforms,
+providing a uniform command line interface to the developer.  By using
+Libtool to manage your project libraries, you only need to concern
+yourself with @emph{Libtool's} interface: when someone else builds your
+project on a platform with a different library architecture, Libtool
+invokes that platform's compiler and linker with the correct environment
+and command line switches.  It will install libraries and library using
+binaries according to the conventions of the host platform, and follows
+that platform's rules for library versioning and library
+interdependencies.
+@ignore LW
+Would it make sense to just start with "By using..." or will the reader want
+The history?
+
+2000-06-18  Gary V. Vaughan
+
+	The history is superfluous.  Removed.
+
+@c I'll rant about the planned features for upcoming libtool releases in
+@c the Looking to the Future chapter
+
+LW
+Let the reader know where to find that information-reference not only
+the chapter, but also if possible, the section.
+
+2000-06-18  Gary V. Vaughan
+
+	An old comment to myself from when we had planned that chapter.
+        Now removed.
+@end ignore
+
+@cindex Libtool library
+Libtool empowers you to treat a library as an implementation of a well
+defined interface of your choosing.  This @dfn{Libtool library} may be
+manifest as a collection of compiler objects, a static @command{ar}
+archive, or a position independent runtime loadable object. By
+definition, native libraries are fully supported by Libtool since
+they are an implementation detail of the Libtool library
+abstraction. It's just that until Libtool achieves complete world
+domination, you might need to bear in mind what is going on behind the
+command line  interface  when you first add Libtool support to your
+project.
+@ignore LW
+This is where I became confused-if it's clear to all of you, please ignore
+This-I just couldn't quite understand what you meant by "that is what
+this chapter..." after reading it.  Also, I do like to see a brief
+description of what's covered in the chapter-
+
+2000-06-18  Gary V. Vaughan
+
+        Sure.  The chapter intro has been substantially rewritten now,
+        and is hopefully much clearer now.
+
+Bruce
+By "native" you mean both shared object and archive libraries?
+"host" might work.  You might want to describe here what you
+mean by "libtool" libraries.  Often, they are just shell
+scripts that tell libtool what to do to link the library....
+
+2000-06-27  Gary V. Vaughan
+	The following sidebar should cover that now.  Thanks.
+	FYI, libtool libraries are never linker scripts.  There are
+        pseudo libraries which *are* scripts, but they just hold
+        variable values associated with the library.  And there are
+        wrapper scripts for applications linked with libtool
+        libraries which use various tricks to ensure the correct
+        library is found at runtime.
+@end ignore
+
+@quotation
+@c Begin sidebar entitled `Terminology'
+@cindex library terminology
+@cindex pseudo-library
+The sheer number of uses of the word ``library'' in this book could
+be easily very confusing.  In this chapter and throughout the rest of
+the book, I will refer to various kinds of libraries as follows:
+
+@table @asis
+@item ``native''
+Low level libraries, that is, libraries provided by the host
+architecture.
+
+@item ``Libtool library''
+The kind of library built by Libtool.  This encompasses both the
+shared and static native components of the implementation of the named
+library.
+
+@item ``pseudo-library''
+The high level @samp{.la} file produced by Libtool.  The
+``pseudo-library'' is not a library in its own right, but is treated
+as if it were from outside the Libtool interface.
+@end table
+
+Furthermore, in the context of Libtool, there is another subtle (but
+important) distinction to be drawn:
+
+@table @asis
+@item ``static @emph{library}''
+A Libtool library which has no shared archive component.
+
+@item ``static @emph{archive}''
+The static component of a Libtool library.
+@end table
+@end quotation
+
+@ignore 2000-07-17 Akim
+        I think the two remaining @command{libtool} are Libtool.
+
+2000-07-19  Gary V. Vaughan
+
+	Agreed.
+@end ignore
+
+Many developers use Libtool as a black box which requires adding a few
+macros to @file{configure.in} and tweaking a project's
+@file{Makefile.am}.  The next chapter addresses that school of thought 
+in more detail.  In this chapter I will talk a little about the inner
+workings of Libtool, and show you how it can be used directly from your
+shell prompt -- how to build various kinds of library, and how those
+libraries can be used by an application.  Before you can do any of this,
+you need to create a @command{libtool} script that is tailored to the
+platform you are using it from.
+
+@menu
+* Creating libtool::
+* The Libtool Library::
+* Linking an Executable::
+* Linking a Library::
+* Executing Uninstalled Binaries::
+* Installing a Library::
+* Installing an Executable::
+* Uninstalling::
+@end menu
+@ignore LW
+it's best if these headings are consistent in form-that is, if you use installation, you should use creation rather than creating, etc.
+
+2000-06-18  Gary V. Vaughan
+
+	Agreed.  Done (in the opposite sense to what you suggest).
+@end ignore
+
+@node Creating libtool 
+@section Creating @command{libtool}
+
+When you install a distribution of Libtool on your development machine,
+a host specific @command{libtool} program is installed.  The examples in
+the rest of this chapter use this installed instance of
+@command{libtool}.
+
+When you start to use Libtool in the build process of your own projects,
+you shouldn't require that @command{libtool} be installed on the user's
+machine, particularly since they may have a different @command{libtool}
+version to the one used to develop your project.  Instead, distribute
+some of the files installed by the Libtool distribution along with your
+project, and custom build a @command{libtool} script on the user's
+machine before invoking @command{./libtool} to build any objects.  If
+you use Autoconf and Automake, these details are taken care of
+automatically (@pxref{Using GNU Libtool, , Using GNU Libtool with
+configure.in and Makefile.am}).  Otherwise you should copy the following
+files from your own Libtool installation into the source tree of your
+own project:
+@ignore LW
+Wording could be a bit simpler-in the second sentence, rather than "The 
+Correct way to handle this..." , just say "Instead, distribute.."
+
+2000-06-18  Gary V. Vaughan
+
+        Agreed.  Thanks.
+
+LW
+Also, most commands I would change to a smaller typeface for emphasis-but
+I'm not sure whether you would want this consistently for automake and
+autoconf. 
+
+Other typefacing notes-I'm familiar with the variables, commands, emph, but
+Am unsure about dfn, sc, or I
+
+Also, I'm still confused about the meaning of "group" within listings,
+especially when the listing continues after it, but you've probably
+explained this already in another chapter
+
+2000-06-18  Gary V. Vaughan
+
+        See the typeset document or the STYLE file for all of these.
+
+Bruce
+In the "creating libtool" section, the "ltconfig" program
+should be mentioned early on.
+
+2000-06-27  Gary V. Vaughan
+
+	Agreed, and done.  Thankyou.
+@end ignore
+
+@smallexample
+@group
+$ ls /usr/local/share/libtool
+config.guess   config.sub   libltdl   ltconfig   ltmain.in
+@end group
+$ cp /usr/local/share/libtool/config.* /usr/local/share/libtool/lt* .
+@group
+$ ls
+config.guess   config.sub   ltconfig   ltmain.in
+@end group
+@end smallexample
+
+You must then arrange for your project build process to create an
+instance of @command{libtool} on the user's machine, so that it is
+dependent on their target system and not your development machine.  The
+creation process requires the four files you just added to your project.
+Let's create a @command{libtool} instance by hand, so that you can see
+what is involved:
+
+@smallexample
+@group
+$ ./config.guess
+hppa1.1-hp-hpux10.20
+@end group
+@group
+$ ./ltconfig --disable-static --with-gcc ./ltmain.sh hppa1.1-hp-hpux10.20
+checking host system type... hppa1.1-hp-hpux10.20
+checking build system type... hppa1.1-hp-hpux10.20
+checking whether ln -s works... yes
+checking for ranlib... ranlib
+checking for BSD-compatible nm... /usr/bin/nm -p
+checking for strip... strip
+checking for gcc... gcc
+checking whether we are using GNU C... yes
+checking for objdir... .libs
+checking for object suffix... o
+checking for executable suffix... no
+checking for gcc option to produce PIC... -fPIC
+checking if gcc PIC flag -fPIC works... yes
+checking if gcc static flag -static works... yes
+checking if gcc supports -c -o file.o... yes
+checking if gcc supports -c -o file.lo... yes
+checking if gcc supports -fno-rtti -fno-exceptions ... no
+checking for ld used by GCC... /opt/gcc-lib/hp821/2.7.0/ld
+checking if the linker (/opt/gcc-lib/hp821/2.7.0/ld) is GNU ld... no
+checking whether the linker (/opt/gcc-lib/hp821/2.7.0/ld) supports \
+shared libraries... yes
+checking how to hardcode library paths into programs... relink
+checking whether stripping libraries is possible... yes
+checking for /opt/gcc-lib/hp821/2.7.0/ld option to reload object \
+files... -r
+checking dynamic linker characteristics... hpux10.20 dld.sl
+checking command to parse /usr/bin/nm -p output... ok
+checking if libtool supports shared libraries... yes
+checking whether to build shared libraries... yes
+checking whether to build static libraries... yes
+creating libtool
+@end group
+@group
+$ ls
+config.guess   config.sub   ltconfig
+config.log     libtool      ltmain.sh
+@end group
+@group
+$ ./libtool --version
+ltmain.sh (GNU libtool) 1.3c (1.629 1999/11/02 12:33:04)
+@end group
+@end smallexample
+
+@ignore akim
+Well, I'm sure you know this is too wide, and cut when printed.  I'm
+also sure you will handle this at the very end of the process.
+Nevertheless, I'd like to suggest that file names be as short as
+possible, let it be only so that the reader doesn't have to parse too
+long names.  For instance, you can at least get rid of `local/' in the
+path above.  Maybe you can cut some more.
+
+2000-06-18  Gary V. Vaughan
+
+	Agreed on all counts, and fixed throughout the entire book.
+
+Bruce
+The bazillions of "checking ..." lines are very boring.  So is
+much of the other informative chaff that comes out as a result
+of running a command.
+
+2000-06-27  Gary V. Vaughan
+
+	I disagree!  It shows exactly what tests are performed by
+        ltconfig, which is interesting if you haven't seen it before,
+        or if it has always shot by in the middle of your `./configure'
+        and you hadn't realised it belonged to ltconfig.  And it gives
+        the reader a frame of reference for the output of their own
+        experiments if they are following the examples at a computer.
+        I think trimming or removing it would devalue it immensely.
+@end ignore
+
+The examples in this chapter are all performed on a @sc{hp-ux} system,
+but the principles depicted are representative of any of the platforms
+to which Libtool has been ported (@pxref{PLATFORMS}).
+@ignore LW
+Can I add text such as "in the section x, or in the chapter y," to x-refs?
+Or is that somehow done automatically?
+
+2000-06-18  Gary V. Vaughan
+
+	See the typeset document (it is automatic).
+@end ignore
+
+Often you don't need to specify any options, and if you omit the
+configuration triplet (@pxref{Configuration Names}),
+@command{ltconfig} will run @command{config.guess} itself.  There are
+several options you can specify which affect the generated
+@command{libtool}, @xref{Configuring Libtool, Invoking ltconfig, Invoking
+ltconfig, Libtool, The Libtool Manual}.  Unless your project has special 
+requirements, you can usually use the simplified:
+
+@ignore akim
+The last arg of @cite should be Capitalized, shouldn't it?
+
+2000-06-18  Gary V. Vaughan
+
+	Huh?
+
+2000-07-17 Akim
+
+        I meant s/the Libtool manual/The Libtool Manual/
+
+        You are still using @xref instead of @ref :) I think you could
+        give a try to `grep ', *@xref{}' or something, in the whole
+        book.
+
+        Actually, you could also complain to the authors of Texinfo,
+        they could do something about that.
+
+2000-07-20  Gary V. Vaughan
+
+	Good call.  Okay.  Thanks.
+@end ignore
+
+
+@smallexample
+$ ./ltconfig ./ltmain.sh
+@end smallexample
+
+@ignore Bruce
+"With the current release" (or similar) is used too often.
+
+2000-06-27  Gary V. Vaughan
+
+        Thanks.  With the rewrite of this chapter most of them are
+        gone.
+@end ignore
+
+With the current release of Libtool, you must be careful that @samp{$CC}
+is set to the same value when you call @command{ltconfig} as when you
+invoke the @command{libtool} it generates, otherwise @command{libtool}
+will use the compiler specified in @samp{$CC} currently, but with the
+semantics probed by @command{ltconfig} for the compiler specified in
+@samp{$CC} at the time @emph{it} was executed.
+
+@ignore Bruce
+RE: CC value: it might be worthwile to *force* CC to be the
+probed value, or else choke if it is different.  But the
+choking would require a check at build time, and it is already
+expensive enough.  That shell script that is invoked for every
+invocation of $CC is non-trivial and obscure.
+
+2000-06-27  Gary V. Vaughan
+
+	Dare I say, "This is a problem only in the current
+	release". =)O|  Seriously, we are aware of this particular
+        stupidity, and would like to fix it -- unfortunately, there
+        is no obvious `correct' solution.  Anyway, we digress...
+@end ignore
+
+
+@node The Libtool Library
+@section The Libtool Library
+
+@cindex Libtool object
+A Libtool library is built from Libtool objects in the same way
+that a native (non-Libtool) library is built from native objects.
+Building a Libtool library with @command{libtool} is as easy as building
+an old style static archive.  Generally, each of the sources is compiled
+to a @dfn{Libtool object}, and then these objects are combined to create
+the library.
+@ignore LW
+IF they didn't know how to build like an old-style archive, is there anywhere
+you could direct them for more info?  Or is that too obvious?
+
+2000-06-18  Gary V. Vaughan
+
+	The target audience will know this.  Besides there is an example
+        only a couple of paragraphs down.
+@end ignore
+
+@ignore LW
+Begin sidebar.  Authors, please add heading.
+
+2000-06-18  Gary V. Vaughan
+
+        Okay.
+@end ignore
+@quotation
+@c Begin sidebar entitled `Hands on'
+If you want to try this to see what @command{libtool} does on your
+machine, put the following code in a file @file{hello.c}, in a directory
+of its own, and run the example shell commands from there:
+
+@smallexample
+m4_include(examples/hello/hello.texi)
+@end smallexample
+@end quotation
+
+@ignore akim
+That's funny: am I understanding that you are using m4 to pre-process
+the manuscript?  I'd like to know why precise services you get from m4
+here.
+
+2000-06-18  Gary V. Vaughan
+
+	Yes we are.  Now that you have CVS access, you can see for
+        yourself.
+
+akim
+More seriously, I have not been given these sample files, so I can't
+comment on them.
+
+2000-06-18  Gary V. Vaughan
+
+        You have seen them by now, I trust?
+@end ignore
+
+@ignore LW
+@c FIXME:  need to come up with some cooncrete terminology to
+@c         differentiate ``native'' libraries from Libtool libraries.
+
+Just want to highlight this fixme
+
+2000-06-18  Gary V. Vaughan
+
+	I have added definitions to the first section of the chapter.
+        Thanks.
+@end ignore
+
+The traditional way to make a (native) static library is as follows:
+
+@example
+@group
+$ gcc -c hello.c
+$ ls
+hello.c  hello.o
+@end group
+@group
+$ ar cru libhello.a hello.o
+$ ranlib libhello.a
+$ ls
+hello.c   hello.o   libhello.a
+@end group
+@end example
+
+@ignore akim
+nit picking: the wide spaces used by `ls' in the latter run look ugly.
+You probably should keep a constant distance, such as two spaces, it
+will come out better.  Alternatively, use GNU ls, which uses varying
+width for each column.
+
+2000-06-18  Gary V. Vaughan
+
+        2 seemed too few, so I have use 3 now.
+@end ignore
+
+Notice that even when I just want to build an old static archive, I need
+to know that, in common with most Unices, I have to
+@emph{bless}@footnote{Generally this involves indexing the symbols
+exported from the archive for faster linking, and to allow the archived
+objects to reference symbols from other objects earlier in the same
+archive.} my library with @command{ranlib} to make it work optimally on
+@sc{hp-ux}.
+
+@ignore akim
+I must say I've always wondered what ranlib does, how about giving a
+word or two on what kind of `blessing' this is?
+
+2000-06-18  Gary V. Vaughan
+
+	Tsk. Tsk.  `man ranlib' my friend!  I have added a footnote for
+        the man page impaired ;-)
+
+LW
+Could you briefly introduce what is discussed in the subsections?  The three
+Types of libraries flow naturally, but an explanation of starting with
+the code first would help
+
+2000-06-18  Gary V. Vaughan
+
+	Agreed.
+@end ignore
+
+Essentially, Libtool supports the building of three types of library:
+shared libraries; static libraries; and convenience libraries.  In the
+following sections I will talk about each in turn, but first you will
+need to understand how to create and use @dfn{position independent}
+code, as explained in the next section.
+
+@menu
+* Position Independent Code::
+* Creating Shared Libraries with libtool::
+* Creating Static Libraries with libtool::
+* Creating Convenience Libraries with libtool::
+@end menu
+
+@node Position Independent Code
+@subsection Position Independent Code
+On most architectures, when you compile source code to object code, you
+need to specify whether the object code should be @dfn{position
+independent} or not.  There are occasional architectures which don't
+make the distinction, usually because all object code is position
+independent by virtue of the @sc{abi}@footnote{Application Binary
+Interface: the layout of the bytes that comprise binary objects and
+executables: 32 or 64 bit words; procedure calling conventions; memory
+alignment rules; system call interface; order and type of the binary
+sections (data, code etc) and so on.}, or less often because the load
+address of the object is fixed at compile time (which implies that
+shared libraries are not supported by such a platform).
+@ignore LW
+The format and content of this footnote are unclear to me.
+
+2000-06-18  Gary V. Vaughan
+
+	See typeset version.
+
+akim
+Huh? B in ABI is `binary', isn't it?  Anyway, IMHO it is not pleasant to
+see such definitions in footnotes.  In addition it is not indexed.
+
+I really suggest a glossary.
+
+2000-06-18  Gary V. Vaughan
+
+	Already fixed.  You have an old version of the file.  As for a
+        glossary, I'm not sure we have enough entries to make it worth
+        while. I don't see why we can't index these things though.
+@end ignore
+@cindex PIC
+If an object is compiled as position independent code (@sc{pic}), then
+the operating system can load the object at @emph{any} address in
+preparation for execution. This involves a time overhead, in replacing
+direct address references with relative addresses at compile time, and a
+space overhead, in maintaining information to help the runtime loader
+fill in the unresolved addresses at runtime.  Consequently, @sc{pic}
+objects are usually slightly larger and slower at runtime than the
+equivalent non-@sc{pic} object.  The advantage of sharing library code
+on disk and in memory outweigh these problems as soon as the @sc{pic}
+object code in shared libraries is reused.
+@ignore akim
+The `time overhead' is only runtime, or compile time too?  It's a bit
+vague `time'.
+
+2000-06-18  Gary V. Vaughan
+
+	Both!  I have changed the wording slightly to clarify.  Thanks.
+@end ignore
+
+@cindex @option{-DPIC}
+@sc{pic} compilation is exactly what is required for objects which will
+become part of a shared library.  Consequently, @command{libtool} builds
+@sc{pic} objects for use in shared libraries and non-@sc{pic} objects
+for use in static libraries.  Whenever @command{libtool} instructs the
+compiler to generate a @sc{pic} object, it also defines the preprocessor
+symbol, @samp{PIC}, so that assembly code can be aware of whether it
+will reside in a @sc{pic} object or not.
+
+@ignore akim
+`Pic code', i.e., position independent code code :) Well, this is yet
+another `PIN number' isn't it?
+
+BTW, Gary seems to use systematically `(in)dependant', but isn't it
+`(in)dependent'?
+
+2000-06-18  Gary V. Vaughan
+
+	:-) `pic compilation' it is then.  My bad with the spelling, I
+	really thought it was spelled like that!  Doh.
+@end ignore
+
+Typically, as @command{libtool} is compiling sources, it will generate a 
+@samp{.lo} object, as @sc{pic}, and a @samp{.o} object, as non-@sc{pic},
+and then it will use the appropriate one of the pair when linking
+executables and  libraries of various sorts.  On architectures where
+there is no distinction, the @samp{.lo} file is just a soft link to the
+@samp{.o} file.
+
+@ignore 2000-07-17 Akim
+
+        s/pic/@sc{pic}/ ?  Twice.
+
+2000-07-20  Gary V. Vaughan
+
+	Thanks.
+@end ignore
+
+In practice, you can link @sc{pic} objects into a static archive for a
+small overhead in execution and load speed, and often you can similarly
+link non-@sc{pic} objects into shared archives.  If you find that you
+need to do this, @command{libtool} provides several ways to override the
+default behavior (@pxref{Creating libtool}).
+@ignore LW
+Any reasons to describe when you would want to do so?  Even if to say 
+"See section x for instances when you would..." I think it might clarify.
+
+2000-06-18  Gary V. Vaughan
+
+	You know, I can't find a single example in my mail archive =(O|
+	It is not something I would ever do myself, but I have seen
+	questions on various gnu lists asking how it can be done.  The
+        sentence needs to stay I think, perhaps Ian can suggest a set of
+        circumstances where it might be advantageous?
+
+2000-07-17 Akim
+
+        I'm lost by ``you can similarly link non-@sc{pic} objects into
+        shared archives.''
+
+        If you can do that, what is the point of creating PIC code?  How
+        can this work?
+
+        My problem is that this sentence is making me understand I
+        understood nothing to your explanation on PIC code.  How can
+        this be possible???
+
+2000-07-20  Gary V. Vaughan
+
+	I am pointing out that it *doesn't* really matter.  It is an
+        optimisation.  Why compile your code with -O6 instead of -O2?
+@end ignore
+
+
+@node Creating Shared Libraries with libtool
+@subsection Creating Shared Libraries
+
+@cindex shared library
+From Libtool's point of view, the term ``shared library'' is somewhat of
+a misnomer.  Since Libtool is intended to abstract away the details of
+library building, it doesn't matter whether Libtool is building a shared
+library or a static archive.  Of course, Libtool will always try to
+build a shared library by default on the platforms to which it has been
+ported (@pxref{PLATFORMS}), but will equally fall back to building a
+static archive if the host architecture does not support shared
+libraries, or if the project developer deliberately configures Libtool
+to always build static archives only.  These libraries are more properly
+called ``@dfn{Libtool libraries}''; the underlying native library will
+usually be a shared library, except as described above.
+
+To create a Libtool library on my @sc{hp-ux} host, or indeed anywhere
+else that @command{libtool} works, run the following commands:
+@ignore LW
+Text flows better when some of these examples are more clearly introduced,
+Such as "use the following program" or something
+
+2000-06-18  Gary V. Vaughan
+
+	How about now?
+@end ignore
+
+@smallexample
+@group
+$ rm hello.o libhello.a
+$ libtool gcc -c hello.c
+mkdir .libs
+gcc -c  -fPIC -DPIC hello.c -o .libs/hello.lo
+gcc -c hello.c -o hello.o >/dev/null 2>&1
+mv -f .libs/hello.lo hello.lo
+@end group
+@group
+$ ls
+hello.c   hello.lo   hello.o
+@end group
+@group
+$ libtool gcc -rpath /usr/local/lib -o libhello.la hello.lo
+rm -fr .libs/libhello.la .libs/libhello.* .libs/libhello.*
+/opt/gcc-lib/hp821/2.7.0/ld -b +h libhello.sl.0 +b /usr/local/lib \
+-o .libs/libhello.sl.0.0  hello.lo
+(cd .libs && rm -f libhello.sl.0 && ln -s libhello.sl.0.0 libhello.sl.0)
+(cd .libs && rm -f libhello.sl && ln -s libhello.sl.0.0 libhello.sl)
+ar cru .libs/libhello.a  hello.o
+ranlib .libs/libhello.a
+creating libhello.la
+(cd .libs && rm -f libhello.la && ln -s ../libhello.la libhello.la)
+@end group
+@group
+$ ls
+hello.c   hello.lo   hello.o   libhello.la
+@end group
+@end smallexample
+
+
+@cindex Libtool object
+This example illustrates several features of @command{libtool}.  Compare
+the command line syntax with the previous example (@pxref{The Libtool 
+Library}).  They are both very similar.  Notice, however, that when
+compiling the @file{hello.c} source file, @command{libtool} creates
+@emph{two} objects.  The first, @file{hello.lo}, is the @dfn{Libtool
+object} which we use for Libtool libraries, and the second,
+@file{hello.o} is a standard object.  On @sc{hp-ux}, @command{libtool}
+knows that Libtool objects should be compiled with @dfn{position
+independent code}, hence the extra switches when creating the first
+object.
+@ignore LW
+Technically, you're still in the Libtool Library section-you might want
+To clarify about the example.
+
+2000-06-18  Gary V. Vaughan
+
+	It seems clear in the typset version at least.  Perhaps I am
+        misunderstanding your comment?
+
+akim
+`libtool gcc' runs `gcc', or it runs the compiler for which it has been
+created?
+
+2000-06-18  Gary V. Vaughan
+
+        An interesting question.  I have added a sidebar.
+@end ignore
+@quotation
+@c Begin sidebar entitled `Which compiler does Libtool use?'
+When you run @command{libtool} from the command line, you must also
+specify a compiler for it to call.  Similarly when you create a
+@command{libtool} script with @command{ltconfig}, a compiler is chosen
+and interrogated to discover what characteristics it has.
+@xref{Creating libtool}.
+
+Prior to release 1.4 of Libtool, @command{ltconfig} probed the build
+machine for a suitable compiler, by searching first for @command{gcc}
+and then @command{cc}.  The functionality of @command{ltconfig} is being
+migrated into the @samp{AC_PROG_LIBTOOL} macro, such that there will be
+no @command{ltconfig} script in Libtool release 1.5.  The current
+release is part way between the two.  In all cases, you can specify a
+particular compiler by setting the @samp{CC} environment variable.
+
+It is important to continue to use the same compiler when you run
+@command{libtool} as the compiler that was used when you created the
+@command{libtool} script.  If you create the script with @samp{CC} set
+to @command{gcc}, and subsequently try to compile using, say:
+
+@smallexample
+$ libtool c89 -rpath /usr/local/lib -c hello.c
+@end smallexample
+
+@noindent
+@command{libtool} will try to call @command{c89} using the options it
+discovered for @command{gcc}.  Needless to say, that doesn't work!
+@end quotation
+
+The link command specifies a Libtool library target, @file{libhello.la},
+compiled from a single Libtool object, @file{hello.lo}.  Even so,
+@command{libtool} knows how to build both static and shared archives on
+@sc{hp-ux} -- underneath the @command{libtool} abstraction both are
+created. @command{libtool} also understands the particulars of library
+linking on  @sc{hp-ux}: the static archive, @file{libhello.a}, is
+@i{blessed}; the system (and compiler) dependent compiler and linker
+flags, versioning scheme and @code{.sl} extension are utilised for the
+shared archive, @file{libhello.sl}.  On another host, all of these
+details may be completely different, yet with exactly the same
+invocation, @command{libtool} will call the native tools with the
+appropriate options to achieve the same result.  Try it on your own
+machines to see any differences.
+@ignore LW
+"do the right thing" (near the end) somewhat unclear."
+
+2000-06-18  Gary V. Vaughan
+
+	Okay.
+
+2000-07-17 Akim
+
+	s/resul/result/.
+
+2000-07-20  Gary V. Vaughan
+
+	Thanks/
+@end ignore
+
+It is the @option{-rpath} switch that tells @command{libtool} that you
+want to build a Libtool library (with both the shared and static
+components where possible).  If you omit the @option{-rpath} switch,
+@command{libtool} will build a convenience library instead,
+see @ref{Creating Convenience Libraries with libtool, , Creating
+convenience Libraries}.  The @option{-rpath} switch is doubly
+important, because it tells @command{libtool} that you intend to install
+@file{libhello.la} in @file{/usr/local/lib}.  This allows
+@command{libtool} to finalize the library correctly after installation
+on the architectures that need it, see @ref{Installing a Library}.
+
+@ignore 2000-07-17 Akim
+
+	Two @xref which are @ref.
+
+2000-07-20  Gary V. Vaughan
+
+	Thanks.
+@end ignore
+
+Finally, notice that only the Libtool library, @file{libhello.la},
+is visible after a successful link.  The various files which form the
+local implementation details of the Libtool library are in a hidden
+subdirectory, but in order for the abstraction to work cleanly you
+shouldn't need to worry about these too much.
+
+@node Creating Static Libraries with libtool
+@subsection Creating Static Libraries
+
+In contrast, @command{libtool} will create a static library if either
+the @option{-static} or @option{-all-static} switches are specified on 
+the link line for a Libtool library:
+
+@smallexample
+@group
+$ libtool gcc -static -o libhello.la hello.lo
+rm -fr .libs/libhello.la .libs/libhello.* .libs/libhello.*
+ar cru .libs/libhello.a  hello.o
+ranlib .libs/libhello.a
+creating libhello.la
+(cd .libs && rm -f libhello.la && ln -s ../libhello.la libhello.la)
+@end group
+@end smallexample
+
+Note that since @command{libtool} will only create a static archive, the
+@option{-rpath} switch is not required:  once a static library has been
+installed, there is no need to perform additional finalization for the
+library to be used from the installed location@footnote{As is often the
+case, @sc{aix} is peculiar in this respect -- @command{ranlib} adds path
+information to a static archive, and must be run again after the archive
+is installed.  @command{libtool} knows about this, and will
+automatically @emph{bless} the installed library again on @sc{aix}.}, or
+to track runtime search paths when installing a static archive.
+
+@ignore akim
+`there is no need to perform finalization'.  Well yes there is:
+`ranlib'.  The sentence should be more precise on what is not needed.
+
+2000-06-18  Gary V. Vaughan
+
+        Good call.  More detail added.
+@end ignore
+
+
+When you link an executable against this @file{libhello.la}, the 
+objects from the static archive will be statically linked into the
+executable.  The advantage of such a library over the traditional native 
+static archive is that all of the dependency information from the
+Libtool library is used.  For an example,  @xref{Creating Convenience
+Libraries with libtool, , Creating Convenience Libraries}.
+
+@ignore LW
+Looks more like a tip/note
+
+2000-06-18  Gary V. Vaughan
+
+	It is, but texinfo has no way to express that level of markup.
+        See the STYLE file.
+@end ignore
+@quotation
+@c Begin sidebar entitled `When to use Libtool?'
+@command{libtool} is useful as a @strong{general} library building
+toolkit, yet people still seem to regress to the old way of building
+libraries whenever they want to use static archives.  You should exploit
+the consistent interface of @command{libtool} even for static archives.
+If you don't want to use shared archives, use the @option{-static}
+switch to build a static Libtool library.
+@end quotation
+
+@node Creating Convenience Libraries with libtool
+@subsection Creating Convenience Libraries
+
+@cindex partial linking
+The third type of library which can be built with @command{libtool} is the
+@dfn{convenience library}.  Modern compilers are able to create
+@dfn{partially linked} objects:  intermediate compilation units which
+comprise several compiled objects, but are neither an executable or a
+library.   Such partially linked objects must be subsequently linked
+into a library or executable to be useful.  Libtool convenience
+libraries @emph{are} partially linked objects, but are emulated by
+@command{libtool} on platforms with no native implementation.
+
+@ignore akim
+I don't understand what partially linked objects are.
+
+`The third type of library'.  It is unclear what you are referring to.
+I'm tempted to say that you are referring to the titles of the sections,
+hence `libtool lib', `static lib', and `convenience lib'.  But then,
+what of `shared lib'?  Why aren't counted?
+
+Personally, I'd say you should emphasize the `convenience lib' is a
+libtool concept.  It is something that doesn't exist.  Reading the first
+paragraph of this section, a reader could imagine libtool helps building
+(native) convenience libs.
+
+2000-06-18  Gary V. Vaughan
+
+	What part of my explanation of partially linked objects do you
+        think is confusing?  Or what am I missing that would make the
+        explanation clearer.  I can't think of anything else to add
+        which wouldn't be reiterating something else in the paragraph.
+
+        Yes I am referring to the section headings.  Libtool doesn't
+        create shared libraries, per se.  It creates `libtool
+        libraries', which may or may not encompass a native shared
+        library, depending on what the host architecture supports.  I've
+        tried to make it a little clearer in the paragraph leading into
+        the description of library types, and by renaming the Libtool
+        libraries section, and by adding a longer introduction to the
+        concept of Libtool libraries.
+
+        Convenience libs are *not* a libtool concept.  They are a
+        libtool naming convention for partially linked objects (a native
+        feature of some architectures), which libtool emulates on
+        platforms which don't support them natively.  Again, I've tried
+        to clarify in the rewording.
+
+2000-07-17 Akim
+
+        I saw the efforts, but sorry, it is still unclear in my mind.
+
+        In fact the problem might be that I don't understand well what a
+        library is.  I'd suggest that you spend some more time
+        explaining what are the differences between an object and a
+        library.
+
+        I suppose the main difference is just that there are more
+        `tables of content' in a library than there is in an object
+        file.  I don't know too well.  But I would find it very
+        clarifying if you could give a few indications on what
+        distinguishes a object from a library.
+
+        And then you'll see my question: what are partially linked
+        objects?  In what way is this different of an object?  Can't we
+        just call this an object file after all?  Why not?
+
+        And then the same questions wrt library: in what way a partially
+        link object is not a library.
+
+        My problem is that I can't find room for a third definition to a
+        common need: storing code.  I need to know why it doesn't fall
+        into the two previous definitions.
+
+2000-07-20  Gary V. Vaughan
+
+	It would really piss the copy editors off if I do a rewrite at
+        this stage, but your comments are noted for the 2nd edition!
+
+        FYI, yes you could call a `partially linked object' just an
+        `object', and by the same token you could also call a `library'
+        an `object'.  People tend to understand `object' as refering to
+        a single source file that has been compiled, but which needs to
+        be added to some other objects by the linker to get either a
+        library or an executable.  You could also combine objects into
+        a `partially linked object', but you  can't run the result, so
+        it isn't an executable, and you can't -lobject link it, so its
+        not a library -- it might comprise code that comes from several
+        source files (maybe from several directories), so it's not
+        really a simple object (in that people don't thing of an
+        `object' as being so broad in definition).  It is a partially
+        linked object -- nearly a library, but it needs another pass
+        through the linker to become a library (or an executable).
+
+        I am happy to bounce back and forth on this for a while so we
+        can figure out a nice way to explain it for the next edition of
+        the book.
+
+LW 
+begin sidebar-authors, please add heading
+
+2000-06-18  Gary V. Vaughan
+
+	Okay.
+@end ignore
+@quotation
+@c Begin sidebar entitled `Hands on'
+If you want to try this to see what @command{libtool} does on your
+machine, put the following code in a file @file{trim.c}, in the same
+directory as @file{hello.c} and @file{libhello.la}, and run the example
+shell commands from there:
+
+@smallexample
+m4_include(examples/intro-hello/trim.texi)
+@end smallexample
+@end quotation
+@ignore LW
+GLOBAL--When you receive this chapter back from me, would you add the
+examples into this document so that I'm assured I have the full content
+in one place for author review?  Thanks.
+
+2000-06-18  Gary V. Vaughan
+
+        Use the autobook.texi file from the nightly build.
+@end ignore
+
+
+To compile the convenience library with @command{libtool}, you would do
+this:
+
+@smallexample
+@group
+$ libtool gcc -c trim.c
+rm -f .libs/trim.lo
+gcc -c  -fPIC -DPIC trim.c -o .libs/trim.lo
+gcc -c trim.c -o trim.o >/dev/null 2>&1
+mv -f .libs/trim.lo trim.lo
+@end group
+@group
+$ libtool gcc -o libtrim.la trim.lo
+rm -fr .libs/libtrim.la .libs/libtrim.* .libs/libtrim.*
+ar cru .libs/libtrim.al trim.lo
+ranlib .libs/libtrim.al
+creating libtrim.la
+(cd .libs && rm -f libtrim.la && ln -s ../libtrim.la libtrim.la)
+@end group
+@end smallexample
+
+Additionally, you can use a convenience library as an alias for a set of
+zero or more object files and some dependent libraries. If you need to
+link several objects against a long list of libraries, it is much more
+convenient to create an alias:
+
+@smallexample
+@group
+$ libtool gcc -o libgraphics.la -lpng -ltiff -ljpeg -lz
+rm -fr .libs/libgraphics.la .libs/libgraphics.* .libs/libgraphics.*
+ar cru .libs/libgraphics.al
+ranlib .libs/libgraphics.al
+creating libgraphics.la
+(cd .libs && rm -f libgraphics.la && \
+ln -s ../libgraphics.la libgraphics.la)
+@end group
+@end smallexample
+
+Having done this, whenever you link against @file{libgraphics.la} with
+@command{libtool}, all of the dependent libraries will be linked too.
+In this case, there are no actual objects compiled into the convenience
+library, but you can do that too, if need be.
+
+@node Linking an Executable
+@section Linking an Executable
+
+Continuing the parallel between the syntax used to compile with
+@command{libtool} and the syntax used when building old static
+libraries, linking an executable is a matter of combining compilation
+units into a binary in both cases.  We tell the compiler which objects
+and libraries are required, and it creates an executable for us.
+
+@ignore LW
+Sidebar-please add heading, same request for code example.
+
+2000-06-18  Gary V. Vaughan
+
+	Okay.
+@end ignore
+@quotation
+@c Begin sidebar entitled `Hands on'
+If you want to try this to see what @command{libtool} does on your
+machine, put the following code in a file @file{main.c}, in the same
+directory as @file{hello.c} and @file{libhello.la}, and run the example
+shell commands from there:
+
+@smallexample
+m4_include(examples/hello/main.texi)
+@end smallexample
+@end quotation
+
+To compile an executable which uses the non-Libtool @file{libhello.a}
+library built previously (@pxref{The Libtool Library}), I would use the
+following commands: 
+
+@example
+@group
+$ gcc -o hello main.c libhello.a
+$ ./hello
+Hello, World!
+@end group
+@end example
+
+To create a similar executable on the @sc{hp-ux} host, using
+@command{libtool} this time:
+
+@smallexample
+@group
+$ libtool gcc -o hello main.c libhello.la
+libtool: link: warning: this platform does not like uninstalled
+libtool: link: warning: shared libraries.
+libtool: link: `hello' will be relinked during installation
+gcc -o .libs/hello main.c /tmp/hello/.libs/libhello.sl  \
+-Wl,+b -Wl,/tmp/hello/.libs:/usr/local/lib
+creating hello
+@end group
+@group
+$ ls
+hello     hello.lo   libhello.la
+hello.c   hello.o    main.c
+@end group
+@group
+$ ./hello
+Hello, World!
+@end group
+@end smallexample
+
+Notice that you linked against the Libtool library, @file{libhello.la},
+but otherwise the link command you used was not really very different
+from non-Libtool static library link command used earlier.  Still,
+@command{libtool} does several things for you:  it links with the shared
+archive rather than the static archive;  and it sets the compiler
+options so that the program can be run in place, even though it is
+linked against the uninstalled Libtool library.  Using a @command{make}
+rule @emph{without} the benefit of @command{libtool}, it would be almost
+impossible to reliably link a program against an uninstalled shared
+library in this way, since the particular switches needed would
+be different between the various platforms you want the project to
+work with.  Also without the extra compiler options @command{libtool}
+adds for you, the program will search only the standard library
+directories for a shared @file{libhello}.
+
+@ignore akim
+As a non English speaker, I had difficulties to read the sentence above,
+it would have been easier with a comma after `Also'.  Conversely, I
+don't understand the two commas in the following sentence.
+
+2000-06-18  Gary V. Vaughan
+
+	Thanks.  Is this better?
+@end ignore
+
+The link warning tells you that @command{libtool} knows that on
+@sc{hp-ux} the program will stop working if it is copied directly to
+the installation directory;  To prevent it breaking, @command{libtool}
+will relink the program when it is installed, see @ref{Installing a
+Library}.
+
+I discussed the creation of static Libtool libraries in @ref{Creating
+Static Libraries with libtool, , Creating Static Libraries}.  If you
+link an executable against such a library, the library objects, by
+definition, can only be statically linked into your executable.  Often
+this is what you want if the library is not intended for installation,
+or if you have temporarily disabled building of shared libraries in your 
+development tree to speed up compilation while you are debugging.
+
+Sometimes, this isn't what you want.  You might need to install a
+complete Libtool library with shared and static components, but need to
+generate a static executable linked against the same library, like this:
+@ignore LW
+Again, it will help to introduce code, such as, "as in the following
+Example."  Thanks!
+
+2000-06-18  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@smallexample
+@group
+$ libtool gcc -static -o hello main.c libhello.la
+gcc -o hello main.c ./.libs/libhello.a
+@end group
+@end smallexample
+
+@cindex @option{-static}, libtool option
+In this case, the @option{-static} switch instructs @command{libtool}
+to choose the static component of any uninstalled Libtool library.
+
+@cindex @option{-all-static}, libtool option
+You could have specified @option{-all-static} instead, which instructs
+@command{libtool} to link the executable with only static libraries
+(wherever possible), for any Libtool or native libraries used.
+@ignore LW
+Pull into previous section?
+
+2000-06-18  Gary V. Vaughan
+
+	Merge the two paragraphs, you mean?  Each one is definitely a
+        separate point.  Perhaps I misunderstyood your comment?
+@end ignore
+
+Finally, you can also link executables against convenience libraries.
+This makes sense when the convenience library is being used as an alias
+(@pxref{Creating Convenience Libraries with libtool, , Creating
+Convenience Libraries}).  Notice how @file{libgraphics.la} expands to
+its own dependencies in the link command:
+
+@smallexample
+@group
+$ libtool gcc -o image loader.o libgraphics.la
+libtool: link: warning: this platform does not like uninstalled
+libtool: link: warning: shared libraries
+libtool: link: `image' will be relinked during installation
+gcc -o .libs/image loader.o -lpng -ltiff -ljpeg -lz \
+-Wl,+b -Wl,/tmp/image/.libs:/usr/local/lib
+creating image
+@end group
+@end smallexample
+
+You can also link against convenience libraries being used as partially
+linked objects, so long as you are careful that each is linked only once.
+Remember that a partially linked object is just the same as any other
+object, and that if you load it twice (even from different libraries),
+you will get multiple definition errors when you try to link your
+executable.  This is almost the same as using the @option{-static}
+switch on the @command{libtool} link line to link an executable with the 
+static component of a normal Libtool library, except that the
+convenience library comprises @sc{pic} objects.  When statically linking
+an executable, @sc{pic} objects are best avoided however, see
+@ref{Position Independent Code}.
+
+@ignore 2000-07-17 Akim
+        @xref.
+
+2000-07-20  Gary V. Vaughan
+
+	Cheers.
+@end ignore
+  
+@node Linking a Library
+@section Linking a Library
+
+Libraries often rely on code in other libraries.  Traditionally the way
+to deal with this is to @emph{know} what the dependencies are and, when
+linking an executable, be careful to list all of the dependencies on the
+link line in the correct order.  If you have ever built an X Window
+application using a widget library, you will already be familiar with
+this notion.
+
+@ignore 2000-07-17 Akim
+
+        s/X-Windows/X Window/
+
+2000-07-20  Gary V. Vaughan
+
+	Oops.
+@end ignore   
+
+Even though you only use the functions in the widget library directly, a
+typical link command would need to be:
+
+@smallexample
+$ gcc -o Xtest -I/usr/X11R6/include Xtest.c -L/usr/X11R6/lib \
+-lXm -lXp -lXaw -lXmu -lX11 -lnsl -lsocket
+@end smallexample
+
+With modern architectures, this problem has been solved by allowing
+libraries to be linked into other libraries, but this feature is not yet
+particularly portable.  If you are trying to write a portable project,
+it is not safe to rely on native support for inter-library dependencies,
+especially if you want to have dependencies between static and shared
+archives.  Some of the features discussed in this section were not fully
+implemented before Libtool 1.4, so you should make sure that you are
+using this version or newer if you need these features.
+
+@ignore LW
+Begin sidebar-add heading.
+
+2000-06-18  Gary V. Vaughan
+
+	Okay.
+@end ignore
+@quotation
+@c Begin sidebar entitled `Hands on'
+If you want to try the examples in this section to see what
+@command{libtool} does on your machine, you will first need to modify
+the source of @file{hello.c} to introduce a dependency on @file{trim.c}: 
+
+@smallexample
+m4_include(examples/intro-hello/hello.texi)
+@end smallexample
+
+You might also want to modify the @file{main.c} file to exercise the new
+@samp{trim} functionality to prove that the newly linked executable is
+working:
+
+@smallexample
+@group
+m4_include(examples/intro-hello/main.texi)
+@end group
+@end smallexample
+@end quotation
+
+Suppose I want to make two libraries, @file{libtrim} and
+@file{libhello}.  @file{libhello} uses the @samp{trim} function in
+@file{libtrim} but the code in @file{main} uses only the @samp{hello}
+function in @file{libhello}.  Traditionally, the two libraries are built
+like this:
+@ignore LW
+Adding "Suppose" before I would transition more here.
+
+2000-06-18  Gary V. Vaughan
+
+	Okay on the suppose.  Transition from where to where?  There is
+        nothing more to say here!
+@end ignore
+
+@smallexample
+$ rm hello *.a *.la *.o *.lo
+$ gcc -c trim.c
+@group
+$ ls
+hello.c   main.c   trim.c   trim.o
+@end group
+$ ar cru libtrim.a trim.o
+$ ranlib libtrim.a
+$ gcc -c hello.c
+@group
+$ ls
+hello.c   hello.o   libtrim.a   main.c   trim.c   trim.o
+@end group
+$ ar cru libhello.a hello.o
+$ ranlib libhello.a
+@group
+$ ls
+hello.c   libhello.a   main.c   trim.o
+hello.o   libtrim.a    trim.c
+@end group
+@end smallexample
+
+Notice that there is no way to specify that @file{libhello.a} won't work
+unless it is also linked with @file{libtrim.a}.  Because of this I need
+to list both libraries when I link the application.  What's more, I need
+to list them in the correct order:
+
+@smallexample
+@group
+$ gcc -o hello main.c libtrim.a libhello.a
+/usr/bin/ld: Unsatisfied symbols:
+   trim (code)
+collect2: ld returned 1 exit status
+@end group
+$ gcc -o hello main.c libhello.a libtrim.a
+@group
+$ ls
+hello     hello.o      libtrim.a   trim.c
+hello.c   libhello.a   main.c      trim.o
+@end group
+@group
+$ ./hello
+Hello, World!
+@end group
+@end smallexample
+
+@menu
+* Inter-library Dependencies::
+* Using Convenience Libraries::
+@end menu
+
+@node Inter-library Dependencies
+@subsection Inter-library Dependencies
+
+@command{libtool}'s inter-library dependency support will use the native 
+implementation if there is one available.  If there is no native
+implementation, or if the native implementation is broken or incomplete, 
+@command{libtool} will use an implementation of its own.
+
+To build @file{libtrim} as a standard Libtool library (@pxref{The Libtool
+Library}), as follows:
+@ignore LW
+For this and elsewhere, helps to introduce code more "as in/do the
+following, etc."
+
+2000-06-18  Gary V. Vaughan
+
+	Quite right.  Sorry.
+@end ignore
+
+@smallexample
+$ rm hello *.a *.o
+@group
+$ ls
+hello.c   main.c   trim.c
+@end group
+@group
+$ libtool gcc -c trim.c
+rm -f .libs/trim.lo
+gcc -c  -fPIC -DPIC trim.c -o .libs/trim.lo
+gcc -c trim.c -o trim.o >/dev/null 2>&1
+mv -f .libs/trim.lo trim.lo
+@end group
+@group
+$ libtool gcc -rpath /usr/local/lib -o libtrim.la trim.lo
+rm -fr .libs/libtrim.la .libs/libtrim.* .libs/libtrim.*
+/opt/gcc-lib/hp821/2.7.0/ld -b +h libtrim.sl.0 +b /usr/local/lib \
+-o .libs/libtrim.sl.0.0  trim.lo
+(cd .libs && rm -f libtrim.sl.0 && ln -s libtrim.sl.0.0 libtrim.sl.0)
+(cd .libs && rm -f libtrim.sl && ln -s libtrim.sl.0.0 libtrim.sl)
+ar cru .libs/libtrim.a  trim.o
+ranlib .libs/libtrim.a
+creating libtrim.la
+(cd .libs && rm -f libtrim.la && ln -s ../libtrim.la libtrim.la)
+@end group
+@end smallexample
+
+When you build @file{libhello}, you can specify the libraries it depends 
+on at the command line, like so:
+
+@smallexample
+@group
+$ libtool gcc -c hello.c
+rm -f .libs/hello.lo
+gcc -c  -fPIC -DPIC hello.c -o .libs/hello.lo
+gcc -c hello.c -o hello.o >/dev/null 2>&1
+mv -f .libs/hello.lo hello.lo
+@end group
+@group
+$ libtool gcc -rpath /usr/local/lib -o libhello.la hello.lo libtrim.la
+rm -fr .libs/libhello.la .libs/libhello.* .libs/libhello.*
+
+*** Warning: inter-library dependencies are not known to be supported.
+*** All declared inter-library dependencies are being dropped.
+*** The inter-library dependencies that have been dropped here will be
+*** automatically added whenever a program is linked with this library
+*** or is declared to -dlopen it.
+/opt/gcc-lib/hp821/2.7.0/ld -b +h libhello.sl.0 +b /usr/local/lib \
+-o .libs/libhello.sl.0.0  hello.lo
+(cd .libs && rm -f libhello.sl.0 && ln -s libhello.sl.0.0 libhello.sl.0)
+(cd .libs && rm -f libhello.sl && ln -s libhello.sl.0.0 libhello.sl)
+ar cru .libs/libhello.a  hello.o
+ranlib .libs/libhello.a
+creating libhello.la
+(cd .libs && rm -f libhello.la && ln -s ../libhello.la libhello.la)
+@end group
+@group
+$ ls
+hello.c    hello.o       libtrim.la   trim.c   trim.o
+hello.lo   libhello.la   main.c       trim.lo
+@end group
+@end smallexample
+
+Although, on @sc{hp-ux}, @command{libtool} warns that it doesn't know
+how to use the native inter-library dependency implementation, it will
+track the dependencies and make sure they are added to the final link
+line, so that you only need to specify the libraries that you use
+directly.
+
+Now, you can rebuild @file{hello} exactly as in the earlier example
+(@pxref{Linking an Executable}), as in:
+
+@smallexample
+@group
+$ libtool gcc -o hello main.c libhello.la
+libtool: link: warning: this platform does not like uninstalled
+libtool: link: warning: shared libraries
+libtool: link: `hello' will be relinked during installation
+gcc -o .libs/hello main.c /tmp/intro-hello/.libs/libhello.sl \
+/tmp/intro-hello/.libs/libtrim.sl \
+-Wl,+b -Wl,/tmp/intro-hello/.libs:/usr/local/lib
+creating hello
+@end group
+@group
+$ ./hello
+Hello, World!
+@end group
+@end smallexample
+
+@ignore akim
+The filenames are way too long!  Can't you just use /home/gary/hello/ or
+even /tmp/hello?
+
+2000-06-18  Gary V. Vaughan
+
+	Yeah.  I just pasted this stuff in directly from my shell
+        window.  All fixed now (throughout the entire book).  Thanks!
+@end ignore
+
+Notice that even though you only specified the @file{libhello.la}
+library at the command line, @command{libtool} remembers that
+@file{libhello.sl} depends on @file{libtrim.sl} and links that library
+too. 
+
+You can also link a static executable, and the dependencies are handled
+similarly:
+
+@smallexample
+@group
+$ libtool gcc -o hello-again -static main.c libhello.la
+gcc -o hello main.c ./.libs/libhello.a /tmp/intro-hello/.libs/libtrim.a
+@end group
+@group
+$ ./hello-again
+Hello, World!
+@end group
+@end smallexample
+
+For your own projects, provided that you use @command{libtool}, and that
+you specify the libraries you wish to link using the @samp{.la}
+pseudo-libraries, these dependencies can be nested as deeply as you
+like.  You can also register dependencies on native libraries, though
+you will of course need to specify any dependencies that the native
+library itself has at the same time.
+
+@node Using Convenience Libraries
+@subsection Using Convenience Libraries
+
+To rebuild @file{libtrim} as a convenience library (@pxref{Creating
+Convenience Libraries with libtool, , Creating Convenience Libraries}),
+use the following commands:
+
+@smallexample
+$ rm hello *.la
+@group
+$ ls
+hello.c   hello.lo   hello.o   main.c   trim.c   trim.lo   trim.o
+@end group
+@group
+$ libtool gcc -o libtrim.la trim.lo
+rm -fr .libs/libtrim.la .libs/libtrim.* .libs/libtrim.*
+ar cru .libs/libtrim.al trim.lo
+ranlib .libs/libtrim.al
+creating libtrim.la
+(cd .libs && rm -f libtrim.la && ln -s ../libtrim.la libtrim.la)
+@end group
+@end smallexample
+
+Then, rebuild @file{libhello}, with an inter-library dependency on
+@file{libtrim} (@pxref{Inter-library Dependencies}), like this:
+
+@smallexample
+@group
+m4_changequote(,)m4_dnl
+$ libtool gcc -rpath `pwd`/_inst -o libhello.la hello.lo libtrim.la
+m4_changequote(`,')m4_dnl
+rm -fr .libs/libhello.la .libs/libhello.* .libs/libhello.*
+
+*** Warning: inter-library dependencies are not known to be supported.
+*** All declared inter-library dependencies are being dropped.
+*** The inter-library dependencies that have been dropped here will be
+*** automatically added whenever a program is linked with this library
+*** or is declared to -dlopen it.
+rm -fr .libs/libhello.lax
+mkdir .libs/libhello.lax
+rm -fr .libs/libhello.lax/libtrim.al
+mkdir .libs/libhello.lax/libtrim.al
+(cd .libs/libhello.lax/libtrim.al && ar x /tmp/./.libs/libtrim.al)
+/opt/gcc-lib/hp821/2.7.0/ld -b +h libhello.sl.0 +b /tmp/hello/_inst \
+-o .libs/libhello.sl.0.0  hello.lo .libs/libhello.lax/libtrim.al/trim.lo
+(cd .libs && rm -f libhello.sl.0 && ln -s libhello.sl.0.0 libhello.sl.0)
+(cd .libs && rm -f libhello.sl && ln -s libhello.sl.0.0 libhello.sl)
+rm -fr .libs/libhello.lax
+mkdir .libs/libhello.lax
+rm -fr .libs/libhello.lax/libtrim.al
+mkdir .libs/libhello.lax/libtrim.al
+(cd .libs/libhello.lax/libtrim.al && ar x /tmp/hello/./.libs/libtrim.al)
+ar cru .libs/libhello.a  hello.o  .libs/libhello.lax/libtrim.al/trim.lo
+ranlib .libs/libhello.a
+rm -fr .libs/libhello.lax .libs/libhello.lax
+creating libhello.la
+(cd .libs && rm -f libhello.la && ln -s ../libhello.la libhello.la)
+@end group
+@group
+$ ls
+hello.c    hello.o       libtrim.la   trim.c    trim.o
+hello.lo   libhello.la   main.c       trim.lo
+@end group
+@end smallexample
+
+Compare this to the previous example of building @file{libhello} and you 
+can see that things are rather different.  On @sc{hp-ux}, partial
+linking is not known to work, so @command{libtool} extracts the objects
+from the convenience library, and links them directly into
+@file{libhello}.  That is, @file{libhello} is comprised of its own
+objects @emph{and} the objects in @file{libtrim}.  If @file{libtrim} had 
+had any dependencies, @file{libhello} would have inherited them too.
+This technique is especially useful for grouping source files into
+subdirectories, even though all of the objects compiled in the
+subdirectories must eventually reside in a big library:  compile the
+sources in each into a convenience library, and in turn link
+all of these into a single library which will then contain all of the
+constituent objects and dependencies of the various convenience
+libraries.
+
+When you relink the @command{hello} executable, notice that
+@file{libtrim} is @strong{not} linked, because the @file{libtrim}
+objects are already present in @file{libhello}:
+
+@smallexample
+@group
+$ libtool gcc -o hello main.c libhello.la
+libtool: link: warning: this platform does not like uninstalled
+libtool: link: warning: shared libraries
+libtool: link: `hello' will be relinked during installation
+gcc -o .libs/hello main.c /tmp/intro-hello/.libs/libhello.sl \
+-Wl,+b -Wl,/tmp/intro-hello/.libs:/usr/local/lib
+creating hello
+@end group
+@group
+$ ./hello
+Hello, World!
+@end group
+@end smallexample
+
+
+@node Executing Uninstalled Binaries
+@section Executing Uninstalled Binaries
+
+@cindex wrapper scripts
+If you look at the contents of the @command{hello} program you built in
+the last section, you will see that it is not actually a binary at all,
+but a shell script which sets up the environment so that when the real
+binary is called it finds its the shared libraries in the correct
+locations.  Without this script, the runtime loader might not be able to
+find the uninstalled libraries.  Or worse, it might find an old version
+and load that by mistake!
+
+@ignore akim
+s/script/shell script/?  Up to you.
+
+2000-06-18  Gary V. Vaughan
+
+	Twist my arm then =)O|
+@end ignore
+
+In practice, this is all part of the unified interface @command{libtool}
+presents so you needn't worry about it most of the time.  The exception
+is when you need to look at the binary with another program, to debug it
+for example:
+
+@smallexample
+@group
+$ ls
+hello     hello.lo   libhello.la   main.c   trim.lo
+hello.c   hello.o    libtrim.la    trim.c   trim.o
+@end group
+@group
+$ libtool gdb hello
+GDB is free software and you are welcome to distribute copies of it
+under certain conditions; type "show copying" to see the conditions.
+There is absolutely no warranty for GDB; type "show warranty" for
+details.
+GDB 4.18 (hppa1.0-hp-hpux10.20),
+Copyright 1999 Free Software Foundation, Inc...
+(gdb) bre main
+Breakpoint 1 at 0x5178: file main.c, line 6.
+(gdb) run
+Starting program: /tmp/intro-hello/.libs/hello
+Breakpoint 1, main (argc=1, argv=0x7b03aa70) at main.c:6
+6           return hello("World");
+...
+@end group
+@end smallexample
+
+
+@node Installing a Library
+@section Installing a Library
+
+Now that the library and an executable which links with it have been
+successfully built, they can be installed.  For the sake of this example
+I will @command{cp} the objects to their destination, though
+@command{libtool} would be just as happy if I were to use
+@command{install} with the long, requisite list of parameters.
+@ignore LW
+Should install be set apart in separate type?
+
+2000-06-18  Gary V. Vaughan
+
+	@command{install} is in a fixed width font (Coutier.  See
+        typeset file.
+@end ignore
+
+It is important to install the library to the @option{-rpath} destination
+which was specified when it was linked earlier, or at least that it be
+visible from that location when the runtime loader searches for it.  This
+rule is not enforced by @command{libtool}, since it is often desirable
+to install libraries to a @dfn{staging}@footnote{When making a binary
+package from a virtual root directory for example.} area.
+Of course, the package must ultimately install the library to the specified
+@option{-rpath} destination for it to work correctly, like this:
+ 
+@ignore akim
+s/Ofcourse/Of course/
+
+2000-06-18  Gary V. Vaughan
+
+	Way ahead of you =)O|
+
+LW
+Again, helpful to introduce/lead into the listing
+
+2000-06-18  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+@smallexample
+@group
+$ libtool cp libtrim.la /usr/local/lib
+cp .libs/libtrim.sl.0.0 /usr/local/lib/libtrim.sl.0.0
+(cd /usr/local/lib && rm -f libtrim.sl.0 && \
+ln -s libtrim.sl.0.0 libtrim.sl.0)
+(cd /usr/local/lib && rm -f libtrim.sl && \
+ln -s libtrim.sl.0.0 libtrim.sl)
+chmod 555 /usr/local/lib/libtrim.sl.0.0
+cp .libs/libtrim.lai /usr/local/lib/libtrim.la
+cp .libs/libtrim.a /usr/local/lib/libtrim.a
+ranlib /usr/local/lib/libtrim.a
+chmod 644 /usr/local/lib/libtrim.a
+@end group
+@group
+----------------------------------------------------------------------
+Libraries have been installed in:
+   /usr/local/lib
+
+If you ever happen to want to link against installed libraries
+in a given directory, LIBDIR, you must either use libtool, and
+specify the full pathname of the library, or use `-LLIBDIR'
+flag during linking and do at least one of the following:
+   - add LIBDIR to the `SHLIB_PATH' environment variable
+     during execution
+   - use the `-Wl,+b -Wl,LIBDIR' linker flag
+
+See any operating system documentation about shared libraries for
+more information, such as the ld(1) and ld.so(8) manual pages.
+----------------------------------------------------------------------
+@end group
+@end smallexample
+@ignore LW
+I don't understand the presence of these lines.
+
+2000-06-18  Gary V. Vaughan
+
+	The rows of dashes?  They are part of the output generated by
+        running the libtool script in install mode.  See the typeset
+        file for how the whole thing should look.
+@end ignore
+
+Again, @command{libtool} takes care of the details for you.  Both the
+static and shared archives are copied into the installation directory
+and  their access modes are set appropriately.  @command{libtool}
+@i{blesses} the static archive again with @command{ranlib}, which would
+be easy to forget without the benefit of @command{libtool}, especially
+if I develop on a host where the library will continue to work without
+this step.  Also, @command{libtool} creates the necessary links for the
+shared archive to conform with @sc{hp-ux}s library versioning rules.
+Compare this to what you see with the equivalent commands running on
+@sc{gnu}/Linux to see how @command{libtool} applies these rules
+according to the requirements of its  host.  The block of text
+@command{libtool} shows at the end of the installation serves to explain
+how to link executables against the newly installed library on
+@sc{hp-ux} and how to make sure that the executables linked against it
+will work.  Of course, the best way to ensure this is to use
+@command{libtool} to perform the linking.  I'll leave the details of
+linking against an installed Libtool library as an exercise - everything
+you need to know can be extrapolated from the example of linking against
+an uninstalled Libtool library,  @xref{Linking an Executable}.
+
+On some architectures, even shared archives need to be @i{blessed} on
+installation.  For example, @sc{gnu}/Linux requires that
+@command{ldconfig} be run when a new library is installed.  Typically, a
+library will be installed to its target destination after being built,
+in which case @command{libtool} will perform any necessary @i{blessing}
+during installation.  Sometimes, when building a binary package for
+installation on another machine, for example, it is not desirable to
+perform the @i{blessing} on the build machine.  No problem,
+@command{libtool} takes care of this too! @command{libtool} will detect
+if you install the library to a destination other than the one specified
+in the @option{-rpath} argument passed during the archive link, and will
+simply remind you what needs to be done before the library can be used:
+
+@smallexample
+$ mkdir -p /usr/local/stow/hello-1.0/lib
+@group
+$ libtool cp libtrim.la /usr/local/stow/hello-1.0/lib
+cp .libs/libtrim.sl.0.0 /usr/local/stow/hello-1.0/lib/libtrim.sl.0.0
+(cd /usr/local/stow/hello-1.0/lib && rm -f libtrim.sl.0 && \
+ln -s libtrim.sl.0.0 libtrim.sl.0)
+(cd /usr/local/stow/hello-1.0/lib && rm -f libtrim.sl && \
+ln -s libtrim.sl.0.0 libtrim.sl)
+chmod 555 /usr/local/stow/hello-1.0/lib/libtrim.sl.0.0
+cp .libs/libtrim.lai /usr/local/stow/hello-1.0/lib/libtrim.la
+cp .libs/libtrim.a /usr/local/stow/hello-1.0/lib/libtrim.a
+ranlib /usr/local/stow/hello-1.0/lib/libtrim.a
+chmod 644 /usr/local/stow/hello-1.0/lib/libtrim.a
+libtool: install: warning: remember to run
+libtool: install: warning: `libtool --finish /usr/local/lib'
+@end group
+@end smallexample
+
+If you will make the installed libraries visible in the destination
+directory with symbolic links, you need to do whatever it is you do to
+make the library visible, and then @i{bless} the library in @emph{that}
+location with the @command{libtool --finish /usr/local/lib} command:
+
+@example
+$ cd /usr/local/stow
+$ stow hello-1.0
+$ libtool --finish /usr/local/lib
+@end example
+
+If you are following the examples so far, you will also need to install
+the Libtool library, @file{libhello.la}, before you move on to the next
+section:
+
+@smallexample
+@group
+$ libtool cp libhello.la /usr/local/lib
+cp .libs/libhello.sl.0.0 /usr/local/lib/libhello.sl.0.0
+(cd /usr/local/lib && rm -f libhello.sl.0 && \
+ln -s libhello.sl.0.0 libhello.sl.0)
+(cd /usr/local/lib && rm -f libhello.sl && \
+ln -s libhello.sl.0.0 libhello.sl)
+chmod 555 /usr/local/lib/libhello.sl.0.0
+cp .libs/libhello.lai /usr/local/lib/libhello.la
+cp .libs/libhello.a /usr/local/lib/libhello.a
+ranlib /usr/local/lib/libhello.a
+chmod 644 /usr/local/lib/libhello.a
+@end group
+@group
+----------------------------------------------------------------------
+Libraries have been installed in:
+   /usr/local/lib
+
+If you ever happen to want to link against installed libraries
+in a given directory, LIBDIR, you must either use libtool, and
+specify the full pathname of the library, or use `-LLIBDIR'
+flag during linking and do at least one of the following:
+   - add LIBDIR to the `SHLIB_PATH' environment variable
+     during execution
+   - use the `-Wl,+b -Wl,LIBDIR' linker flag
+
+See any operating system documentation about shared libraries for
+more information, such as the ld(1) and ld.so(8) manual pages.
+----------------------------------------------------------------------
+@end group
+@end smallexample
+
+Once a Libtool library is installed, binaries which link against it will 
+hardcode the path to the Libtool library, as specified with the
+@option{-rpath} switch when the library was built.  @command{libtool}
+always encodes the installation directory into a Libtool library for
+just this purpose.  Hardcoding directories in this way is a good thing,
+because binaries linked against such libraries will continue to work if
+there are several incompatible versions of the library visible to the
+runtime loader (say a Trojan @file{libhello} in a user's
+@code{LD_LIBRARY_PATH}, or a test build of the next release).  The
+disadvantage to this system is that if you move libraries to new
+directories, executables linked in this way will be unable to find the
+libraries they need.  Moving any library is a bad idea however, doubly
+so for a Libtool library which has its installation directory encoded
+internally, so the way to avoid problems of this nature is to not move
+libraries around after installation!
+
+@ignore akim
+libhello should be @code or something?  Also note that ``a[n ab]users''
+is probably ``a[n ab]user's''.
+
+LW
+a[n ab]users LD_LIBRARY_PATH?  Should there be an apostrophe?
+(user's/users').
+
+2000-06-18  Gary V. Vaughan
+
+	Seems someone already made these corrections for me =)O|
+@end ignore
+
+@node Installing an Executable
+@section Installing an Executable
+
+Installing an executable uses exactly the same command line that I used
+to install the library earlier:
+
+@smallexample
+@group
+$ libtool cp hello /usr/local/bin
+gcc -o /tmp/libtool-28585/hello main.c /usr/local/lib/libhello.sl \
+/usr/local/lib/libtrim.sl -Wl,+b -Wl,/usr/local/lib
+cp /tmp/libtool-28585/hello /usr/local/bin/hello
+@end group
+@group
+$ /usr/local/bin/hello
+Hello, World!
+@end group
+@end smallexample
+
+As @command{libtool} said earlier, during the initial linking of the
+@command{hello} program in the build directory, @command{hello} must be
+rebuilt before installation.  This is a peculiarity of @sc{hp-ux} (and a
+few other architectures) which you won't see if you are following the
+examples on a @sc{gnu}/Linux system.  In the shell trace above,
+@command{libtool} has built an installable version of the
+@command{hello} program, saving me the trouble of remembering (or worse
+-- coding for) the particulars of @sc{hp-ux}, which runs correctly from
+the installed location.
+
+As a matter of interest, if you look at the attributes of the installed
+program using @sc{hp-ux}'s @command{chatr} command:
+
+@smallexample
+@group
+$ chatr /usr/local/bin/hello
+/usr/local/bin/hello: 
+         shared executable 
+@end group
+         shared library dynamic path search:
+             SHLIB_PATH     disabled  second 
+             embedded path  enabled   first  /usr/local/lib
+         internal name:
+             /tmp/libtool-28585/hello
+         shared library list:
+             static    /usr/local/lib/libhello.sl.0
+             static    /usr/local/lib/libtrim.sl.0
+             dynamic   /lib/libc.1
+@group
+         shared library binding:
+             deferred 
+...
+@end group
+@end smallexample
+
+@noindent
+You can see that the runtime library search path for the installed
+@command{hello} program has been set to find the installed
+@samp{libhello.sl.0} shared archive, preventing it from accidentally
+loading a different library (with the same name) from the default load
+path.  This is a feature of @command{libtool}, and a very important one
+at that, and although it may not seem like the right way to do things
+initially, it saves a @strong{lot} of trouble when you end up with
+several versions of a library installed in several locations, since each
+program will continue to use the version that it was linked with,
+subject to library versioning rules, see @ref{Library Versioning}.
+
+@ignore akim
+I must say I like better when the samples are next to the text, i.e.:
+
+   As a matter of interest, if I look at the attributes of the installed
+   program using @sc{hp/ux}'s @command{chatr} command:
+
+   [the sample]
+
+   @noindent
+   I can see that...
+
+2000-06-18  Gary V. Vaughan
+
+	Done.
+
+akim
+Note btw that I find that @noindent is not used enough when the text
+continues about the previous sample.  In all the chapters I read up to
+now.  Also, Ian indents all its samples with two spaces, which the other
+authors don't do.  This results in a bizarre mixture.  Anyway,
+personally I like better without those two spaces.
+
+2000-06-18  Gary V. Vaughan
+
+        This situation is much improved since the version you reviewed,
+        I think.
+
+2000-07-17 Akim
+
+        s/a@strong{lot}/a @strong{lot}/
+
+        @xref.
+
+2000-07-20  Gary V. Vaughan
+
+	Ta!
+@end ignore
+
+@quotation
+@c Begin sidebar entitled `Library Version Safety'
+Without the help of @command{libtool}, it is very difficult to
+prevent programs and libraries in the build tree from loading earlier
+(compatible) versions of a shared archive that were previously installed 
+without an intimate knowledge of the build hosts architecture.  Making
+it work portably would be nigh impossible!  You should experiment with
+changes to the uninstalled library and satisfy yourself that the
+previously installed program continues to load the installed library at
+runtime, whereas the uninstalled program picks up the modifications in
+the uninstalled version of the library.
+@end quotation
+@ignore LW
+Again-not quite sure of what this is-tip/note?  Also, I'd introduce
+the next example.
+
+2000-06-18  Gary V. Vaughan
+
+	It is a sidebar.  See STYLE file.  Re: example intro... Okay.
+@ignoreLW
+
+Equally importantly, the uninstalled @command{hello} program continues
+to load the uninstalled shared archive.  This allows me to continue
+developing in the source directories and perform test builds in the
+knowledge that @command{libtool} has built all of my executables,
+including the uninstalled executables in the build tree, to load the
+correct version of the library.  I can check wth @sc{hp-ux}'s
+@command{chatr} command, like this:
+
+@smallexample
+@group
+$ libtool --mode=execute chatr ./hello
+/tmp/hello/.libs/hello: 
+         shared executable 
+@end group
+         shared library dynamic path search:
+             SHLIB_PATH     disabled  second 
+             embedded path  enabled   first  /tmp/intro-hello/.libs:\
+                                             /usr/local/lib
+         internal name:
+             .libs/hello
+         shared library list:
+             static    /tmp/intro-hello/.libs/libhello.sl.0
+             static    /tmp/intro-hello/.libs/libtrim.sl.0
+             dynamic   /lib/libc.1
+@group
+         shared library binding:
+             deferred 
+...
+@end group
+@end smallexample
+
+@ignore akim
+Cut the filenames!
+
+2000-06-18  Gary V. Vaughan
+
+	Yup!
+@end ignore
+
+This example introduces the concept of Libtool modes.  Most of the time
+@command{libtool} can infer a mode of operation from the contents of the
+command line, but sometimes (as in this example) it needs to be told.
+In @ref{Executing Uninstalled Binaries} we already used
+@command{libtool} in @dfn{execute} mode to run @command{gdb} against an
+uninstalled binary.  In this example I am telling @command{libtool} that
+I want to pass the @command{hello} binary to the @command{chatr}
+command, particularly since I know that the @file{hello} file is a
+script to set the local execution environment before running the real
+binary.
+
+@ignore 2000-07-17  Akim
+
+        ``In this example I am telling @command{libtool} that I want to
+        pass the @command{hello} binary to the @command{chatr}''
+
+        What example?  I saw nothing like this, there is a direct call
+        to chatr.
+
+2000-07-20  Gary V. Vaughan
+
+        No it isn't.  Look closely at the first line.  If it were a
+        direct call to chatr (like the example before it), chatr would
+        choke, because ./hello is a wrapper script!
+@end ignore                         
+The various modes that @command{libtool} has are described in the
+Libtool reference documentation, and are listed in the Libtool help
+text:
+@ignore LW
+Please introduce/explain the inclusion of this next example.
+
+2000-06-18  Gary V. Vaughan
+
+        Okay.
+
+LW
+Begin minitable-Authors, can you add a subheading for the left list? I'd
+Label the right "Description/Action Taken or something similar.
+
+2000-06-18  Gary V. Vaughan
+
+	Nope.  This is literal output from the `libtool --help'
+        command.  See the typeset file for layout.
+
+2000-07-17 Akim
+
+        s/in the Libtool distribution//
+
+2000-07-20  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@smallexample
+@group
+$ libtool --help
+...
+MODE must be one of the following:
+
+      clean           remove files from the build directory
+      compile         compile a source file into a libtool object
+      execute         automatically set library path, then run a program
+      finish          complete the installation of libtool libraries
+      install         install libraries or executables
+      link            create a library or an executable
+      uninstall       remove libraries from an installed directory
+
+MODE-ARGS vary depending on the MODE.  Try ``libtool --help --mode=MODE''
+for a more detailed description of MODE.
+@end group
+@end smallexample
+
+@ignore 2000-07-17 Akim
+
+        execute         automatically set library path, then run a program
+
+        What is this `automatically' doing here?  The other options are
+        not doing their job automatically?  :)
+
+2000-07-20  Gary V. Vaughan
+
+	I'll get my coat. :-(
+@end ignore
+
+@node Uninstalling
+@section Uninstalling
+
+Having installed all of these files to @file{/usr/local}, it might be
+difficult to remember which particular files belong to each
+installation.  In the case of an executable, the uninstallation requires 
+no magic, but when uninstalling a Libtool library all of the files which 
+comprise the implementation of the Libtool library in question must be
+uninstalled:
+@ignore LW
+Here perhaps just end sentence with a : rather than a .
+
+2000-06-18  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@smallexample
+@group
+$ libtool rm -f /usr/local/bin/hello
+rm -f /usr/local/bin/hello
+@end group
+@group
+$ libtool rm -f /usr/local/lib/libhello.la
+rm -f /usr/local/lib/libhello.la /usr/local/lib/libhello.sl.0.0 \
+/usr/local/lib/libhello.sl.0 /usr/local/lib/libhello.sl \
+/usr/local/lib/libhello.a
+@end group
+@group
+$ libtool rm -f /usr/local/lib/libtrim.la
+rm -f /usr/local/lib/libtrim.la /usr/local/lib/libtrim.sl.0.0 \
+/usr/local/lib/libtrim.sl.0 /usr/local/lib/libtrim.sl \
+/usr/local/lib/libtrim.a
+@end group
+@end smallexample
+
+Using @command{libtool} to perform the uninstallation in this way
+ensures that all of the files that it installed, including any
+additional soft links required by the architecture versioning scheme for
+shared archives, are removed with a single command.
+
+@ignore LW
+May want to summarize a bit/transition into next chapter.
+
+2000-06-18  Gary V. Vaughan
+
+	Good point.  Done.
+@end ignore
+
+Having explored the use of @command{libtool} from the command line, the
+next chapter will discuss how to integrate @command{libtool} into the
+configury of your COLLECTIVE based projects.
+
+@c Local variables:
+@c fill-column: 72
+@c End:

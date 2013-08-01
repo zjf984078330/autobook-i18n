@@ -1,0 +1,6 @@
+Makefile.texi configure.texi error.texi error_h.texi main.texi
+*.texi
+*.la
+*.lo
+*.o
+configure.scan

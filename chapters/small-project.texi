@@ -1,0 +1,2075 @@
+@c -*- texinfo -*-
+
+@ignore Didier Verna Tue Jun 13 16:10:40 CEST 2000
+I find that there are too many useless listings. sic_builtin.c for instance.
+People can download the source if they are interested, and for the point
+you're trying to make at a particular time, only two or three lines of code
+are generally sufficient. If you do want to put complete file listings, put
+them in annex.
+
+2000-06-26  Gary V. Vaughan
+
+        Trimmed a little where it doesn't reduce the reader's
+        understanding of how the Sic project is designed and built --
+        which are important if the further example chapters are to make
+        much sense.
+
+Didier Verna Tue Jun 13 16:10:40 CEST 2000
+I have problems with the organisation of this chapter: on the one hand,
+there's a sequential description of the project, and on the other hand, there
+are specific problems related to the autotools a bit everywhere and thus
+difficult to find back. But these are the most important matters however. As a
+consequence, I don't think this chapter should be organized by file (ie
+1.error.h, 2.list.h etc). At least, there should be a first part describing
+the important problems: C++ guards, ANSI vs. K&R, functions replacement /
+macros and so on, and then, a sequential review of the code could occur,
+pointing out again all these matters more concretely.
+
+2000-06-26  Gary V. Vaughan
+
+        Damn! You're making me work hard =)O|  This chapter has had a
+        fairly major rewrite, which improves it immensely thanks to this
+        suggestion.
+
+2000-05-05  Akim Demaille
+
+All the @footnotes are to be checked for (i) the capitalization of the
+first word, and (ii) the final period.
+
+2000-06-23  Gary V. Vaughan
+
+        It's a tough habit to break! =)O|  I have left out the final
+        period if the footnote ends with a @uref, since it looks bad
+        with the period, and might confuse people who take it as part
+        of the address.
+LW
+Worked?  What do you mean exactly?
+
+2000-06-17  Gary V. Vaughan
+
+        `Worked' emphasises the `but real' (vice versa actually).  I
+        want to be clear that it is not just an illustrative example,
+        but part of a real project I am working on.
+
+LW
+Which features does it illustrate?  It might be helpful to list them.
+
+2000-06-17  Gary V. Vaughan
+
+        I've tried to come up with a succinct summary, but it is like
+        trying to summarise the content of the book thus far.  I think
+        the explanations throughiut the rest of the chapter are
+        sufficient?
+
+LW
+Web site will be determined soon--let's just leave this question
+in with the file.
+
+Overall issue--A Sample Shell App is a straightforward, task-oriented
+section. A Simple Shell Builders Library varies between this, and more
+explanation/background.  Please try to even out this voice toward the
+former.
+
+2000-06-17  Gary V. Vaughan
+
+        I understand your point, though IMHO the circumstances are
+        mitigating in this case.  See my answers to your similar
+        comment further down this file...
+@end ignore
+
+This chapter introduces a small---but real---worked example, to
+illustrate some of the features, and highlight some of the pitfalls, of
+the COLLECTIVE discussed so far.  All of the source can be downloaded
+from the book's web
+page@footnote{@uref{http://sources.redhat.com/autobook/}}.
+The text is peppered with my own pet ideas, accumulated over a several
+years of working with the COLLECTIVE and you should be able to easily
+apply these to your own projects.  I will begin by describing some of
+the choices and problems I encountered during the early stages of the
+development of this project.  Then by way of illustration of the issues
+covered, move on to showing you a general infrastructure that I use as
+the basis for all of my own projects, followed by the specifics of the
+implementation of a portable command line shell library.  This chapter
+then finishes with a sample shell application that uses that library.
+
+Later, in @ref{A Large COLLECTIVE Project} and @ref{A Complex
+COLLECTIVE Project}, the example introduced here will be
+gradually expanded as new features of COLLECTIVE are revealed.
+
+@menu
+* COLLECTIVE in Practice::
+* A Simple Shell Builders Library::
+* A Sample Shell Application::
+@end menu
+
+@node COLLECTIVE in Practice
+@section COLLECTIVE in Practice
+
+This section details some of the specific problems I encountered when
+starting this project, and is representative of the sorts of things you
+are likely to want to do in projects of your own, but for which the
+correct solution may not be immediately evident.  You can always refer
+back to this section for some inspiration if you come across similar
+situations.  I will talk about some of the decisions I made about the
+structure of the project, and also the trade-offs for the other side of
+the argument -- you might find the opposite choice to the one I make here
+is more relevant a particular project of yours.
+
+@menu
+* Project Directory Structure::
+* C Header Files::
+* C++ Compilers::
+* Function Definitions::
+* Fallback Function Implementations::
+* K&R Compilers::
+@end menu
+
+@node Project Directory Structure
+@subsection Project Directory Structure
+
+Before starting to write code for any project, you need to decide on
+the directory structure you will use to organise the code.  I like to
+build each component of a project in its own subdirectory, and to keep
+the configuration sources separate from the source code.  The great
+majority of @sc{gnu} projects I have seen use a similar method, so
+adopting it yourself will likely make your project more familiar to your
+developers by association.
+
+The top level directory is used for configuration files, such as
+@file{configure} and  @file{aclocal.m4}, and for a few other sundry
+files, @file{README} and a copy of the project license for example.
+
+Any significant libraries will have a subdirectory of their own,
+containing all of the sources and headers for that library along with a
+@file{Makefile.am} and anything else that is specific to just that
+library.   Libraries that are part of a small like group, a set of
+pluggable application modules for example, are kept together in a single
+directory.
+
+The sources and headers for the project's main application will be
+stored in yet another subdirectory, traditionally named @file{src}.   There
+are other conventional directories your developers might expect too:  A
+@file{doc} directory for project documentation; and a @file{test}
+directory for the project self test suite.
+
+To keep the project top-level directory as uncluttered as possible, as I
+like to do, you can take advantage of Autoconf's
+@samp{AC_CONFIG_AUX_DIR} by creating another directory, say
+@file{config}, which will be used to store many of the COLLECTIVE
+intermediate files, such as @command{install-sh}.  I always store all
+project specific Autoconf M4 macros to this same subdirectory.
+
+So, this is what you should start with:
+
+@example
+$ pwd
+~/mypackage
+$ ls -F
+Makefile.am  config/     configure.in  lib/  test/
+README       configure*  doc/          src/
+@end example
+
+
+@node C Header Files
+@subsection C Header Files
+
+There is a small amount of boiler-plate that should be added to all
+header files, not least of which is a small amount of code to prevent
+the contents of the header from being scanned multiple times.  This is
+achieved by enclosing the entire file in a preprocessor conditional
+which evaluates to false after the first time it has been seen by the
+preprocessor.  Traditionally, the macro used is in all upper case, and
+named after the installation path without the installation prefix.
+Imagine a header that will be installed to
+@file{/usr/local/include/sys/foo.h}, for example.  The preprocessor
+code would be as follows:
+
+@example
+#ifndef SYS_FOO_H
+#define SYS_FOO_H 1
+...
+#endif /* !SYS_FOO_H */
+@end example
+
+@noindent
+Apart from comments, the entire content of the rest of this header file
+must be between these few lines.  It is worth mentioning that inside the
+enclosing @code{ifndef}, the macro @code{SYS_FOO_H} must be defined
+before any other files are @code{#include}d.   It is a common mistake to
+not define  that macro until the end of the file, but mutual dependency
+cycles are only stalled if the guard macro is defined before the
+@code{#include} which starts that cycle@footnote{An @code{#include}
+cycle is the situation where file @file{a.h} @code{#include}s file
+@file{b.h}, and @file{b.h} @code{#include}s file @file{a.h} -- either
+directly or through some longer chain of @code{#include}s.}.
+@ignore LW
+Is a "which" missing before 'is the situation'?
+
+2000-06-15  Gary V. Vaughan
+
+        Nope.  That is part of the footnote -- a separate sentence.
+
+LW
+I'd make the following 2 above into one graf.
+
+2000-06-15  Gary V. Vaughan
+
+	Agreed.  And the next one too I think.
+
+LW
+Is this list within the list above?
+
+2000-06-15  Gary V. Vaughan
+
+        Well, it used to be.  But, like you said, that sucked.  Things
+	are much clearer now -- Thanks again!
+@end ignore
+
+If a header is designed to be installed, it must @code{#include} other
+installed project headers from the local tree using angle-brackets.
+There are some implications to working like this:
+
+@itemize @bullet
+@item
+You must be careful that the names of header file directories in the
+source tree match the names of the directories in the install tree.  For
+example, when I plan to install the aforementioned @file{foo.h} to
+@file{/usr/local/include/project/foo.h}, from which it will be included
+using @samp{#include <project/foo.h>}, then in order for the same
+include line to work in the source tree, I must name the source
+directory it is installed from @file{project} too, or other headers which
+use it will not be able to find it until after it has been installed.
+
+@item
+When you come to developing the next version of a project laid out in
+this way, you must be careful about finding the correct header.
+Automake takes care of that for you by using @option{-I} options that
+force the compiler to look for uninstalled headers in the current source
+directory before searching the system directories for installed headers
+of the same name.
+
+@item
+You don't have to install all of your headers to @file{/usr/include} --
+you can use subdirectories.  And all without having to rewrite the
+headers at install time.
+@end itemize
+@ignore LW
+Again, not sure why these are separate items--this, for example, is an
+explanation of the above.  Explanation would be much less stilted in
+reg. paragraphs.
+
+2000-06-15  Gary V. Vaughan
+
+        I have reworded it slightly, and I think that it does now make
+        sense as a separate bullet item in light of the reorganisation
+        of this subsection.
+@end ignore
+
+
+@node C++ Compilers
+@subsection C++ Compilers
+
+In order for a C++ program to use a library compiled with a C compiler,
+it is necessary for any symbols exported from the C library to be
+declared between @samp{extern "C" @{} and @samp{@}}.  This code is
+important, because a C++ compiler @dfn{mangles}@footnote{For an
+explanation of name mangling @xref{Writing Portable C++, Writing
+Portable C++ with COLLECTIVE}.} all variable and function names, where
+as a C compiler does not.  On the other hand, a C compiler will not
+understand these lines, so you must be careful to make them invisible
+to the C compiler.
+
+Sometimes you will see this method used, written out in long hand in
+every installed header file, like this:
+
+@smallexample
+@group
+#ifdef __cplusplus
+extern "C" @{
+#endif
+@end group
+
+...
+
+@group
+#ifdef __cplusplus
+@}
+#endif
+@end group
+@end smallexample
+
+@noindent
+But that is a lot of unnecessary typing if you have a few dozen headers
+in your project.  Also the additional braces tend to confuse text
+editors, such as emacs, which do automatic source indentation based on
+brace characters.
+
+Far better, then, to declare them as macros in a common header file, and
+use the macros in your headers:
+
+@smallexample
+@group
+#ifdef __cplusplus
+#  define BEGIN_C_DECLS extern "C" @{
+#  define END_C_DECLS   @}
+@end group
+#else /* !__cplusplus */
+@group
+#  define BEGIN_C_DECLS
+#  define END_C_DECLS
+#endif /* __cplusplus */
+@end group
+@end smallexample
+
+I have seen several projects that name such macros with a leading
+underscore -- @samp{_BEGIN_C_DECLS}.  Any symbol with a leading
+underscore is reserved for use by the compiler implementation, so you
+shouldn't name @strong{any} symbols of your own in this way.  By way of
+example, I recently ported the
+Small@footnote{@uref{http://www.compuphase.com/small.htm}} language
+compiler to Unix, and almost all of the work was writing a Perl script
+to rename huge numbers of symbols in the compiler's reserved namespace
+to something more sensible so that @sc{gcc} could even parse the
+sources.  Small was originally developed on Windows, and the author had
+used a lot of symbols with a leading underscore.  Although his symbol
+names didn't clash with his own compiler, in some cases they were the
+same as symbols used by @sc{gcc}.
+
+
+@node Function Definitions
+@subsection Function Definitions
+
+As a stylistic convention, the return types for all function definitions
+should be on a separate line.  The main reason for this is that it makes
+it very easy to find the functions in source file, by looking for
+a single identifier at the start of a line followed by an open
+parenthesis:
+
+@smallexample
+$ egrep '^[_a-zA-Z][_a-zA-Z0-9]*[ \t]*\(' error.c
+set_program_name (const char *path)
+error (int exit_status, const char *mode, const char *message)
+sic_warning (const char *message)
+sic_error (const char *message)
+sic_fatal (const char *message)
+@end smallexample
+
+@noindent
+There are emacs lisp functions and various code analysis tools, such as
+@command{ansi2knr} (@pxref{K&R Compilers}), which rely on this
+formatting convention, too.  Even if you don't use those tools yourself,
+your fellow developers might like to, so it is a good convention to
+adopt.
+
+
+@node Fallback Function Implementations
+@subsection Fallback Function Implementations
+
+@ignore Didier Verna Tue Jun 13 16:10:40 CEST 2000
+There's a part about function replacement. The two philosophies are even
+explained: either provide replacements, or write code in the minimal set of
+portable functions. I think there should be a word (more than that actually
+;-) about Francois Pinard's libit.
+
+2000-06-22  Gary V. Vaughan
+
+	Indeed! Added this entire subsection, just for you :-*
+@end ignore
+
+Due to the huge number of Unix varieties in common use today, many of
+the C library functions that you take for granted on your preferred
+development platform are very likely missing from some of the
+architectures you would like your code to compile on.  Fundamentally
+there are two ways to cope with this:
+
+@itemize @bullet
+@item
+Use only the few library calls that are available everywhere.  In
+reality this is not actually possible because there are two lowest
+common denominators with mutually exclusive @sc{api}s, one rooted in
+@acronym{BSD} Unix (@samp{bcopy}, @samp{rindex}) and the other in
+@sc{sysv} Unix (@samp{memcpy}, @samp{strrchr}).  The only way to deal
+with this is to define one @sc{api} in terms of the other using the
+preprocessor.  The newer @sc{posix} standard deprecates many of the
+@acronym{BSD} originated calls (with exceptions such as the
+@acronym{BSD} socket @sc{api}).  Even on non-@sc{posix} platforms, there
+has been so much cross pollination that often both varieties of a given
+call may be provided,  however you would be wise to write your code
+using @sc{posix} endorsed calls, and where they are missing, define them
+in terms of whatever the host platform provides.
+
+This approach requires a lot of knowledge about various system libraries
+and standards documents, and can leave you with reams of preprocessor
+code to handle the differences between @sc{apis}.  You will also need
+to perform a lot of checking in @file{configure.in} to figure out which
+calls are available.  For example, to allow the rest of your code to use
+the @samp{strcpy} call with impunity, you would need the following code
+in @file{configure.in}:
+
+@example
+AC_CHECK_FUNCS(strcpy bcopy)
+@end example
+
+@noindent
+And the following preprocessor code in a header file that is seen by
+every source file:
+
+@example
+#if !HAVE_STRCPY
+#  if HAVE_BCOPY
+#    define strcpy(dest, src)   bcopy (src, dest, 1 + strlen (src))
+#  else /* !HAVE_BCOPY */
+     error no strcpy or bcopy
+#  endif /* HAVE_BCOPY */
+#endif /* HAVE_STRCPY */
+@end example
+
+@item
+Alternatively you could provide your own fallback implementations of
+function calls you know are missing on some platforms.  In practice you
+don't need to be as knowledgeable about problematic functions when using
+this approach.  You can look in @sc{gnu} libiberty@footnote{Available at
+@uref{ftp://sourceware.cygnus.com/pub/binutils/}.} or Fran@,{c}ois
+Pinard's libit project@footnote{Distributed from
+@uref{http://www.iro.umontreal.ca/~pinard/libit}.} to see for which
+functions other @sc{gnu} developers have needed to implement fallback
+code.  The libit project is especially useful in this respect as it
+comprises canonical versions of fallback functions, and suitable
+Autoconf macros assembled from across the entire @sc{gnu} project.  I
+won't give an example of setting up your package to use this approach,
+since that is how I have chosen to structure the project described in
+this chapter.
+@end itemize
+
+Rather than writing code to the lowest common denominator of system
+libraries, I am a strong advocate of the latter school of thought in the
+majority of cases.  As with all things it pays to take a pragmatic
+approach;  don't be afraid of the middle ground -- weigh the options on
+a case by case basis.
+
+
+@node K&R Compilers
+@subsection K&R Compilers
+
+K&R C is the name now used to describe the original C language specified
+by Brian Kernighan and Dennis Ritchie (hence, ``@dfn{K&R}'').  I have
+yet to see a C compiler that doesn't support code written in the K&R
+style, yet it has fallen very much into disuse in favor of the newer
+@sc{ansi} C standard.  Although it is increasingly common for vendors to
+@dfn{unbundle} their @sc{ansi} C compiler, the @sc{gcc}
+project@footnote{@sc{gcc} must be compilable by K&R compilers so that it
+can be built and installed in an @sc{ansi} compiler free
+environment.} is available for all of the architectures I have ever
+used.
+
+There are four differences between the two C standards:
+
+@enumerate 1
+@item
+@sc{ansi} C expects full type specification in function prototypes, such
+as you might supply in a library header file:
+
+@example
+extern int functionname (const char *parameter1, size_t parameter 2);
+@end example
+
+@noindent
+The nearest equivalent in K&R style C is a forward declaration, which
+allows you to use a function before its corresponding definition:
+
+@example
+extern int functionname ();
+@end example
+
+@noindent
+As you can imagine, K&R has very bad type safety, and does not perform
+any checks that only function arguments of the correct type are used.
+
+@item
+The function headers of each function definition are written
+differently.  Where you might see the following written in @sc{ansi} C:
+
+@example
+int
+functionname (const char *parameter1, size_t parameter2)
+@{
+  ...
+@}
+@end example
+
+@noindent
+K&R expects the parameter type declarations separately, like this:
+
+@example
+int
+functionname (parameter1, parameter2)
+     const char *parameter1;
+     size_t parameter2;
+@{
+  ...
+@}
+@end example
+
+@item
+There is no concept of an untyped pointer in K&R C.  Where you might be
+used to seeing @samp{void *} pointers in @sc{ansi} code, you are forced
+to overload the meaning of @samp{char *} for K&R compilers.
+
+@item
+Variadic functions are handled with a different @sc{api} in K&R C,
+imported with @samp{#include <varargs.h>}.  A K&R variadic function
+definition looks like this:
+
+@example
+int
+functionname (va_alist)
+     va_dcl
+@{
+  va_list ap;
+  char *arg;
+
+  va_start (ap);
+  ...
+  arg = va_arg (ap, char *);
+  ...
+  va_end (ap);
+
+  return arg ? strlen (arg) : 0;
+@}
+@end example
+
+@sc{ansi} C provides a similar @sc{api}, imported with @samp{#include
+<stdarg.h>}, though it cannot express  a variadic function with no named
+arguments such as the one above.  In practice, this isn't a problem
+since you always need at least one parameter, either to specify the
+total number of arguments somehow, or else to mark the end of the
+argument list.  An @sc{ansi} variadic function definition looks like
+this:
+
+@example
+int
+functionname (char *format, ...)
+@{
+  va_list ap;
+  char *arg;
+
+  va_start (ap, format);
+  ...
+  arg = va_arg (ap, char *);
+  ...
+  va_end (ap);
+
+  return format ? strlen (format) : 0;
+@}
+@end example
+@end enumerate
+
+Except in very rare cases where you are writing a low level project
+(@sc{gcc} for example), you probably don't need to worry about K&R
+compilers too much.  However, supporting them can be very easy, and if
+you are so inclined, can be handled either by employing the
+@command{ansi2knr} program supplied with Automake, or by careful use of
+the preprocessor.
+
+Using @command{ansi2knr} in your project is described in some detail in
+@ref{Automatic de-ANSI-fication, , , Automake, The Automake Manual}, but
+boils down to the following:
+
+@itemize @minus
+@item
+Add this macro to your @file{configure.in} file:
+
+@example
+AM_C_PROTOTYPES
+@end example
+
+@item
+Rewrite the contents of @samp{LIBOBJS} and/or  @samp{LTLIBOBJS} in
+the following fashion:
+
+@example
+# This is necessary so that .o files in LIBOBJS are also built via
+# the ANSI2KNR-filtering rules.
+m4_changequote(,)m4_dnl
+Xsed='sed -e "s/^X//"'
+LIBOBJS=`echo X"$LIBOBJS"|\
+	[$Xsed -e 's/\.[^.]* /.\$U& /g;s/\.[^.]*$/.\$U&/']`
+m4_changequote(`,')m4_dnl
+@end example
+@end itemize
+
+Personally, I dislike this method, since every source file is filtered
+and rewritten with @sc{ansi} function prototypes and declarations
+converted to K&R style adding a fair overhead in additional files in
+your build tree, and in compilation time.  This would be reasonable were
+the abstraction sufficient to allow you to forget about K&R entirely,
+but @command{ansi2knr} is a simple program, and does not address any of
+the other differences between compilers that I raised above, and it
+cannot handle macros in your function prototypes of definitions.  If you
+decide to use @command{ansi2knr} in your project, you must make the
+decision before you write any code, and be aware of its limitations as
+you develop.
+
+For my own projects, I prefer to use a set of preprocessor macros along
+with a few stylistic conventions so that all of the differences between
+K&R and @sc{ansi} compilers are actually addressed, and so that the
+unfortunate few who have no access to an @sc{ansi} compiler (and who
+cannot use @sc{gcc} for some reason) needn't suffer the overheads of
+@command{ansi2knr}.
+
+The four differences in style listed at the beginning of this subsection
+are addressed as follows:
+
+@enumerate 1
+@item
+The function prototype argument lists are declared inside a @code{PARAMS}
+macro invocation so that K&R compilers will still be able to compile the
+source tree.  @code{PARAMS} removes @sc{ansi} argument lists from
+function prototypes for @acronym{K&R} compilers.  Some developers
+continue to use @code{__P} for this purpose, but strictly speaking,
+macros starting with @samp{_} (and especially @samp{__}) are reserved
+for the compiler and the system headers, so using @samp{PARAMS}, as
+follows, is safer:
+
+@example
+#if __STDC__
+#  ifndef NOPROTOS
+#    define PARAMS(args)      args
+#  endif
+#endif
+#ifndef PARAMS
+#  define PARAMS(args)        ()
+#endif
+@end example
+
+@noindent
+This macro is then used for all function declarations like this:
+
+@example
+extern int functionname PARAMS((const char *parameter));
+@end example
+
+@item
+With the @code{PARAMS} macro is used for all function declarations,
+@sc{ansi} compilers are given all the type information they require to
+do full compile time type checking.  The function definitions
+proper must then be declared in K&R style so that K&R compilers don't
+choke on @sc{ansi} syntax.  There is a small amount of overhead in
+writing code this way, however:   The @sc{ansi} compile time type
+checking can only work in conjunction with K&R function definitions if
+it first sees an @sc{ansi} function prototype.  This forces you to
+develop the good habit of prototyping @emph{every single} function in
+your project.  Even the @code{static} ones.
+
+@item
+The easiest way to work around the lack of @code{void *} pointers, is to
+define a new type that  is conditionally set to @code{void *} for
+@sc{ansi} compilers, or @code{char *} for @acronym{K&R} compilers.  You
+should add the following to a common header file:
+
+@example
+#if __STDC__
+typedef void *void_ptr;
+#else /* !__STDC__ */
+typedef char *void_ptr;
+#endif /* __STDC__ */
+@end example
+
+@ignore akim
+a2ps happily uses `void *', I've never had any problems with it.  Jim
+uses `void *' in the fileutils.  I don't think there are any problems
+with void * today.
+
+2000-06-24  Gary V. Vaughan
+
+	Even so, `void *' is not available in pure K&R compilers.
+@end ignore
+
+@item
+The difference between the two variadic function @sc{api}s pose a
+stickier problem, and the solution is ugly.  But it @emph{does} work.
+First you must check for the headers in @file{configure.in}:
+
+@example
+AC_CHECK_HEADERS(stdarg.h varargs.h, break)
+@end example
+
+@noindent
+Having done this, add the following code to a common header file:
+
+@example
+#if HAVE_STDARG_H
+#  include <stdarg.h>
+#  define VA_START(a, f)        va_start(a, f)
+#else
+#  if HAVE_VARARGS_H
+#    include <varargs.h>
+#    define VA_START(a, f)      va_start(a)
+#  endif
+#endif
+#ifndef VA_START
+  error no variadic api
+#endif
+@end example
+
+You must now supply each variadic function with both a K&R and an
+@sc{ansi} definition, like this:
+
+@example
+int
+#if HAVE_STDARG_H
+functionname (const char *format, ...)
+#else
+functionname (format, va_alist)
+     const char *format;
+     va_dcl
+#endif
+@{
+  va_alist ap;
+  char *arg;
+
+  VA_START (ap, format);
+  ...
+  arg = va_arg (ap, char *);
+  ...
+  va_end (ap);
+
+  return arg : strlen (arg) ? 0;
+@}
+@end example
+@end enumerate
+
+@node A Simple Shell Builders Library
+@section A Simple Shell Builders Library
+
+An application which most developers try their hand at sooner or later
+is a Unix shell.  There is a lot of functionality common to all
+traditional command line shells, which I thought I would push into a
+portable library to get you over the first hurdle when that moment is
+upon you.  Before elaborating on any of this I need to name the
+project.  I've called it @dfn{sic}, from the Latin @dfn{so it is},
+because like all good project names it is somewhat pretentious and it
+lends itself to the recursive acronym @dfn{sic is cumulative}.
+
+The gory detail of the minutiae of the source is beyond the scope of
+this book, but to convey a feel for the need for Sic, some of the
+goals which influenced the design follow:
+
+@itemize @bullet
+@item
+Sic must be very small so that, in addition to being used as the basis
+for a full blown shell, it can be linked (unadorned) into an application
+and used for trivial tasks, such as reading startup configuration.
+
+@item
+It must not be tied to a particular syntax or set of reserved words.  If
+you use it to read your startup configuration, I don't want to force you
+to use my syntax and commands.
+
+@item
+The boundary between the library (@file{libsic}) and the application
+must be well defined.  Sic will take strings of characters as input, and
+internally parse and evaluate them according to registered commands and
+syntax, returning results or diagnostics as appropriate.
+
+@item
+It must be extremely portable -- that is what I am trying to illustrate
+here, after all.
+@end itemize
+
+@menu
+* Portability Infrastructure::
+* Library Implementation::
+* Beginnings of a configure.in for Small Project::
+@end menu
+@ignore LW
+Format of heading changes--implementation, but starting--For
+consistency, could change Starting to Beginning of?  Or Implementing
+Library?
+
+2000-06-17  Gary V. Vaughan
+
+        Agreed in principle -- but I think the first two are okay.  I
+        have changed ``Starting'' to ``Beginnings of'' though.  Thanks.
+@end ignore
+
+@node Portability Infrastructure
+@subsection Portability Infrastructure
+
+@ignore LW
+This bullet point gets its own section but the others don't--is that OK?
+Would it help the organization if that were explained?
+
+2000-06-17  Gary V. Vaughan
+
+        It isn't a bullet point, as it encompasses the following three
+        subsubsections.  It is clearer in the typeset version, though I
+        have added a word or two by way of explanation at the start of
+        the chapter.  Thanks.
+@end ignore
+
+As I explained in @ref{Project Directory Structure}, I'll first create
+the project directories, a toplevel directory and a subdirectory to put
+the library sources into.   I want to install the library header files
+to @file{/usr/local/include/sic}, so the library subdirectory must be
+named appropriately.  @xref{C Header Files}.
+
+@example
+$ mkdir sic
+$ mkdir sic/sic
+$ cd sic/sic
+@end example
+
+I will describe the files I add in this section in more detail than the
+project specific sources, because they comprise an infrastructure that I
+use relatively unchanged for all of my COLLECTIVE projects.  You could
+keep an archive of these files, and use them as a starting point
+each time you begin a new project of your own.
+@ignore LW
+Great!  Very helpful to reader.
+@end ignore
+
+@menu
+* Error Management::
+* Memory Management::
+* Generalised List Data Type::
+@end menu
+
+@node Error Management
+@subsubsection Error Management
+
+A good place to start with any project design is the error management
+facility.   In Sic I will use  a simple group of functions to display
+simple error messages.  Here is @file{sic/error.h}:
+
+@example
+m4_include(examples/sic-small/sic/error_h_1.texi)
+@end example
+
+@ignore akim
+The coding style is not really consistent, not that it matters, but
+maybe Gary wants to know.  In particular the space before the parens is
+not systematically present.
+
+2000-06-23  Gary V. Vaughan
+
+        Thanks.  I'll look through the code shortly.
+
+akim
+Also, there's something bizarre there: there is BEGIN_C_DECLS etc.,
+which gives Sic a test of C++ conpilable, but given that the variadic
+functions are not prototyped, a C++ compiler will certainly choke.
+Maybe Gary should enter the gory details such as seen in error.[ch] of
+the fileutils.
+
+2000-06-23  Gary V. Vaughan
+
+        Aiee-ya!  Much too hairy.  I fix all of the problems you mention
+        in the next project chapter -- I'll simplify this one to take
+        only a single string so that the C++ compiler won't choke.  When
+        you say compiled with C++, I assume you mean linking the C
+        compiled library with a C++ compiler?
+
+akim
+Also, still about coding style, maybe I already mentioned it, I don't
+remember, but Gary has this habit to use #ifndef FOO #endif /* FOO */,
+while it is usual to use #endif /* !FOO */.  But that's tastes and
+colors so...
+
+2000-06-23  Gary V. Vaughan
+
+        I will check all my code for this.  I thought I had caught them
+        all in the last pass... I guess not =(O|
+
+akim
+I seem to understand that the headers will be installed, and I guess you
+will install a config.h (I might be wrong, it's probably in another
+chapter?).  Then, maybe using sic-config.h, or even sic/config.h might
+be safer?
+
+2000-06-23  Gary V. Vaughan
+
+        In the next project chapter I explain this.  But as you say, the
+        example thus far would be easier to understand if config.h were
+        installed for now.  Done.
+@end ignore
+
+@noindent
+This header file follows the principles set out in @ref{C Header Files}.
+
+@ignore Didier Verna Tue Jun 13 16:10:40 CEST 2000
+Explain what are BEGIN_C_DECLS and END_C_DECLS in the following @itemize,
+not after. People's curiousity is excited here and I think they will be
+annoyed not to find the answer pretty soon.
+
+2000-06-15  Gary V. Vaughan
+
+	Okay.  Thanks.
+
+LW
+The formatting of this section is confusing--lists within lists, and
+points that don't seem to be their own points but explanations of the
+items above them.   Therefore, my vote would be just to explain these in
+paragraph form "Another best practice...Once you've done this," etc.
+
+2000-06-17  Gary V. Vaughan
+
+        Okay, I agree with that.  I've reformatted the outer list as
+        straight prose.
+@end ignore
+
+I am storing the @code{program_name} variable in the library that uses
+it, so that I can be sure that the library will build on architectures
+that don't allow undefined symbols in libraries@footnote{@sc{aix} and
+Windows being the main culprits.}.
+
+Keeping those preprocessor macro definitions designed to aid code
+portability together (in a single file), is a good way to maintain the
+readability of the rest of the code.  For this project I will put that
+code in @file{common.h}:
+
+@example
+m4_include(examples/sic-small/sic/common_h_1.texi)
+@end example
+
+@ignore Didier Verna Tue Jun 13 16:10:40 CEST 2000
+In the snippet from the above file, you have:
+ ,----
+| #if HAVE_ERRNO_H
+| #  include <errno.h>
+| #endif /*HAVE_ERRNO_H*/
+| #ifndef errno
+| /* Some systems #define this! */
+| extern int errno;
+| #endif
+`-----
+Wouldn't it be better to use a #else statement ?
+
+2000-06-15  Gary V. Vaughan
+
+	Nope. If the system has an errno.h which defines errno as a
+        macro, I want the header but not the errno declaration.  If the
+	system  has an errno.h which doesn't declare errno on its own,
+	I want the header and the declaration.
+@end ignore
+
+You may recognise some snippets of code from the Autoconf manual here---
+in particular the inclusion of the project @file{config.h}, which will
+be generated shortly.  Notice that I have been careful to conditionally
+include any headers which are not guaranteed to exist on every
+architecture.  The rule of thumb here is that only @file{stdio.h} is
+ubiquitous (though I have never heard of a machine that has no
+@file{sys/types.h}).  You can find more details of some of these in
+@ref{Existing Tests, , , autoconf, The GNU Autoconf Manual}.
+
+@ignore Didier Verna Tue Jun 13 16:10:40 CEST 2000
+I think you mean error.h ?
+
+2000-06-15  Gary V. Vaughan
+
+	Yes indeed.  Well spotted!
+
+2000-06-15  LW
+There's a lot of explanation--& then you go back to what you're doing.
+You might want to be more consistent in your voice for the reader.
+
+2000-06-17  Gary V. Vaughan
+
+        That's a tough call.  I can see where you are coming from. but
+        the chapter will lose a lot of its `meat', and much of its value
+        if I don't explain what is going on here.  I've looked for
+        another chapter to donate the explanatory material to, and some
+        of it could arguably be moved into the `Portable C' chapter --
+        I'm not too keen on that idea though, since that chapter is a
+        very factual point by point treatment of the overall issue of
+        portability;  this chapter applies some of that knowledge and
+        some of my experiences to this particular code.  Moving the
+        explanatory sections elsewhere would dilute both what remains
+        here, and what is moved.  I'm open to discussion if we are in
+        violent disagreement.
+
+2000-06-26  Gary V. Vaughan
+
+	Major rewrite of this chapter.  I think this addresses your
+	concerns and Didiers.  I am much happier with it now too.
+@end ignore
+
+Here is a little more code from @file{common.h}:
+
+@ignore akim
+s/mangline/mangling/.  Don't use @xref here.
+
+2000-06-24  Gary V. Vaughan
+
+	Bitrotted away...
+
+LW
+Please introduce this code listing.
+
+2000-06-17  Gary V. Vaughan
+
+        Oops.  Just checking that you were paying attention =)O|
+
+@end ignore
+@example
+m4_include(examples/sic-small/sic/common_h_2.texi)
+@end example
+
+@ignore Didier Verna Tue Jun 13 16:10:40 CEST 2000
+The macros SIC_STMT_START and SIC_STMT_END from the above file are
+useless. You should remove them. They make the code less readable and
+more confusing. If you think that they improve readability because they
+say "START" and "END", I disagree :-). Better, explain in english the "do
+... while (0)" trick and use it directly.
+
+2000-06-15  Gary V. Vaughan
+
+	Agreed.  The full definition I normally use has some
+	optimisations for GNU C and the sunpro C compiler.  I simplified
+        it... but not enough =)O|  Thanks.
+@end ignore
+
+The implementation of the error handling functions goes in
+@file{error.c} and is very straightforward:
+
+@example
+m4_include(examples/sic-small/sic/error_1.texi)
+@end example
+
+@ignore akim
+I'm shocked to see K&R code :( Really, it's dead.  We have to live with
+it, I agree, but thanks to ansi2knr we don't need to program K&R.  Since
+your sources won't be installed, I don't understand well why you do
+this.
+
+Today's question is the support of C99, so let's bury KnR.
+
+2000-06-24  Gary V. Vaughan
+
+	Okay, you convinced me.
+@end ignore
+
+I also need a definition of @code{program_name};
+@code{set_program_name} copies the filename component of @code{path} into
+the exported data, @code{program_name}.   The @code{xstrdup} function
+just calls @code{strdup}, but @code{abort}s if there is not enough
+memory to make the copy:
+
+@example
+m4_include(examples/sic-small/sic/error_2.texi)
+@end example
+
+
+
+@node Memory Management
+@subsubsection Memory Management
+
+A useful idiom common to many @sc{gnu} projects is to wrap the memory
+management functions to localise @dfn{out of memory handling}, naming
+them with an @samp{x} prefix.  By doing this, the rest of the project is
+relieved of having to remember to check for @samp{NULL} returns from the
+various memory functions.  These wrappers use the @code{error} @sc{api}
+to report memory exhaustion and abort the program.  I have placed the
+implementation code in @file{xmalloc.c}:
+
+@example
+m4_include(examples/sic-small/sic/xmalloc_1.texi)
+@end example
+@ignore LW
+Please introduce code listing.
+
+2000-06-17  Gary V. Vaughan
+
+        Doh!  You're still paying attention then? =)O|
+
+akim
+The two error msg are different, which is bad the day you'll use
+gettext: your translators will have twice as much work as needed :)
+
+2000-06-24  Gary V. Vaughan
+
+	Thanks.
+@end ignore
+
+@noindent
+Notice in the code above, that @code{xcalloc} is implemented in terms of
+@code{xmalloc}, since @code{calloc} itself is not available in some
+older C libraries.  Also, the @code{bzero} function is actually
+deprecated in favour of @code{memset} in modern C libraries --
+I'll explain how to take this into account later in @ref{Beginnings of
+a configure.in for Small Project}.
+
+Rather than create a separate @file{xmalloc.h} file, which would need to
+be @code{#include}d from almost everywhere else, the logical place to
+declare these functions is in @file{common.h}, since the wrappers will
+be called from most everywhere else in the code:
+
+@example
+m4_include(examples/sic-small/sic/common_h_4.texi)
+@end example
+
+@ignore Didier Verna Tue Jun 13 16:10:40 CEST 2000
+Move the *_C_DECLS explanation before (see a comment earlier in this file.
+
+Also, why do you use XMALLOCO and not XCALLOC for the name ? XCALLOC
+sounds more logical to me.
+
+2000-06-15  Gary V. Vaughan
+
+	Dunno.  Must be a bad habit I picked up somewhere.  I agree
+        that XCALLOC is clearer.  Thanks.
+
+akim
+I'm not sure you need to cast your `free' here, do you?  Jim doesn't.
+
+2000-06-23  Gary V. Vaughan
+
+	Certainly not now that sic_ptr has gone.  Thanks.
+@end ignore
+
+@noindent
+By using the macros defined here, allocating and freeing heap memory is
+reduced from:
+
+@example
+@group
+char **argv = (char **) xmalloc (sizeof (char *) * 3);
+do_stuff (argv);
+if (argv)
+  free (argv);
+@end group
+@end example
+
+@ignore akim
+s/^/@noident/
+
+2000-06-23  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@noindent
+to the simpler and more readable:
+
+@example
+@group
+char **argv = XMALLOC (char *, 3);
+do_stuff (argv);
+XFREE (argv);
+@end group
+@end example
+
+In the same spirit, I have borrowed @file{xstrdup.c} and
+@file{xstrerror.c} from project @sc{gnu}'s libiberty.  @xref{Fallback
+Function Implementations}.
+
+
+@node Generalised List Data Type
+@subsubsection Generalised List Data Type
+
+In many C programs you will see various implementations and
+re-implementations of lists and stacks, each tied to its own particular
+project.  It is surprisingly simple to write a catch-all implementation,
+as I have done here with a generalised list operation @sc{api} in
+@file{list.h}:
+
+@example
+m4_include(examples/sic-small/sic/list_h_1.texi)
+@end example
+
+@ignore Didier Verna Tue Jun 13 16:10:40 CEST 2000
+I find that using *_C_DECLS to encapsulate only variables and functions
+is a very bad habit: non C vs. C++ specialists will wonder why typedefs
+are not encapsulated and won't find any answer in this book.
+
+But much more seriously, I think this habit is a potential source of
+bugs, because people sometimes organize large headers by data type, and
+thus prefer to put typedefs and functions that interface this type
+together. There's then the risk to forget about the encapsulation and
+write bogus headers.
+
+A better aproach (IMHO) is to systematically encapsulate the whole
+header contents, maybe just after the last #include statement.
+
+2000-06-15  Gary V. Vaughan
+
+	Excellent point.  I had not considered this.  Thanks.
+@end ignore
+
+The trick is to ensure that any structures you want to chain together
+have their forward pointer in the first field.  Having done that, the
+generic functions declared above can be used to manipulate any such
+chain by casting it to @code{List *} and back again as necessary.
+
+@ignore Didier Verna Tue Jun 13 16:10:40 CEST 2000
+The implementation part (generic code for list) about putting the pointer to
+the next struct first is arguable. This is not really accurate.
+
+2000-06-22  Gary V. Vaughan
+
+	Sure it is.  If you have the next pointer anywhere else, you
+	have to know about the structure packing alignment of any
+        structure you cast to a generic list, otherwise the next pointer
+        won't have the same offset after the cast, and the generic list
+        can't work.  Can you tell me what it is that I have missed from
+        the explanation that makes you thinkI am wrong.  Or at least,
+        exactly what your argument against it is?
+@end ignore
+
+For example:
+
+@smallexample
+@group
+struct foo @{
+  struct foo *next;
+
+  char *bar;
+  struct baz *qux;
+  ...
+@};
+
+...
+@end group
+@group
+  struct foo *foo_list = NULL;
+
+  foo_list = (struct foo *) list_cons ((List *) new_foo (),
+                                       (List *) foo_list);
+...
+@end group
+@end smallexample
+
+@ignore Didier Verna Tue Jun 13 16:10:40 CEST 2000
+A 3 lines example would be convenient here to clarify what you mean.
+
+2000-06-15  Gary V. Vaughan
+
+	Sure thing.
+@end ignore
+
+@noindent
+The implementation of the list manipulation functions is in
+@file{list.c}:
+
+@example
+m4_include(examples/sic-small/sic/list_1.texi)
+@end example
+
+
+@node Library Implementation
+@subsection Library Implementation
+
+In order to set the stage for later chapter which expand upon this
+example, in this subsection I will describe the purpose of the sources
+that combine to implement the shell library.  I will not dissect the
+code introduced here---you can download the sources from the book's
+webpages at @uref{http://sources.redhat.com/autobook/}.
+
+The remaining sources for the library, beyond the support files
+described in the previous subsection, are divided into four pairs of
+files:
+
+@menu
+* sic.c & sic.h::
+* builtin.c & builtin.h::
+* eval.c & eval.h::
+* syntax.c & syntax.h::
+@end menu
+
+@node sic.c & sic.h
+@subsubsection @file{sic.c} & @file{sic.h}
+
+Here are the functions for creating and managing sic parsers.
+
+@example
+m4_include(examples/sic-small/sic/sic_h_1.texi)
+@end example
+
+@noindent
+This structure has fields to store registered command (@code{builtins})
+and syntax (@code{syntax}) handlers, along with other state information
+(@code{state}) that can be used to share information between various
+handlers, and some room to build a result or error string (@code{result}).
+
+@ignore akim
+I think you should use @code here for `builtins' etc., not @var.
+Actually, the whole file must be checked about the `@var'.
+
+2000-06-24  Gary V. Vaughan
+
+	Agreed.  Done.
+@end ignore
+
+
+@node builtin.c & builtin.h
+@subsubsection @file{builtin.c} & @file{builtin.h}
+
+Here are the functions for managing tables of builtin commands in each
+@code{Sic} structure:
+
+@example
+m4_include(examples/sic-small/sic/builtin_h_1.texi)
+@end example
+
+
+
+@node eval.c & eval.h
+@subsubsection @file{eval.c} & @file{eval.h}
+
+Having created a @code{Sic} parser, and populated it with some
+@code{Builtin} handlers, a user of this library must tokenize and
+evaluate its input stream.  These files define a structure for storing
+tokenized strings (@code{Tokens}), and functions for converting
+@code{char *} strings both to and from this structure type:
+
+@example
+m4_include(examples/sic-small/sic/eval_h_1.texi)
+@end example
+
+@noindent
+These files also define the @code{eval} function, which examines a
+@code{Tokens} structure in the context of the given Sic parser,
+dispatching the @code{argv} array to a relevant @code{Builtin} handler,
+also written by the library user.
+
+
+
+@node syntax.c & syntax.h
+@subsubsection @file{syntax.c} & @file{syntax.h}
+
+When @code{tokenize} splits a @code{char *} string into parts, by
+default it breaks the string into words delimited by whitespace.  These
+files define the interface for changing this default behaviour, by
+registering callback functions which the parser will run when it meets
+an ``interesting'' symbol in the input stream.  Here are the
+declarations from @file{syntax.h}:
+
+@ignore LW
+Introduce code
+
+2000-06-17  Gary V. Vaughan
+        Doh! Doh!  I seem to have forgotten the colon for half of the
+        included code in this chapter.  All fixed now.  Thanks.
+@end ignore
+@example
+m4_include(examples/sic-small/sic/syntax_h_1.texi)
+@end example
+
+@noindent
+A @code{SyntaxHandler} is a function called by @code{tokenize} as it
+consumes its input to create a @code{Tokens} structure; the two
+functions associate a table of such handlers with a given @code{Sic}
+parser, and find the particular handler for a given character in that
+@code{Sic} parser, respectively.
+
+@ignore akim
+s/habdlers/handlers/
+
+2000-06-24  Gary V. Vaughan
+
+	Already done.  Thanks.
+@end ignore
+
+
+@node Beginnings of a configure.in for Small Project
+@subsection Beginnings of a @file{configure.in}
+
+Now that I have some code, I can run @command{autoscan} to generate a
+preliminary@* @file{configure.in}.  @command{autoscan} will examine all of
+the sources in the current directory tree looking for common points of
+non-portability, adding macros suitable for detecting the discovered
+problems.  @command{autoscan} generates the following in
+@file{configure.scan}:
+
+@example
+# Process this file with autoconf to produce a configure script.
+AC_INIT(sic/eval.h)
+
+# Checks for programs.
+
+# Checks for libraries.
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(strings.h unistd.h)
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_SIZE_T
+
+# Checks for library functions.
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS(strerror)
+
+AC_OUTPUT()
+@end example
+
+@ignore akim
+s/dnl/#/.  CVS autoscan no longer dnls.
+
+2000-06-24  Gary V. Vaughan
+
+	I was not aware of that.  Cheers.
+@end ignore
+
+@quotation
+@c Begin sidebar entitled: autoscan
+Since the generated @file{configure.scan} does not overwrite your
+project's @file{configure.in}, it is a good idea to run
+@command{autoscan} periodically even in established project source
+trees, and compare the two files.  Sometimes @command{autoscan} will
+find some portability issue you have overlooked, or weren't aware of.
+@end quotation
+@ignore LW
+What does quotation mean?  Why not note?
+
+2000-06-17  Gary V. Vaughan
+
+        From the STYLE file:
+
+** text between "@quotation" and "@end quotation", is out-of-band data which
+   should be in a typeset in a box with a margin icon to show that the
+   marked text is a ``tip''.
+@end ignore
+
+Looking through the documentation for the macros in this
+@file{configure.scan},@* @code{AC_C_CONST} and @code{AC_TYPE_SIZE_T} will
+take care of themselves (provided I ensure that @file{config.h} is
+included into every source file), and @code{AC_HEADER_STDC} and
+@code{AC_CHECK_HEADERS(unistd.h)} are already taken care of in
+@file{common.h}.
+
+@command{autoscan} is no silver bullet!  Even here in this
+simple example, I need to manually add macros to check for the presence
+of @file{errno.h}:
+
+@example
+AC_CHECK_HEADERS(errno.h strings.h unistd.h)
+@end example
+
+I also need to manually add the Autoconf macro for generating
+@file{config.h}; a macro to initialise @command{automake} support; and a
+macro to check for the presence of @command{ranlib}.  These should go
+close to the start of @file{configure.in}:
+
+@example
+...
+AC_CONFIG_HEADER(config.h)
+AM_INIT_AUTOMAKE(sic, 0.5)
+
+AC_PROG_CC
+AC_PROG_RANLIB
+...
+@end example
+
+Recall that the use of @code{bzero} in @ref{Memory Management} is not
+entirely portable.  The trick is to provide a @code{bzero} work-alike,
+depending on which functions Autoconf detects, by adding the following
+towards the end of @file{configure.in}:
+
+@example
+...
+AC_CHECK_FUNCS(bzero memset, break)
+...
+@end example
+
+With the addition of this small snippet of code to @file{common.h}, I
+can now make use of @code{bzero} even when linking with a C library
+that has no implementation of its own:
+
+@example
+m4_include(examples/sic-small/sic/common_h_3.texi)
+@end example
+
+An interesting macro suggested by @command{autoscan} is
+@code{AC_CHECK_FUNCS(strerror)}.  This tells me that I need to provide a
+replacement implementation of @code{strerror} for the benefit of
+architectures which don't have it in their system libraries.  This is
+resolved by providing a file with a fallback implementation for the
+named function, and creating a library from it and any others that
+@file{configure} discovers to be lacking from the system library on the
+target host.
+
+You will recall that @file{configure} is the shell script the end user
+of this package will run on their machine to test that it has all the
+features the package wants to use.  The library that is created will
+allow the rest of the project to be written in the knowledge that any
+functions required by the project but missing from the installers system
+libraries will be available nonetheless.  @sc{gnu} @file{libiberty}
+comes to the rescue again -- it already has an implementation of
+@file{strerror.c} that I was able to use with a little modification.
+
+Being able to supply a simple implementation of @code{strerror}, as the
+@file{strerror.c} file from @file{libiberty} does, relies on there being
+a well defined @code{sys_errlist} variable.  It is a fair bet that if
+the target host has no @code{strerror} implementation, however, that the
+system @code{sys_errlist} will be broken or missing.  I need to write a
+configure macro to check whether the system defines @code{sys_errlist},
+and tailor the code in @file{strerror.c} to use this knowledge.
+
+To avoid clutter in the top-level directory, I am a great believer in
+keeping as many of the configuration files as possible in their own
+sub-directory.   First of all, I will create a new directory called
+@samp{config} inside the top-level directory, and put
+@file{sys_errlist.m4} inside it:
+
+@example
+m4_include(examples/sic-small/m4/sys_errlist.texi)
+@end example
+
+@ignore akim
+I'd say this macro is wrong: it's action part (the AC_DEFINE) is in the
+scope of the AC_CACHE_CHECK, which body is run *only* when the result is
+not cached.  Therefore, if you run twice configure with a cache, the
+second time the AC_DEFINE won't happen.
+
+2000-06-24  Gary V. Vaughan
+
+	Oh yes!  Well spotted =)O|  Thanks.
+@end ignore
+
+I must then add a call to this new macro in the @file{configure.in} file
+ being careful to put it in the right place --
+somewhere between @emph{typedefs and structures} and @emph{library
+functions} according to the comments in @file{configure.scan}:
+
+@example
+SIC_VAR_SYS_ERRLIST
+@end example
+
+COLLECTIVE can also be set to store most of their files in a
+subdirectory, by calling the @code{AC_CONFIG_AUX_DIR} macro near the top
+of @file{configure.in}, preferably right after @code{AC_INIT}:
+
+@example
+AC_INIT(sic/eval.c)
+AC_CONFIG_AUX_DIR(config)
+AM_CONFIG_HEADER(config.h)
+...
+@end example
+
+Having made this change, many of the files added by running
+@command{autoconf} and @command{automake --add-missing} will be put in
+the @dfn{aux_dir}.
+
+The source tree now looks like this:
+
+@example
+@group
+sic/
+  +-- configure.scan
+  +-- config/
+  |     +-- sys_errlist.m4
+@end group
+@group
+  +-- replace/
+  |     +-- strerror.c
+@end group
+@group
+  +-- sic/
+        +-- builtin.c
+        +-- builtin.h
+        +-- common.h
+        +-- error.c
+        +-- error.h
+        +-- eval.c
+        +-- eval.h
+        +-- list.c
+        +-- list.h
+        +-- sic.c
+        +-- sic.h
+        +-- syntax.c
+        +-- syntax.h
+        +-- xmalloc.c
+        +-- xstrdup.c
+        +-- xstrerror.c
+@end group
+@end example
+
+In order to correctly utilise the fallback implementation,
+@code{AC_CHECK_FUNCS(strerror)} needs to be removed and @code{strerror}
+added to @code{AC_REPLACE_FUNCS}:
+
+@example
+# Checks for library functions.
+AC_REPLACE_FUNCS(strerror)
+@end example
+
+This will be clearer if you look at the @file{Makefile.am} for the
+@file{replace} subdirectory:
+
+@example
+m4_include(examples/sic-small/replace/Makefile.texi)
+@end example
+
+The code tells @command{automake} that I want to build a library for use
+within the build tree (i.e. not installed -- @samp{noinst}), and that
+has no source files by default.  The clever part here is that when
+someone comes to install Sic, they will run @command{configure} which
+will test for @code{strerror}, and add @file{strerror.o} to
+@code{LIBOBJS} if the target host environment is missing its own
+implementation.  Now, when @file{configure} creates
+@file{replace/Makefile} (as I asked it to with @code{AC_OUTPUT}),
+@samp{@@LIBOBJS@@} is replaced by the list of objects required on the
+installer's machine.
+
+Having done all this at configure time, when my user runs
+@command{make}, the files required to replace functions missing
+from their target machine will be added to @file{libreplace.a}.
+
+Unfortunately this is not quite enough to start building the project.
+First I need to add a top-level @file{Makefile.am} from which to
+ultimately create a top-level @file{Makefile} that will descend into
+the various subdirectories of the project:
+
+@example
+## Makefile.am -- Process this file with automake to produce Makefile.in
+
+SUBDIRS = replace sic
+@end example
+
+@ignore akim
+Given your talk about `bootstrap should be distributed', it is shocking
+not to see `config' here :)  And in all the related places (AC_OUTPUT
+etc.).
+
+2000-06-24  Gary V. Vaughan
+
+        The contents of config/ are deliberately distributed from the
+	top-level Makefile, rather than the overhead of an other
+	Makefile.am and build time make recursion just to add the
+	directory contents to the dist tarball.  But you don't get to
+	see that until later.  Infact, I don't want to get into
+	distribution issues at all this early in the book.
+@end ignore
+
+And @file{configure.in} must be told where it can find instances of
+@code{Makefile.in}:
+
+@example
+AC_OUTPUT(Makefile replace/Makefile sic/Makefile)
+@end example
+
+I have written a @command{bootstrap} script for Sic, for details see
+@ref{Bootstrapping}:
+
+@example
+m4_include(examples/sic-small/bootstrap.texi)
+@end example
+
+The @option{--foreign} option to @command{automake} tells it to relax
+the @sc{gnu} standards for various files that should be present in a
+@sc{gnu} distribution.  Using this option saves me from having to create
+empty files as we did in @ref{A Minimal COLLECTIVE Project}.
+
+Right.  Let's build the library!  First, I'll run @command{bootstrap}:
+
+@example
+@group
+$ ./bootstrap
++ aclocal -I config
++ autoheader
+@end group
+@group
++ automake --foreign --add-missing --copy
+automake: configure.in: installing `config/install-sh'
+automake: configure.in: installing `config/mkinstalldirs'
+automake: configure.in: installing `config/missing'
+@end group
++ autoconf
+@end example
+
+@ignore akim
+This looks wrong to me: automake know AC_CONFIG_AUX_DIR, and therefore
+it should be
+
++ automake --foreign --add-missing --copy
+automake: configure.in: installing `config/install-sh'
+automake: configure.in: installing `config/mkinstalldirs'
+automake: configure.in: installing `config/missing'
+
+2000-06-24  Gary V. Vaughan
+
+	Indeed.  I must have been careless about updating the text after
+	upgrading the code.  Thanks.
+@end ignore
+
+The project is now in the same state that an end-user would see, having
+unpacked a distribution tarball.  What follows is what an end user might
+expect to see when building from that tarball:
+
+@example
+@group
+$ ./configure
+creating cache ./config.cache
+@end group
+checking for a BSD compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking whether make sets $@{MAKE@}... yes
+checking for working aclocal... found
+checking for working autoconf... found
+checking for working automake... found
+checking for working autoheader... found
+checking for working makeinfo... found
+checking for gcc... gcc
+checking whether the C compiler (gcc  ) works... yes
+checking whether the C compiler (gcc  ) is a cross-compiler... no
+checking whether we are using GNU C... yes
+checking whether gcc accepts -g... yes
+checking for ranlib... ranlib
+checking how to run the C preprocessor... gcc -E
+checking for ANSI C header files... yes
+checking for unistd.h... yes
+checking for errno.h... yes
+checking for string.h... yes
+checking for working const... yes
+checking for size_t... yes
+checking for strerror... yes
+@group
+updating cache ./config.cache
+creating ./config.status
+creating Makefile
+creating replace/Makefile
+creating sic/Makefile
+creating config.h
+@end group
+@end example
+
+Compare this output with the contents of @file{configure.in}, and notice
+how each macro is ultimately responsible for one or more consecutive
+tests (via the Bourne shell code generated in @file{configure}).  Now
+that the @file{Makefile}s have been successfully created, it is safe to
+call @command{make} to perform the actual compilation:
+
+@example
+@group
+$ make
+make  all-recursive
+make[1]: Entering directory ``/tmp/sic''
+@end group
+@group
+Making all in replace
+make[2]: Entering directory ``/tmp/sic/replace''
+rm -f libreplace.a
+ar cru libreplace.a
+ranlib libreplace.a
+make[2]: Leaving directory ``/tmp/sic/replace''
+@end group
+Making all in sic
+make[2]: Entering directory ``/tmp/sic/sic''
+gcc -DHAVE_CONFIG_H -I. -I. -I.. -I..    -g -O2 -c builtin.c
+gcc -DHAVE_CONFIG_H -I. -I. -I.. -I..    -g -O2 -c error.c
+gcc -DHAVE_CONFIG_H -I. -I. -I.. -I..    -g -O2 -c eval.c
+gcc -DHAVE_CONFIG_H -I. -I. -I.. -I..    -g -O2 -c list.c
+gcc -DHAVE_CONFIG_H -I. -I. -I.. -I..    -g -O2 -c sic.c
+gcc -DHAVE_CONFIG_H -I. -I. -I.. -I..    -g -O2 -c syntax.c
+gcc -DHAVE_CONFIG_H -I. -I. -I.. -I..    -g -O2 -c xmalloc.c
+gcc -DHAVE_CONFIG_H -I. -I. -I.. -I..    -g -O2 -c xstrdup.c
+gcc -DHAVE_CONFIG_H -I. -I. -I.. -I..    -g -O2 -c xstrerror.c
+@group
+rm -f libsic.a
+ar cru libsic.a builtin.o error.o eval.o list.o sic.o syntax.o xmalloc.o
+xstrdup.o xstrerror.o
+ranlib libsic.a
+@end group
+@group
+make[2]: Leaving directory ``/tmp/sic/sic''
+make[1]: Leaving directory ``/tmp/sic''
+@end group
+@end example
+
+On this machine, as you can see from the output of @command{configure}
+above, I have no need of the fallback implementation of @code{strerror},
+so @file{libreplace.a} is empty.  On another machine this might not be
+the case.  In any event, I now have a compiled @file{libsic.a} -- so
+far, so good.
+
+@node A Sample Shell Application
+@section A Sample Shell Application
+
+What I need now, is a program that uses @file{libsic.a}, if only to give
+me confidence that it is working.  In this section, I will write a
+simple shell which uses the library.  But first, I'll create a directory
+to put it in:
+
+@ignore akim
+s/s/a/
+
+2000-06-24  Gary V. Vaughan
+
+	Done.
+@end ignore
+
+
+@example
+$ mkdir src
+$ ls -F
+COPYING  Makefile.am  aclocal.m4  configure*    config/   sic/
+INSTALL  Makefile.in  bootstrap*  configure.in  replace/  src/
+$ cd src
+@end example
+
+@ignore akim
+Hm, where's configure, config.h.in etc.?  At this point, they're created
+I think.  But I see your point.
+
+2000-06-24  Gary V. Vaughan
+
+	Careless code update without following through to the text
+	again.  Thanks.
+@end ignore
+
+In order to put this shell together, we need to provide just a few
+things for integration with @file{libsic.a}...
+
+@menu
+* sic_repl.c::
+* sic_syntax.c::
+* sic_builtin.c::
+* sic.c & sic.h (again)::
+@end menu
+
+@node sic_repl.c
+@subsection @file{sic_repl.c}
+
+In @file{sic_repl.c}@footnote{Read Eval Print Loop.} there is a loop for
+reading strings typed by the user, evaluating them and printing the
+results.  @sc{gnu} readline is ideally suited to this, but it is not
+always available -- or sometimes people simply may not wish to use it.
+
+With the help of COLLECTIVE, it is very easy to cater for building with
+and without @sc{gnu} readline.  @file{sic_repl.c} uses this function to
+read lines of input from the user:
+
+@example
+m4_include(examples/sic-small/src/sic_repl_1.texi)
+@end example
+
+@ignore akim
+Just a thought: why don't you simply
+
+AC_REPLACE(readline add_history)
+
+(well, more or less ;)
+
+that would be even more in the spirit of your demonstration, I think.
+
+2000-06-24  Gary V. Vaughan
+
+	That's a good idea (well, more or less;).  Consider it done!
+@end ignore
+
+To make this work, I must write an Autoconf macro which adds an option
+to @file{configure}, so that when the package is installed, it will use
+the readline library if @option{--with-readline} is used:
+
+@example
+m4_include(examples/sic-small/m4/readline.texi)
+@end example
+
+@ignore Didier Verna Tue Jun 13 16:10:40 CEST 2000
+Explain the #serial stuff, or better, remove it. That's a general remark
+BTW: it is no good to leave obscure pieces in code irrelevant to what
+you're trying to explain, and to which people don't find any answer in
+the book.
+
+2000-06-15  Gary V. Vaughan
+
+	Agreed.
+
+akim
+This macro is beautiful: the use of ${ - } simplifies a lot!
+
+2000-06-15  Gary V. Vaughan
+
+	Agreed :-P Heh =)O|  You are too kind.
+@end ignore
+
+Having put this macro in the file @file{config/readline.m4}, I must also
+call the new macro (@code{SIC_WITH_READLINE}) from @file{configure.in}.
+
+@node sic_syntax.c
+@subsection @file{sic_syntax.c}
+
+The syntax of the commands in the shell I am writing is defined by a set
+of syntax handlers which are loaded into @file{libsic} at startup.  I
+can get the C preprocessor to do most of the repetitive code for me, and
+just fill in the function bodies:
+
+@example
+m4_include(examples/sic-small/src/sic_syntax_1.texi)
+@end example
+
+This code writes the prototypes for the syntax handler functions, and
+creates a table which associates each with one or more characters that
+might occur in the input stream.  The advantage of writing the code this
+way is that when I want to add a new syntax handler later, it is a simple
+matter of adding a new row to the @code{syntax_functions} macro, and
+writing the function itself.
+
+@node sic_builtin.c
+@subsection @file{sic_builtin.c}
+
+In addition to the syntax handlers I have just added to the Sic shell,
+the language of this shell is also defined by the builtin commands it
+provides.  The infrastructure for this file is built from a table of
+functions which is fed into various C preprocessor macros, just as I did
+for the syntax handlers.
+
+@ignore akim
+Below: s/specil/special/
+
+2000-06-24  Gary V. Vaughan
+
+	Done.
+@end ignore
+
+One builtin handler function has special status, @code{builtin_unknown}.
+This is the builtin that is called, if the Sic library cannot find a
+suitable builtin function to handle the current input command.  At first
+this doesn't sound especially important -- but it is the key to any
+shell implementation.  When there is no builtin handler for the command,
+the shell will search the users command path, @samp{$PATH}, to find a
+suitable executable.  And this is the job of @code{builtin_unknown}:
+
+@example
+m4_include(examples/sic-small/src/sic_builtin_1.texi)
+@end example
+
+Running @file{autoscan} again at this point adds
+@code{AC_CHECK_FUNCS(strcspn strspn)} to @file{configure.scan}.  This
+tells me that these functions are not truly portable.  As before I
+provide fallback implementations for these functions in case they are
+missing from the target host -- and as it turns out, they are easy to
+write:
+
+@example
+m4_include(examples/sic-small/replace/strcspn_1.texi)
+@end example
+
+There is no need to add any code to @file{Makefile.am}, because the
+@command{configure} script will automatically add the names of the
+missing function sources to @samp{@@LIBOBJS@@}.
+
+@ignore akim
+Don't you mean LIBOBJS?
+
+2000-06-24  Gary V. Vaughan
+
+	Done.
+@end ignore
+
+This implementation uses the @command{autoconf} generated
+@file{config.h} to get information about the availability of headers and
+type definitions.  It is interesting that @command{autoscan} reports
+that @code{strchr} and @code{strrchr}, which are used in the fallback
+implementations of @code{strcspn} and @code{strspn} respectively, are
+themselves not portable!  Luckily, the Autoconf manual tells me exactly
+how to deal with this:  by adding some code to my @file{common.h}
+(paraphrased from the literal code in the manual):
+
+@ignore akim
+s/autoconf manual/Autoconf manual/.
+
+2000-06-24  Gary V. Vaughan
+
+	Done.
+@end ignore
+
+@example
+#if !STDC_HEADERS
+#  if !HAVE_STRCHR
+#    define strchr index
+#    define strrchr rindex
+#  endif
+#endif
+@end example
+
+And another macro in @file{configure.in}:
+
+@example
+AC_CHECK_FUNCS(strchr strrchr)
+@end example
+
+@node sic.c & sic.h (again)
+@subsection @file{sic.c} & @file{sic.h}
+
+Since the application binary has no installed header files, there is
+little point in maintaining a corresponding header file for every
+source, all of the structures shared by these files, and non-static
+functions in these files are declared in @file{sic.h}:
+
+@example
+m4_include(examples/sic-small/src/sic_h_1.texi)
+@end example
+
+To hold together everything you have seen so far, the @code{main}
+function creates a Sic parser and initialises it by adding syntax
+handler functions and builtin functions from the two tables defined
+earlier, before handing control to @code{evalstream} which will
+eventually exit when the input stream is exhausted.
+
+@example
+m4_include(examples/sic-small/src/sic_1.texi)
+@end example
+
+Now, the shell can be built and used:
+
+@example
+@group
+$ bootstrap
+...
+@end group
+@group
+$ ./configure --with-readline
+...
+@end group
+@group
+$ make
+...
+@end group
+make[2]: Entering directory ``/tmp/sic/src''
+gcc -DHAVE_CONFIG_H -I. -I.. -I../sic -I.. -I../sic -g -c sic.c
+gcc -DHAVE_CONFIG_H -I. -I.. -I../sic -I.. -I../sic -g -c sic_builtin.c
+gcc -DHAVE_CONFIG_H -I. -I.. -I../sic -I.. -I../sic -g -c sic_repl.c
+gcc -DHAVE_CONFIG_H -I. -I.. -I../sic -I.. -I../sic -g -c sic_syntax.c
+gcc  -g -O2  -o sic  sic.o sic_builtin.o sic_repl.o sic_syntax.o \
+../sic/libsic.a ../replace/libreplace.a -lreadline
+make[2]: Leaving directory ``/tmp/sic/src''
+...
+@group
+$ ./src/sic
+] pwd
+/tmp/sic
+@end group
+@group
+] ls -F
+Makefile     aclocal.m4   config.cache    configure*    sic/
+Makefile.am  bootstrap*   config.log      configure.in  src/
+Makefile.in  config/      config.status*  replace/
+@end group
+@group
+] exit
+$
+@end group
+@end example
+
+This chapter has developed a solid foundation of code, which I will
+return to in @ref{A Large COLLECTIVE Project}, when Libtool will join
+the fray.  The chapters leading up to that explain what Libtool is for,
+how to use it and integrate it into your own projects, and the
+advantages it offers over building shared libraries with Automake (or
+even just Make) alone.
+
+@ignore LW
+I would reiterate where these examples are going to be drawn on later,
+and then say "but first"  and explain what comes next and why.
+
+2000-06-17  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+@c Local variables:
+@c fill-column: 72
+@c End:

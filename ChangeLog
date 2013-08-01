@@ -1,0 +1,2083 @@
+2006-02-08  Mat Garret  <magarret@cs.indiana.edu>
+
+	* part2.texi (Invoking configure): Typo.
+	(Introducing Makefiles): Typo.
+
+2004-09-13  Gary V. Vaughan  <gary@gnu.org>
+
+	* part1.texi (What this book is): Typo from www.andamooka.org.
+
+2004-09-12  Gary V. Vaughan  <gary@gnu.org>
+
+	* appendices.texi, part1.texi, part2.texi, part3.texi,
+	* chapters/cygwin.texi, chapters/portable-sh.texi,
+	* chapters/small-project.texi, chapters/using-libtool.texi: Remove
+	uses of upper case letters in @sc calls.
+
+	From Michael Sterrett <msterret@coat.com>:
+	* appendices.texi, part2.texi, part3.texi, chapters/bootstrap.texi:
+	* chapters/complex-project.texi, chapters/cygwin.texi:
+	* chapters/dynamic-load.texi, chapters/flow-diagrams.texi:
+	* chapters/intro-libtool.texi, chapters/large-project.texi:
+	* chapters/libltdl.texi, chapters/portable-sh.texi:
+	* chapters/small-project.texi, chapters/using-libtool.texi: Fix
+	many, many typos.
+
+2001-09-05  Gary V. Vaughan  <gary@gnu.org>
+
+	From Chen Levy <chenlevy@tadlys.com>:
+	* chapters/intro-libtool.texi: s/Futhermore/Furthermore/.
+
+2001-06-24  Gary V. Vaughan  <gary@gnu.org>
+
+	* part3.texi (Autoconf macro archive): The archive has move
+	again!
+
+2001-05-24  Gary V. Vaughan  <gary@gnu.org>
+
+	From Eric Siegerman <erics@telepres.com>
+	* chapters/bootstrap.texi: Typo.  s/relatively/relative/
+
+	From "Jeremiah H. Savage" <jeremiahsavage@abac.com>
+	* chapters/bootstrap.texi: Typo.  s/knon/know/
+	* chapters/small-project.texi (COLLECTIVE in practice): Typo.
+	s/theone/the one/.
+
+2001-05-17  Gary V. Vaughan  <gary@gnu.org>
+
+	* part3.texi (Autoconf macro archive): The archive has moved.
+
+	* part3.texi (Caching results):  Note that cache variables need to
+	include `_cv_' in their name.
+
+2001-04-22  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/simple-loader.c (main): Missing square brackets in
+	main declaration.
+	From Maegawa <maegawa@jcom.home.ne.jp>
+
+2001-01-31  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/portable-sh.texi:  Use `ls -d' in the command line
+	buffer overflow example.
+	From Tod Milam <tmilam@traclabs.com>
+
+2000-11-12  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/sic-small/sic/common.h: Markup another section for
+	inclusion in the body of the book.
+	* chapters/small-project.texi: Explain how bzero is used
+	portably in the project.
+
+2000-11-14  Ben Elliston  <bje@redhat.com>
+
+	Edits suggested by <nix@esperi.demon.co.uk>.
+	* part1.texi (Conventions used in this book): Remove empty node.
+	* part2.texi (The explicit Keyword): Reword.
+	* part3.texi (Quoting): Cross-reference "Discarding input" when
+	`dnl' is first introduced.
+	(Macro management): Clarify.
+
+2000-11-12  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/sic-large/replace/readline.c: Seems I forgot to cvs
+	add this one previously.
+
+	* texi2html: Use a lighter color for examples.
+	* part2.texi: Fixed many reported typos -- clearing my backlog
+	at last!!
+	* chapters/cygwin.texi: ditto.
+	* chapters/intro-libtool.texi: ditto.
+	* chapters/large-project.texi: ditto.
+	* chapters/libltdl.texi: ditto.
+	* chapters/portable-sh.texi: ditto.
+	* chapters/small-project.texi: ditto.
+	* chapters/using-libtool.texi: ditto.
+	* examples/sic-small/config/sys_errlist.m4:  Fix comments so
+	that the code extraction works properly.
+	* examples/sic-small/config/readline.m4:  ditto.
+
+	* texi2html:  New file.  Customised version of texi2html for
+	generating the online version of the book.
+	* Makefile.am:  Use texi2html.
+
+2000-11-03  Gary V. Vaughan  <gvv@techie.com>
+
+	Reported by Marc van Woerkom <marc.vanwoerkom@science-factory.com>
+	* chapters/small-project.texi (K&R Compilers): Typo
+	s/migt/might/
+
+	* examples/sic-large/configure.in:  Use Xsed for consistency as
+	stated in the online errata.
+
+	* htdocs/erratta.html:  Mention misquoting of Xsed expressions.
+
+	* chapters/small-project.texi (K&R Compilers): Quote Xsed
+	properly.
+	* chapters/using-libtool.texi (Extra Macros for Libtool): ditto.
+	(Convenience Libraries): ditto.
+
+2000-11-02  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Macros): $< only defined in suffix rules.
+
+2000-10-18  Ben Elliston  <bje@redhat.com>
+
+	* htdocs/index.html: Link to my home page.
+
+2000-10-18  Gary V. Vaughan  <gvv@techie.com>
+
+	* htdocs/download.html: Fixed a dead link to the OPL.
+
+	* htdocs/*: More content.  More or less complete at this point.
+
+2000-10-17  Gary V. Vaughan  <gvv@techie.com>
+
+	* htdocs/*: First draft of web content.
+
+2000-09-04  Tom Tromey  <tromey@cygnus.com>
+
+	* part3.texi (Migrating Existing Packages): Example and grammar
+	tweaks.
+
+2000-09-04  Ben Elliston  <bje@redhat.com>
+
+	* part1.texi (Introduction): Minor rewording.
+	* part2.texi (Configuring): Likewise.
+	* part3.texi (Conditionals): Use [] explicitly in M4 example.
+	(Debugging with M4): Include a shell prompt for clarity.
+	* chapters/foreword.texi: Capitalise USENET.
+
+2000-09-02  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/cygwin.texi (8.3 Filenames): more typos fixed.
+
+	* chapters/portable-sh.texi (Test): typos aplenty.
+	* examples/reexec.sh: Fixed some typos in the script.
+
+2000-08-31  Gary V. Vaughan  <gvv@techie.com>
+
+
+	* chapters/small-project.texi (Project Directory Structure): typo
+	in ls -F output.
+	(K&R Compilers): Missing `-e' in a sed clause.
+	(Fallback Function Implementations): Don't omit the space in
+	`1 +'.
+	* examples/sic-small/src/sic_syntax.c (syntax_finish): ditto.
+	(syntax_escape): ditto.
+	(syntax_space): ditto.
+	* examples/sic-small/sic/eval.c (untokenize): ditto.
+	(tokenize): ditto.
+	* examples/sic-small/src/sic_repl.c (evalstream): ...or `2 +'.
+	* examples/sic-small/src/sic_builtin.c (path_find): ditto.
+
+2000-08-30  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Installing and Uninstalling): Fixed text before
+	example.
+
+2000-08-29  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Frequently Asked Questions): Updated example.
+	(Brief introduction to portable sh): Updates.
+	(What to check for): Clarity.
+	(Using Configuration Names): Grammar.
+
+2000-08-30  Ben Elliston  <bje@redhat.com>
+
+	* part1.texi (Unix Diversity): Correct transposition of names.
+
+2000-08-29  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/sic-small/config/readline.m4: Typo.
+	* examples/sic-large/config/readline.m4: ditto.
+	* examples/sic-complex/config/readline.m4: ditto.
+
+2000-07-27  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: updated.
+	* chapters/portable-sh.texi (Magic Numbers):  Typo.
+	* chapters/libltdl.texi (Introducing libltdl): Typo.
+	(dlpreopen Loading): Mention `-dlopen force'.
+
+2000-08-02  Tom Tromey  <tromey@cygnus.com>
+
+	* appendices.texi (Autoconf Macro Reference): Grammatical
+	tweakage.
+
+2000-07-31  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Implementation): Moved footnote.
+
+	* part2.texi (Programs and libraries): Typo.
+	(Testing): Added sentence about xfail.
+
+	* chapters/bootstrap.texi: Added comma.
+
+2000-07-24  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: updated.
+	* chapters/small-project.texi (Fallback Function Implementations):
+	removed erroneous `#' -- ``error'' works better than ``#error''.
+	(K&R Compilers): Updated the ansi2knr LIBOBJS line.
+	Removed another `#error' and a `#elif'.
+	(sic.c & sic.h (again)): Removed last paragraph, now that 8 and 9
+	are the other way around.
+
+2000-07-22  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/using-libtool.texi (Extra Macros for Libtool): Removed
+	bogus paragraph.
+	* examples/convenience/configure.in: Forgot to update
+	LTLIBOBJS invocation.
+	* examples/sic-complex/src/sic_repl.c: Accidentally broke
+	non-interactive operation.
+	* examples/sic-large/src/sic_repl.c: Synchronize with
+	sic-complex.
+
+2000-07-24  Ben Elliston  <bje@redhat.com>
+
+	* part2.texi (How COLLECTIVE Can Help): Add introduction.
+	* TOC: Update.
+
+2000-07-20  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: Updated.
+	* chapters/intro-libtool.texi:  Addressed some 11th hour feed back
+	from Akim.
+
+2000-07-19  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/intro-libtool.texi (Linking an Executable): The example
+	was erroneous.
+	(Linking a Library): Didier's review of another chapter
+	recommended removing -lICE and -lSM.  I have decided to use a
+	Motif example, since it illustrates the point better than an
+	Athena example.
+
+2000-07-19  Ben Elliston  <bje@redhat.com>
+
+	* TOC: Update.
+
+2000-07-17  Tom Tromey  <tromey@cygnus.com>
+
+	* TOC: Updated.
+	* part2.texi (Frequently Asked Questions): New node.
+	(Introducing GNU Automake): Added new node to menu.
+
+2000-07-15  Tom Tromey  <tromey@cygnus.com>
+
+	* chapters/bootstrap.texi: Miscellaneous content enhancements.
+
+2000-07-15  Gary V. Vaughan  <gvv@techie.com>
+
+	* appendices.texi (PLATFORMS): Bad grammar fixed.
+	* PLATFORMS: updated.
+
+2000-07-11  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/portable-sh.texi (Utilities): Corrected echo -n/c
+	fragment.
+	From Akim Demaille <akim@epita.fr>
+
+2000-07-09  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/dynamic-load.texi: typo.
+	(Dynamic Modules): typos.
+
+2000-07-10  Tom Tromey  <tromey@cygnus.com>
+
+	* TOC: Updated.
+	* part3.texi (Overview of the Two Approaches): Renamed section.
+
+	* TOC: Updated.
+	* part2.texi (Introduction to Primaries): Changed section name.
+	(Introducing GNU Automake): Updated menu.
+
+2000-07-07  Gary V. Vaughan  <gvv@techie.com>
+
+	* part2.texi:  Exchanged the order of Bootstrapping and Small
+	GNU Autotools Project chapters.
+
+	* examples/rpl_fopen.c: ANSI-fied.
+	* examples/openmode.m4: Added missing delimitter so that the
+	correct part of the file is copied to the book.
+	* examples/cc-g.m4: s/dnl/#/g.
+	* chapters/cygwin-hello/configure.in: ditto.
+	* chapters/configure.in: ditto.
+	* chapters/cygwin.texi: ditto.
+	* chapters/cygwin.texi: Make netpedia a footnote.
+
+2000-07-07  Ben Elliston  <bje@redhat.com>
+
+	* TOC: Update.
+
+	* part3.texi (Writing macros within the COLLECTIVE framework):
+	Changes suggested by the publisher.
+
+2000-07-06  Ben Elliston  <bje@redhat.com>
+
+	* part1.texi (How this book is organized): Fix chapter numbers.
+
+2000-07-06  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/complex-project.texi: m4_include typo.
+	* examples/Makefile.am:  Generate the missing example.
+
+	* chapters/flow-diagrams.texi:  Marked captions for diagrams in
+	nearby comments.
+
+2000-07-05  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: Updated.
+	* chapters/complex-project.texi: Addressed review comments from Leah
+	Williams, Akim Demaille and Didier Verna.
+	* examples/sic-complex/*:  ANSI-fied.
+
+	* TOC: Updated.
+	* chapters/large-project.texi: Addressed review comments from Leah
+	Williams, Akim Demaille and Didier Verna.
+
+2000-07-05  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Language support): Mention chaining support.  From
+	Akim.
+
+	* TOC: Updated.
+	* chapters/bootstrap.texi: Mention autoreconf and flesh out the
+	anti-maintainer-mode argument.  From Akim.
+
+	* TOC: Updated.
+	* part2.texi (Language support): Fixed note from Akim.
+	(Installing and Uninstalling): Fixed suggestions from Didier.
+	(Macros): Use tab, not spaces.
+	(Testing): Addressed Phil Edwards note.
+	(Installing and Uninstalling): Addressed Phil Edwards note.
+
+	* TOC: Updated.
+	* part3.texi (Migrating Existing Packages): Cleaned up examples,
+	addressed other comments.
+
+	* TOC: Updated.
+	* part2.texi (Advanced GNU Automake Usage): Added intro sentence.
+	(Automake Conditionals): Edits for Leah.
+
+	* chapters/portable-sh.texi (Colon): Use @command.
+	(Utilities): Use @samp.
+
+2000-07-05  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: Updated.
+	* chapters/portable-sh.texi: Addressed review comments from Leah
+	Williams and Akim Demaille.
+	* examples/reexec.sh: improved.
+
+2000-07-02  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: Updated.
+	* chapters/libltdl.texi:  Addressed review comments from Leah
+	Williams, Akim Demaille and Dider Verna.
+	* examples/ltdl-loader.c: ANSI-fied.
+	* examples/ltdl-module.c: ANSI-fied.
+
+2000-06-30  Ben Elliston  <bje@redhat.com>
+
+	* part2.texi (Writing Portable C++): Make changes as a result of
+	review comments from Akim Demaille and Didier Verna.
+	* TOC: Update.
+
+2000-06-29  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: Updated.
+	* chapters/dynamic-load.texi:  Addressed review comments from Akim
+	Demaille and Dider Verna.
+	* examples/simple-loader.c: ANSI-fied.
+
+2000-06-29  Ben Elliston  <bje@redhat.com>
+
+	* appendices.texi (Autoconf Macro Reference): Address review.
+	* TOC: Update.
+
+	* part2.texi (Introducing Makefiles): Address comments from Akim.
+	* TOC: Update.
+
+2000-06-29  Ben Elliston  <bje@redhat.com>
+
+	* part2.texi (Invoking configure): Apply review comments from
+	Akim Demaille.
+
+	* TOC: Update.
+
+	* part2.texi (A Minimal COLLECTIVE Project): Apply review
+	comments from Akim Demaille.
+	* TOC: Update.
+
+	* TOC: Renumber according to New Riders' scheme.
+	* chapters/flow-diagrams.texi: Ditto.
+
+2000-06-29  Ben Elliston  <bje@redhat.com>
+
+	* part2.texi (Invoking configure): Apply review comments from
+	Phil Edwards.
+	(Introducing Makefiles): Likewise.
+	(A Minimal COLLECTIVE Project): Likewise.
+	* TOC: Update.
+
+2000-06-29  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: Updated.
+	* chapters/using-libtool.texi: Addressed review comments from
+	Leah.
+
+2000-06-27  Tom Tromey  <tromey@cygnus.com>
+
+	* TOC: Leah reviewed chapter 13 and I addressed her comments.
+
+	* TOC: Leah reviewed chapter 7 and I addressed her comments.
+
+	* TOC: Updated.
+	* part2.texi (Brief introduction to portable sh): Added more
+	commentary on the general approach.
+	(Writing configure.in): Rearranged leading paragraph.
+	(Ordering Tests): Added (lame) example.
+	(What to check for): Clarifications.
+	(Using Configuration Names): Slightly gentler segue.  Turned
+	footnote into inline text.
+
+	* chapters/bootstrap.texi: Added more text; addressed comments
+	from Leah and Didier.
+	* TOC: Updated.
+
+2000-06-28  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/small-project.texi (Function Definitions): Small bug in
+	the egrep script.
+	(Library Dependencies): Oops.  Empty subsection removed.
+	(Configuration Options): Oops.  Empty subsection removed.
+	(sic.c & sic.h (again)): Bad file listing.
+
+	* examples/sic-small/sic/common.h: Negate closing wrapper
+	comment.
+
+	* chapters/using-libtool.texi: Addressed review comments from Akim
+	Demaille..
+	* examples/convenience/error.c (error): ANSI-fied.
+	* examples/convenience/main.c (main): ditto.
+	* examples/convenience/lib/source.c (foo): ditto.
+	* examples/convenience/replace/basename.c (basename): ditto.
+
+2000-06-27  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/sic-small/replace/readline.c: Forgot to cvs add
+	this file earlier.  Oops.
+
+	* TOC: Marked as ready for submission to Lisa.
+	* chapters/intro-libtool.texi: Addressed review comments from
+	Bruce Korb.
+	* examples/hello/main.c (main): ANSI-fied.
+	* examples/hello/hello.c (hello): ditto.
+	* examples/intro-hello/main.c (main): ditto.
+	* examples/intro-hello/hello.c (hello): ditto.
+	* examples/intro-hello/trim.c (trim): ditto.
+
+	* TOC: Marked as ready for submission to Lisa.
+	* chapters/flow-diagrams.texi:  Addressed review comments from
+	Akim Demaille.
+
+	* TOC: Updated to reflect reordering of appendices (which is why I
+	was confused about the appendix reviews).
+
+	* examples/openmode.m4:  Kindly rewritten by Akim Demaille.
+	* chapters/cygwin.texi:  Remove @r{} comment garbage.
+
+2000-06-27  Tom Tromey  <tromey@cygnus.com>
+
+	Compilation fixes:
+	* part2.texi (Using COLLECTIVE): Fixed @refs.
+	(A Minimal COLLECTIVE Project): Fixed @node.
+	* chapters/small-project.texi (Beginnings of a configure.in for
+	Small Project): Fixed @ref.
+	* part3.texi (Implementation specifics): Fixed node name in menu.
+
+2000-06-27  Ben Elliston  <bje@redhat.com>
+
+	* part2.texi (Introducing Makefiles): Address Leah Williams'
+	review comments for this chapter.
+	* TOC: Update.
+
+2000-06-27  Ben Elliston  <bje@redhat.com>
+
+	* part2.texi (Invoking configure): Address Leah Williams' review
+	comments for this chapter.
+	* TOC: Update.
+
+	* part3.texi (Writing New Macros for Autoconf): Address Akim
+	Demaille's review comments.
+	* TOC: Update.
+
+	* TOC (Writing New Macros for Autoconf): Reorganise as a result of
+	Leah's review. Reviewed by Akim Demaille and Leah Williams.
+	* part3.texi (Writing New Macros for Autoconf): Address Leah
+	Williams' review comments.
+
+2000-06-27  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: Emacs header-mode save-hooks ate the intro!  Added a file
+	local variable to suppress it.
+	* chapters/small-project.texi:  Rewrote large sections of this
+	chapter, and moved the rest of it around a lot!
+	* examples/sic-small/*: Addressed reviewer feedback for
+	chapter 8.
+
+2000-06-27  Ben Elliston  <bje@redhat.com>
+
+	* TOC (Chapter 1): Submitted to project editor.
+	(Chapters 14, 16, 20): Reviewed by Didier Verna.
+	(Appendix A1): Reviewed by Akim Demaille, Phil Edwards and Leah
+	Williams.  Review comments considered and applied.
+
+2000-06-24  Ian Lance Taylor  <ian@zembu.com>
+
+	* TOC: Record that I have addressed reviews of chapters 2, 15, 26.
+
+2000-06-24  Tom Tromey  <tromey@cygnus.com>
+
+	* part3.texi (Quoting): Fixed @ref.
+
+2000-06-23  Ben Elliston  <bje@redhat.com>
+
+	* part3.texi (M4): Apply reviewer suggestions from Phil Edwards
+	and Leah Williams.
+	* TOC: Update.
+
+2000-06-23  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC:  Updated with new reviews I have received.
+	* chapters/small-project.texi:  Addressed most of Didier's
+	remaining comments (from the Ranting file).
+
+2000-06-21  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Installing and Uninstalling): Remove Windows
+	reference.  Other cleanups suggested by Leah.
+
+	* TOC: Updated for new chapter title.
+
+2000-06-22  Gary V. Vaughan  <gvv@techie.com>
+
+	This batch of changes were inspired by Alexandre Oliva's review
+	feedback.
+
+	* chapters/cygwin.texi (A Makefile.am for DLLs):  Moved
+	discussion of -no-undefined option to libtool from here...
+	* chapters/using-libtool.texi (Creating Libtool Libraries with
+	Automake):  to here, and added an xref to...
+	* chapters/libltdl.texi (Portable Library Design): ...here, and
+	back again.
+
+	* examples/openmode.m4: Don't show the `# serial' in the book.
+	Fix some potential problems with the macros.
+
+2000-06-21  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Ordering Tests): Use @{ and @}.
+
+2000-06-20  Tom Tromey  <tromey@cygnus.com>
+
+	* TOC: Updated.
+
+	* part2.texi (Writing configure.in): Renamed node.
+	(Ordering Tests): Simplified example.  Mention non-C languages.
+	(Using Configuration Names): Added the word `ugly'.  Added a
+	simple example.
+
+2000-06-21  Ben Elliston  <bje@redhat.com>
+
+	* TOC: Update.
+
+2000-06-20  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Writing Portable C++): Typo fix to make build work.
+
+2000-06-20  Gary V. Vaughan  <gvv@techie.com>
+
+	* appendices.texi (PLATFORMS): Addressed review comments.
+	* TOC: Updated.
+
+	* AUTHORS:  Reorder Author names by best guess at pages
+	contributed.
+
+	* configure.in: bump revision number.  We're waaaay past 0.0a!
+
+	* TOC: Updated.
+
+2000-06-20  Ben Elliston  <bje@redhat.com>
+
+	* part2.texi (Writing Portable C++): Address reviewer feedback.
+	* TOC: Update.
+
+2000-06-18  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: Updated.
+	* chapters/intro-libtool.texi: Addressed feedback from Leah's
+	review of this chapter.
+
+	* chapters/intro-libtool.texi (Library Installation): removed a
+	leftover from a merge conflict.
+
+	* chapters/intro-libtool.texi:  Addressed comments from Akims
+	review of this chapter.
+
+2000-06-18  Ben Elliston  <bje@redhat.com>
+
+	* part2.texi (Using Configuration Names): Fix cross-reference to
+	the M4 chapter.
+	* part3.texi (M4): Apply review comments from Akim Demaille.
+	* TOC: Update.
+
+	* TOC (GNU m4): Rename this chapter to ``M4''. Replace ``m4'' with
+	``M4'' throughout. Akim Demaille is the reviewer.
+
+2000-06-18  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/foreword.texi: Marked up and checked in DJM's
+	foreword.
+
+2000-06-17  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: Added info about review status.
+
+	* chapters/small-project.texi:  Addressed comments from Leah's
+	helpful review.
+
+2000-06-15  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/small-project.texi:  Many fine changes inspired by
+	Didier Verna's excellent comments.
+	* examples/*: ditto.
+
+2000-06-15  Ian Lance Taylor  <ian@zembu.com>
+
+	* part3.texi (Cross Compilation): Various updates based on Leah's
+	recommendations.
+
+2000-06-06  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: Updated.
+	* chapters/cygwin.texi (Executable Filename Extensions):  New
+	susection gleaned from other subsections, and tidied up.
+
+2000-06-02  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/cygwin.texi: More changes after feedback from Akim.
+	* examples: Style consolidation wrt /* !NEGATED_DEFINE */.
+	* examples/rpl_open.c: renamed from my_fopen.c.
+	* example/openmode.m4: more functional, cleaner implementation.
+
+2000-06-04  Ben Elliston  <bje@redhat.com>
+
+	Changes from Gary Vaughan's proofreading.
+	* part2.texi (Files generated by configure): Cross-reference the
+	Generated File Dependencies appendix.
+	(Makefile syntax): State that make permits `@-'.
+	(Using COLLECTIVE): Rename chapter to ``A Minimal Project''.
+	(Invoking configure): Mention ``configure; make'' vernacular.
+	Rename chapter to ``How to run configure and make''.
+	* TOC: Update.
+
+2000-06-02  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/cygwin.texi: Small changes after a complete proofread.
+	Addressed Akim's review comments.
+
+2000-06-01  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Advanced GNU Automake Usage): Added @menu.
+	(Automake Conditionals): New node, to parallel section.
+	(Language support): Likewise.
+	(Automatic dependency tracking): Likewise.
+	* chapters/cygwin.texi: Use @ref, not @xref.
+	(Preliminaries): Fixed link name.
+
+2000-06-01  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/dynamic-load.texi:  Addressed review feedback.
+
+2000-06-01  Ben Elliston  <bje@redhat.com>
+
+	* appendices.texi (Autoconf Macro Reference): Reviewer comments.
+	* part2.texi (The most useful Makefile targets): Drop `make dist'
+	from the table at Gary's suggestion.
+
+2000-05-31  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/cygwin.texi:  Addressed all of Leah's inline comments,
+	and made all of the easy changes to match Cygwin 1.1.0.
+
+	* examples/sic-large/tests/Makefile.am (noinst_SCRIPTS): surplus
+	to requirements.
+
+2000-05-30  Ian Lance Taylor  <ian@zembu.com>
+
+	* part2.texi (C Structure Layout): Mention that different C
+	compilers on the same system can have different struct layouts.
+
+2000-05-30  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Using Configuration Names): Fixed @pxref.
+
+2000-05-31  Gary V. Vaughan  <gvv@techie.com>
+
+	* autobook.m4: Enable `@finalout', since the only remaining
+	overfull hboxes are marginal and would be uglier if moved to the
+	following line.
+
+	* COPYING (OPEN PUBLICATION POLICY APPENDIX): Changed some
+	linebreaks to prevent overfull hboxes.
+
+	* appendices.texi (Installing COLLECTIVE): Change many instances
+	of @code{m4} to ``M4''.
+	(Downloading COLLECTIVE): I released libtool-1.3.5 on Friday!
+
+	* part3.texi (GNU M4): change many instances of @command{m4} to
+	``M4'', since it is a project name just like Libtool...
+	(Discarding input): Typo.
+	(Guidelines for writing macros): Cardinality mismatch.
+	(Macro interface): Use cvs autoconf comment style.
+	(Migrating Existing Packages): Typos.
+	(Migrating Existing Packages): Truncated extremely long EXTRA_DIST
+	line.
+
+	* part2.texi: @sc{GNU} looks *really* bad in chapter headings.
+	* STYLE: Updated.
+
+	* chapters/libltdl.texi (Introducing libltdl): Typo.
+	(Using libltdl): Typo.
+
+	* chapters/dynamic-load.texi (A Simple GNU/Linux Dynamic Module):
+	Typo.
+
+	* part2.texi (ISO C): STYLE violations.
+	(Changeable C++): Typo.
+	(Template Instantiation): Typos.
+	(How autotools Can Help): Fixed COLLECTIVE expansion.
+
+	* part2.texi (What goes in): Parred down the `automake --help`
+	log.
+
+	* chapters/large-project.texi (Using Libtool Libraries):
+	Illustrate Automake's automatic AC_SUBST transferance.
+
+	* Makefile.am (chapters): add new chapter files.
+
+	* chapters/using-libtool.texi (Library Versioning):  Perhaps I was
+	too harsh on the -release option...
+
+2000-05-27  Tom Tromey  <tromey@cygnus.com>
+
+	* chapters/using-libtool.texi (Extra Configure Options): Removed
+	extra `{'.
+
+2000-05-27  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/intro-libtool.texi: Use @sc{pic} as recommended by the
+	texinfo manual.
+	* chapters/using-libtool.texi: ditto.
+	(Extra Configure Options): too many braces.
+
+	* chapters/cygwin.texi: Use @sc{dll}.
+	* chapters/complex-project.texi: Use @sc{gnu}.
+	* chapters/cygwin.texi: ditto.
+	* chapters/dynamic-load.texi: ditto.
+	* chapters/large-project.texi: ditto.
+	* chapters/libltdl.texi: ditto.
+	* chapters/small-project.texi: ditto.
+	* part1.texi: ditto.
+	* part2.texi: ditto.
+	* part3.texi: ditto.
+	* part1.texi: Use @sc{api}.
+	* part3.texi: ditto.
+
+	* chapters/using-libtool.texi: Typos and STYLE violations.
+
+	* chapters/small-project.texi (sic.c & sic.h (again)):  grouping.
+	* chapters/intro-libtool.texi (Execution of Uninstalled Binaries):
+	overfull hbox.
+
+2000-05-26  Ian Lance Taylor  <ian@zembu.com>
+
+	* .cvsignore: Add some entries to ignore locally generated files.
+	* example/.cvsignore: Likewise.
+
+2000-05-26  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/*.texi:  ***   B  O  O  O  O  M  M  M  !  !  ***
+	Sorted out about 200 clashes between the repo and my copy =(O|
+
+	* chapters/intro-libtool.texi (Inter-library Dependencies):
+	Removed a blatant lie.  What was I thinking? Duh.
+	(Executable Installation): Double up on quotes for M4 pass.
+
+	* examples/intro-hello/hello.c (hello): oops.  silly bug fixed.
+
+2000-05-26  Ben Elliston  <bje@redhat.com>
+
+	* part2.texi: Proofread again.
+	* chapters/portable-sh.texi: Ditto.
+	* chapters/small-project.texi: Ditto.
+
+2000-05-25  Tom Tromey  <tromey@cygnus.com>
+
+	* chapters/intro-libtool.texi: Updated node references.
+	* chapters/large-project.texi (Using Libtool Libraries): Updated
+	node references.
+	* chapters/using-libtool.texi (Creating Libtool Libraries with
+	automake): Changed node name.
+	(Linking against Libtool Libraries with Automake): Likewise.
+	* chapters/cygwin.texi: Use @SC, not @sc.
+	(A Makefile.am for dlls): Updated node reference.
+	* chapters/dynamic-load.texi (Finding a Module): Use @file, not
+	@filename.
+	* part2.texi (Files generated by configure): Added @end.
+	(Introducing Makefiles): Added @menu.
+	(Introducing GNU Libtool): Changed node name.
+	(Writing Portable C++): Removed reference to apparently dead
+	node.
+	(Advanced GNU Automake Usage): Renamed node.
+
+2000-05-25  Ian Lance Taylor  <ian@zembu.com>
+
+	* part1.texi: Change some @command references to simply use the
+	name of the package.
+
+2000-05-25  Ben Elliston  <bje@redhat.com>
+
+	* part2.texi: Use GNU/Linux throughout.
+	* chapters/intro-libtool.texi: Ditto.
+	* chapters/dynamic-load.texi: Ditto.
+	* chapters/cygwin.texi: Ditto.
+	* chapters/complex-project.texi: Ditto.
+	* chapters/libltdl.texi: Ditto.
+	* TOC: Update.
+
+2000-05-25  Ben Elliston  <bje@redhat.com>
+
+	* Zillions of tiny fixes as a result of proofreading.
+	  Touched most files.
+
+	* chapters/cygwin.texi: s/ideom/idiom/g.
+	* chapters/portable-sh.texi: Ditto.
+	* chapters/small-project.texi: Likewise. Plus typo fixes.
+	* chapters/using-libtool.texi: Simplify examples by using `ls'.
+	* chapters/dyanmic-load.texi: Typo fixes.
+
+	* part1.texi: Proofreading corrections throughout.
+	* STYLE: Ammend.
+
+	* appendices.texi: Proofreading corrections.
+	* chapters/flow-diagram.texi: Ditto.
+	* STYLE: Expand.
+
+2000-05-24  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/bootstrap.texi: New file with the amalgamated bootstrap
+	chapter.
+	* chapters/small-project.texi (Starting configure.in for Small
+	Project):  Remove material donated to boostrap.texi.
+
+	* part2.texi (Bootstrapping): Fix overfull hbox.
+
+2000-05-23  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/small-project.texi (A Simple Shell Builders Library):
+	Typo.
+	(Error Management): Typo.
+	(Generalised List Data Type): Too many `this's in the sentence.
+	(Library Implementation): Typo.
+	(Starting configure.in for Small Project): Clarification.
+
+	* part2.texi: Removed leading tabs from examples.
+	(Files generated by configure): Typo.
+	(Introducing Makefiles): Clarified diagram.
+	(Generated Output Files): Typo.
+	(Introducing GNU automake): Grammaro.
+	(General automake principles): add bullets to the bullet list.
+
+2000-05-23  Ben Elliston  <bje@redhat.com>
+
+	* autobook.m4: Use RCS Id keyword, not id.
+
+2000-05-21  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/portable-sh.texi: Proofread.
+	* chapters/libltdl.texi: Proofread.
+
+2000-05-20  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Introduction to Distributions): Tell user to run
+	`make' before `make dist'.
+
+2000-05-20  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/portable-sh.texi: Wrote this chapter.
+	* TOC: Updated.
+
+2000-05-19  Ian Lance Taylor  <ian@zembu.com>
+
+	* part2.texi (Writing Portable C): Incorporate changes from review
+	comments.
+
+2000-05-19  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/libltdl.texi (Controlled Symbol Export): Removed.
+	I decided not to talk about this, as it is of limited use,
+	and the implementation is incomplete.  Maybe in the 2nd edition
+	=)O|
+	* TOC: Updated.
+
+2000-05-18  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Multiple directories): Addressed comment from
+	Benjamin Kosnik.
+
+	* part2.texi (What goes in): Word change from Bruce Korb.
+	(Some caveats): Phrase change from Bruce Korb.
+
+	* part2.texi (Introducing GNU automake): Updated based on comments
+	from Bruce Korb.
+
+	* chapters/libltdl.texi (User Module Loaders): Use @{ and @}.
+	(dlpreopen Loading): Use @ref, not @xref.
+
+2000-05-18  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/libltdl.texi (User Module Loaders): Wrote this section.
+	* TOC: Updated.
+
+2000-05-17  Gary V. Vaughan  <gvv@techie.com>
+
+	* autobook.m4 (Index): don't forget to display function names in
+	the index.
+	* chapters/libltdl.texi (Using GNU libltdl): Wrote most of the
+	rest of this chapter.
+	* ltdl-loader.c: New file for examples in libltdl.texi.
+	* ltdl-module.c: ditto.
+
+2000-05-16  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/libltdl.texi (Using GNU libltdl): Made some headway in
+	this chapter.
+	* TOC: Updated.
+
+2000-05-15  Tom Tromey  <tromey@cygnus.com>
+
+	* appendices.texi (Autoconf Macro Reference): Changed
+	typographical convention.
+
+2000-05-15  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/openmode.m4:  s/CY_AC_/AB_AC_/ in several places, and
+	also s/cy_cv_/ab_cv_/g.  Use a more CVS autoconf style.
+
+2000-05-15  Ian Lance Taylor  <ian@zembu.com>
+
+	* part2.texi (DOS Filename Restrictions): Mention doschk, and
+	mention that aux and prn are prohibited.
+
+2000-05-14  Tom Tromey  <tromey@cygnus.com>
+
+	* TOC: Updated.
+	* appendices.texi (Autoconf Macro Reference): Finished.
+
+2000-05-13  Tom Tromey  <tromey@cygnus.com>
+
+	* appendices.texi (Autoconf Macro Reference): Add more.
+
+2000-05-15  Ben Elliston  <bje@redhat.com>
+
+	* appendices.texi (Autoconf Macro Reference): Add more.
+
+2000-05-13  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/openmode.m4:  s/AC_/CY_AC_/ in several places, and also
+	s/ac_cv_/cy_cv_/g.  Use a more CVS autoconf style.
+
+	* chapters/small-project.texi (Starting configure.in for Small
+	Project):  s/VFPRINTF/VPRINTF/g.
+
+2000-05-13  Ben Elliston  <bje@redhat.com>
+
+	* appendices.texi (Autoconf Macro Reference): More cleaning.
+	(Autoconf Macro Reference): Add more.
+	* macro-list: Update.
+
+2000-05-12  Ben Elliston  <bje@redhat.com>
+
+	* chapters/cygwin.texi (A configure.in for dlls): Fix typo.
+	* appendices.texi (Autoconf Macro Reference): Add more. Remove
+	some bogus items.
+	* macro-list: Update.
+
+2000-05-12  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: Updated a bit.
+	* chapters/libltdl.texi: Skeleton layout.
+	* chapters/portable-sh.texi:  New file.
+
+2000-05-11  Ben Elliston  <bje@redhat.com>
+
+	* chapters/small-project.texi: Replace AC_HEADERS_STDC with
+	AC_HEADER_STDC--the former does not exist.
+
+	* appendices.texi (Autoconf Macro Reference): Add more.
+	* macro-list: Remove erroneous entries.
+
+2000-05-10  Gary V. Vaughan  <gvv@techie.com>
+
+	* part3.texi (GNU m4: Use changequote (sorry) to stop m4
+	mangling the quotemarks in several places.  I tried (but not very
+	hard) to use double quoting, but m4 quotes seem to interact
+	wierdly with texinfo...
+	* chapters/complex-project.texi (A Loadable Module): Typo -- `.so'
+	should have been `.la'.
+	* chapters/dynamic-load.texi (A Simple Linux Dynamic Module):
+	gratuitous format change.
+
+2000-05-10  Tom Tromey  <tromey@cygnus.com>
+
+	* part3.texi (Token scanning): Use @item, not @other.
+	(Debugging with m4): Terminate @smallexample.
+	(Primitive macros to aid in building macros): Use correct node
+	name in reference; use @pxref inside parentheses.
+	(Debugging with m4): Reference `Quoting', not `Quoting
+	revisited'.  Use @pxref inside parentheses.
+	(GNU m4): Use @pxref inside parentheses.
+	(What does m4 do?): Use @code around cpp.
+
+2000-05-10  Ben Elliston  <bje@redhat.com>
+
+	* part3.texi (GNU m4): Wrote this chapter.
+	* TOC (GNU m4): Update.
+
+	* appendices.texi (Autoconf Macro Reference): Add more.
+
+2000-05-08  Tom Tromey  <tromey@cygnus.com>
+
+	* appendices.texi (Autoconf Macro Reference): Described some more
+	macros.
+
+2000-05-08  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/complex-project.texi:  Small corrections throughout from
+	proofreading.
+	* examples/sic-complex/*: Untabified and reformatted as necessary for
+	better inclusion into the text.
+
+2000-05-08  Tom Tromey  <tromey@cygnus.com>
+
+	* appendices.texi (Autoconf Macro Reference): Added AC_PROG_LEX.
+
+	* appendices.texi (Autoconf Macro Reference): Describe some
+	macros.
+
+	* split.pl: Only track references from outside the appendix.
+	AM_CFLAGS is not a macro.
+
+	* TOC: Updated.
+	* appendices.texi (Autoconf Macro Reference): Renamed appendix.
+
+2000-05-08  Ben Elliston  <bje@redhat.com>
+
+	* TOC (GNU m4): Give a progress update.
+
+2000-05-08  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/large-project.texi:  Small corrections throughout from
+	proofreading.
+	* examples/sic-large/*: Untabified and reformatted as necessary for
+	better inclusion into the text.
+
+2000-05-08  Ben Elliston  <bje@redhat.com>
+
+	* Makefile.am (macro-list): Depend on nothing (always make).
+
+2000-05-07  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/small-project.texi:  Small corrections throughout from
+	proofreading.
+	* examples/sic-small/*: Untabified and reformatted as necessary for
+	better inclusion into the text.
+
+2000-05-07  Tom Tromey  <tromey@cygnus.com>
+
+	* macro-list: New file.
+	* Makefile.am (PERL): New macro.
+	(macro-list): New target.
+	(all): Added macro-list.
+
+2000-05-07  Ben Elliston  <bje@redhat.com>
+
+	* TOC (GNU m4): Give a progress update.
+
+2000-05-07  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/dynamic-load.texi: Small corrections throughout from
+	proofreading.
+
+	* chapters/cygwin.texi: s/Cygwin/cygwin/ in a lot of places.
+
+2000-05-07  Ben Elliston  <bje@redhat.com>
+
+	* TOC: Assign the foreward to David J. MacKenzie.
+
+2000-05-06  Tom Tromey  <tromey@cygnus.com>
+
+	* appendices.texi (Useful autoconf Macros): List all macros
+	referenced by the book (edit as needed).
+
+	* split.pl: New file.
+
+	* chapters/small-project.texi (Starting configure.in for Small
+	Project): Fixed typo.
+
+	* TOC: Updated.
+	* part2.texi (Ordering Tests): Moved earlier.
+	(What to check for): Wrote.
+	(Using Configuration Names): Use double brackets, not
+	changequote.
+
+2000-05-05  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: updated.
+	* chapters/dynamic-load.texi: Wrote this chapter.
+	* examples/simple-loader.c: Example.
+	* examples/simple-module.c: ditto.
+
+2000-05-04  Ben Elliston  <bje@redhat.com>
+
+	* TOC (GNU m4): Give a progress update.
+
+2000-05-03  Ben Elliston  <bje@redhat.com>
+
+	* TOC (GNU m4): Outline the sections within this chapter.
+
+2000-05-02  Tom Tromey  <tromey@cygnus.com>
+
+	* appendices.texi (Useful autoconf Macros): Now an appendix.
+	* appendices.texi (Looking to the Future): Removed.
+	Rearranged appendices.
+	* TOC: Rearranged appendices.
+
+	* TOC: Updated for ch6.
+
+2000-05-02  Ben Elliston  <bje@redhat.com>
+
+	* TOC: Remove section 23.3.2 and renumber. This section will be
+	folded into chapter 21 (GNU m4), as it really belongs there.
+
+2000-05-01  Tom Tromey  <tromey@cygnus.com>
+
+	* chapters/intro-libtool.texi (Library Installation): Remove links
+	to "Generating Binary Packages".
+
+	* part2.texi (What is Portability?): Wrote.
+	(Brief introduction to portable sh): Wrote.
+	(Ordering Tests): Wrote.
+
+	* part2.texi (Name Mangling): Removed a smiley.
+	(What goes in): _TEXINFOS are distributed, but not _DATA.
+	(Further Reading): Tense fix.
+
+2000-04-29  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: updated.
+	* part3.texi (Useful Autoconf Macros):  Moved...
+	* appendices.texi (Useful Autoconf Macros): ...to here.
+
+2000-04-29  Ben Elliston  <bje@redhat.com>
+
+	* TOC (Generating Binary Packages ...): Drop this chapter.
+
+2000-04-28  Gary V. Vaughan  <gvv@techie.com>
+
+	* ChangeLog:  Use my new mail forwarder address.
+	* AUTHORS:  Ditto.
+
+	* TOC: updated.
+	* chapters/complex-project.texi: Wrote this chapter.
+	* examples/sic-complex:  Annotate the source for inclusion in the
+	chapter text.
+
+2000-04-27  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Writing a Portable configure.in): Added missing menu
+	entry.
+
+2000-04-27  Ben Elliston  <bje@redhat.com>
+
+	* TOC: Attribute section 6.5 to Ian.
+
+2000-04-26  Tom Tromey  <tromey@cygnus.com>
+
+	* TOC: Updated for new nodes.
+	* part2.texi (Writing a Portable configure.in): Started.
+	(What is Portability?): Started.
+
+	* TOC: I'll take chapter 6.
+
+	* TOC: Updated.
+
+	* part3.texi (Migrating Existing Packages): Wrote Full Pull
+	section.
+
+2000-04-23  Tom Tromey  <tromey@cygnus.com>
+
+	* TOC: Updated for my past work.
+
+	* part2.texi (Advanced GNU automake Usage): Added another
+	example.
+
+2000-04-23  Ben Elliston  <bje@redhat.com>
+
+	* part1.texi (Introduction): Apply reviewer suggestions.
+
+2000-04-22  Ben Elliston  <bje@redhat.com>
+
+	* TOC (GNU m4): Claim this chapter.
+
+2000-04-21  Ian Lance Taylor  <ian@zembu.com>
+
+	* part1.texi (Automake Development): Add missing @file.
+	* part2.texi: (Writing Portable C): Mention C9X.  Fix ranges of
+	unsigned numbers.  Mention strdup.  Mention that DOS file names
+	are case insensitive.  Change path name to file name rather than
+	try to explain the difference.
+
+2000-04-21  Gary V. Vaughan  <gary@oranda.demon.co.uk>
+
+	* TOC: updated.
+	* chapters/large-project.texi: Wrote this chapter.
+	* examples/sic-large:  Annotate the source for inclusion in the
+	chapter text.
+
+2000-04-10  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: updated.
+	* chapters/small-project.texi: Wrote this chapter
+	* examples/sic-small:  Annotate the source for inclusion in the
+	chapter text.
+
+2000-03-29  Gary V. Vaughan  <gvv@techie.com>
+
+	* part2.texi (libtool C++ support): Wrote this section.
+
+	* examples/sic-small/src/Makefile.am: Don't scribble on LIBS.
+	* examples/sic-large/src/Makefile.am: ditto.
+	* examples/sic-complex/src/Makefile.am: ditto.
+	* examples/sic-large/configure.in: extern "C" void foo() is bad.
+	* examples/sic-complex/configure.in: extern "C" void foo() is
+	bad.
+
+2000-03-28  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/sic-small: fix some small bugs.
+	* examples/sic-large: and here too.
+	* examples/sic-complex: and again.
+	* examples/sic-large/tests/empty-eval-3.test: new test for
+	fixed bug.
+	* examples/sic-complex/tests/empty-eval-3.test: and here.
+
+2000-03-26  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/sic-small: example for `small project' chapter.
+	* examples/sic-large: example for `large project' chapter.
+	* examples/sic-complex: example for `complex project' chapter.
+
+2000-03-24  Gary V. Vaughan  <gvv@techie.com>
+
+	* autobook.m4: s/dnl/m4_dnl/g
+	* part2.texi: ditto.
+	* part3.texi: ditto.
+	* chapters/intro-libtool.texi: ditto.
+	* chapters/using-libtool.texi: ditto.
+
+	* Makefile.am:  Arrange for `make maintainer-clean' to remove
+	all the files which can be rebuilt with `bootstrap'.
+	* examples/Makefile.am: ditto.
+
+2000-03-14  Ian Lance Taylor  <ian@zembu.com>
+
+	* part2.texi (Configuration Names): Incorporate some suggestions
+	from Akim.
+
+2000-03-08  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/flow-diagrams.texi:  Add comments from LW.
+	Address comments from LW.  Use m4_dnl.
+	* STYLE: Answer texinfo questions from LW.
+
+2000-03-05  Ian Lance Taylor  <ian@zembu.com>
+
+	* part2.texi (C Endianness): Mention htonS and ntohS.
+	(Cross-Unix Function Calls): Stress that alloca is to be avoided
+	in highly portable code.
+
+2000-02-27  Tom Tromey  <tromey@cygnus.com>
+
+	* chapters/flow-diagrams.texi: Use m4_changequote.
+	* chapters/using-libtool.texi: Use m4_include, m4_changequote.
+	* chapters/intro-libtool.texi: Use m4_include, m4_changequote.
+	* chapters/cygwin.texi: Use m4_include.
+	* autobook.m4: Use m4_ prefix for M4 directives.
+	* part3.texi: Use m4_include, m4_changequote.
+	* part2.texi: Use m4_include, m4_changequote.
+	* appendices.texi: Use m4_include.
+	* Makefile.am (M4FLAGS): Added `-P'.
+
+2000-02-23  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Programs and libraries): Made zlib example more
+	real.
+
+	* part2.texi (Rolling Distribution Tarballs): Put distcheck after
+	"what goes in".  Added menu and rearranged introduction a bit.
+	(What goes in, The distcheck rule, Some caveats, Implementation):
+	New nodes.
+	(What goes in): Put `$ automake --help' in example.
+	(Introducing GNU automake): Moved Testing after Multiple
+	directories.  Added a new node for each section.
+	(The easy primaries): Added missing words.
+	* TOC: Updated.
+
+2000-02-23  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/Makefie.am: Remove references to examples/shell.
+
+	* examples/shell: clear the decks.
+
+2000-02-22  Tom Tromey  <tromey@cygnus.com>
+
+	* chapters/cygwin.texi: Write "independent", not "independant".
+	* chapters/intro-libtool.texi (Position Independent Code): ABI is
+	Application Binary Interface.  Write "independent", not
+	"independant".
+
+	* part2.texi (configure command line options): Added xref.
+	(Files generated by configure): Use <config.h>, not "config.h".
+	Mention use of config.h as best practice.
+	(User-provided Input Files): m4 hackery to allow `dnl' to appear
+	in output.
+	(Generated Output Files): Run aclocal and autoconf before
+	automake.
+	(Using Configuration Names): Put changequote calls into example;
+	mention why in footnote.
+	(Introducing GNU automake): Remove `introduction to introduction'
+	section header.  Typo fix.  Rename section to `General automake
+	principles'.  Clean up FIXME comments and add start/end comments
+	for warnings, best practices, etc.  Mention
+	--program-transform-name.  Clarify (I hope) `man' section.
+	Document _DEPENDENCIES, _LDADD, _LDFLAGS, _LIBADD.
+	(Rolling Distribution Tarballs): Mention why the tarfile naming
+	conventions are good.  Added xref to the coding standards.
+	Document dist-bzip2, dist-tarZ, dist-shar, and dist-zip.  Rewrote
+	first paragraph of `distcheck' section.  List precisely which
+	primaries are distributed by default.
+	(Installing and Uninstalling): Mention why using the standard
+	directories is good.  Document pkglibdir.  Document which
+	directories can be used with which primaries.
+
+	* part1.texi (What this book is): Use `test' and not `[' in the
+	autoconf-style code example.  Typo fix.
+
+	* appendices.texi (Prerequisite tools): Don't put @c inside an
+	@xref.
+
+2000-02-15  Ben Elliston  <bje@redhat.com>
+
+	* appendices.texi: Apply review suggestions to A3.
+
+2000-02-13  Ian Lance Taylor  <ian@zembu.com>
+
+	* part2.texi (Configuration Names): Turn entire chapter into a
+	section in ``Invoking configure'' chapter.  Rearrange text to
+	mention config.guess and config.sub first.
+	* TOC: Adjust accordingly.
+
+2000-02-06  Gary V. Vaughan  <gvv@techie.com>
+
+	* part1.texi (Introduction): Fixed a bunch of typos.
+	* part2.texi (Writing Portable C++):  Ditto.
+
+2000-02-06  Ben Elliston  <bje@redhat.com>
+
+	* TOC (Chapter 1): Break out sections.
+	(17.4.3): Temporarily assign to Gary.
+
+	* part1.texi (Introduction): Wrote this chapter.
+
+2000-02-03  Ben Elliston  <bje@redhat.com>
+
+	* part2.texi (Namespaces): Recommend using a struct, rather than a
+	class, for emulating namespaces on poor C++ implementations.
+
+2000-02-02  Ben Elliston  <bje@redhat.com>
+
+	* TOC: Update.
+	* part2.texi (Writing Portable C++): Wrote this chapter.
+
+	* TOC: Some corrections.
+	(Chapter 17): Break out sections, somewhat.
+
+2000-01-30  Tom Tromey  <tromey@cygnus.com>
+
+	* part3.texi (Implementation specifics): Don't reference `Internal
+	variables' node.
+
+2000-01-30  Ben Elliston  <bje@redhat.com>
+
+	* appendices.texi (Installing the tools): Some rewording.
+	Miscellaneous stylistic corrections.
+	* part3.texi: Likewise.
+	* chapters/cygwin.texi: Likeiwse. s/delimitors/delimiters/.
+	* chapters/intro-libtool.texi: Likewise.
+
+2000-01-29  Ben Elliston  <bje@redhat.com>
+
+	* part1.texi (Motivation): Remove.
+	Other stylistic improvements, as per the STYLE file.
+
+2000-01-27  Ian Lance Taylor  <ian@zembu.com>
+
+	* part1.texi: Add a few clarifications suggested by Alexandre
+	Oliva.
+
+2000-01-27  Ben Elliston  <bje@redhat.com>
+
+	* AUTHORS: Tom and I are @redhat.com.
+
+	* TOC: Corrections.
+
+	* STYLE: Add a note about ``compilation units''.
+
+2000-01-25  Ben Elliston  <bje@redhat.com>
+
+	* TOC: Break down section 17.4.
+
+2000-01-24  Ben Elliston  <bje@redhat.com>
+
+	* TOC: Allocate chapter 9 to Gary.
+
+2000-01-18  Ben Elliston  <bje@cygnus.com>
+
+	* TOC: Claim the Introduction chapter.
+
+2000-01-17  Tom Tromey  <tromey@cygnus.com>
+
+	* TOC: Updated.
+	* part2.texi (Bootstrapping): Wrote this chapter.
+	* part3.texi (Example: Quick And Dirty): Wrote this section.
+
+2000-01-13  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Introducing GNU automake): Wrote Testing and
+	Multiple directories section.
+
+2000-01-05  Tom Tromey  <tromey@cygnus.com>
+
+	* part3.texi (Migrating Existing Packages): Wrote parts of this
+	chapter.
+
+	* part2.texi (Rolling Distribution Tarballs): Added `tar -o'
+	footnote.
+	(Installing and Uninstalling): Filled in table for pkgincludedir
+	and pkgdatadir.  Made xref to invoking node.  Wrote sections on
+	install hooks and uninstall.
+	(Unix/Windows Portable Scripting Language): Mention Guile!
+	(Introducing GNU automake): Mention parallel make.
+
+2000-01-03  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/using-libtool.texi (Convenience Libraries): Wrote this
+	section.
+	(Controlled Symbol Export): Moved to libltdl chapter.
+	* examples/convenience/Makefile.am: Cleaned up a little.
+	* examples/convenience/bootstrap: ditto.
+	* examples/convenience/configure.in: ditto.
+	* examples/convenience/error.c: ditto.
+	* examples/convenience/replace/basename.c: ditto.
+	* TOC: updated.
+
+1999-12-29  Ian Lance Taylor  <ian@zembu.com>
+
+	* part1.texi (History): Make some changes suggested by Leah.
+
+	* part2.texi: Remove ``A Minimal COLLECTIVE Project'' from initial
+	menu.  Change {auto{conf,make},libtool} to COLLECTIVE in node
+	title.  Change single `@' to `@@', and similarly for single `{'
+	and '}'.
+
+1999-12-28  Ben Elliston  <bje@cygnus.com>
+
+	* TOC (Looking to the Future): Remove.
+	(Motivation): Remove; fold into Introduction. Renumber all
+	chapters following.
+
+	* TOC: Mark chapter 26 as complete.
+
+1999-12-27  Ben Elliston  <bje@cygnus.com>
+
+	* part2.texi (Using COLLECTIVE Tools): Wrote this chapter.
+
+	* TOC: Merge old chapters 5 and 7 together to form the new chapter 5.
+	Move to after ``Introducing Makefiles'', making it chapter 6.
+	Renumber all chapters following.
+	(BJE): Mark my completed chapters as such.
+
+	* TOC (section 6.6): Mark as completed.
+
+1999-12-26  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Introducing GNU automake): Updated general ideas to
+	include `include', `+=', and conditionals.
+	(Introducing GNU automake): Mention EXTRA_*_SOURCES.
+
+	* chapters/cygwin.texi: Fixed a couple typos in references.
+
+	* Makefile.am (chapters): New macro.
+	(EXTRA_DIST): Use it.
+	(autobook.texi): Depend on chapters.
+
+1999-12-26  Ben Elliston  <bje@cygnus.com>
+
+	* part2.texi (Invoking configure): Use @option rather than @code.
+	(Rolling Distribution Tarballs): Reformat introductory
+	paragraph. Reword paragraph explain ``make dist''.
+	(*): Miscellaneous spelling and typesetting corrections.
+
+	* chapters/cygwin.texi (Preliminaries): Cross-ref. ``Prerequisite
+	Tools''.
+	(Autotools on Cygwin): Cross-ref. ``Installing the Tools''.
+	(Filesystem Limitations): Rename from this ..
+	(File System Limitations): .. to this.
+	(Text vs Binary Modes): Use ``file system'' throughout.
+	(8.3 Filenames): Likewise.
+	(*): Replace ``incase'' with ``in case''.
+
+	* part3.texi: Use @option for command line options throughout; not
+	@samp. Miscellaneous spelling corrections.
+
+1999-12-07  Gary V. Vaughan  <gvv@techie.com>
+
+	* STYLE: Brief key for the texinfo tags we use
+	* chapters/cygwin.texi:  Added Leah's review comments between
+	@ignore tags so that the document can still be processed.
+
+1999-11-29  Ben Elliston  <bje@cygnus.com>
+
+	* chapters/intro-libtool.texi: Capitalise "Linux" throughout.
+
+1999-11-23  Ben Elliston  <bje@cygnus.com>
+
+	* part2.texi (Invoking configure): Incorporated suggested changes
+	from Ian Lance Taylor <ian@zembu.com>.
+
+1999-11-21  Ben Elliston  <bje@cygnus.com>
+
+	* STYLE: Document some more conventions.
+
+	* TOC: Add chapter 19 section headings (to be written).
+
+1999-11-20  Ian Lance Taylor  <ian@zembu.com>
+
+	* part1.texi (History): Clean up the text a bit.  Use @command as
+	appropriate.
+
+	* TOC: Mark my chapters as complete.
+
+1999-11-18  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Introducing GNU automake): Wrote much of this
+	chapter.
+
+	* part2.texi (Introducing Makefiles): Use old-style suffix rules.
+	* part1.texi (Automake Development): Typo fixes.
+
+1999-11-17  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/intro-libtool.texi: Try to use fewer semi-colons!
+ 	(Creating libtool): tweaked for	clarity.
+
+	* part3.texi (Implementation specifics): Added missing :: to
+	menu.
+	(Implementation specifics): Added missing menu entry.
+	(Autoconf Preliminaries): guard xrefs to nonexistant nodes with
+	FIXME comments until the nodes land.
+	(m4 and traps for young players): use c`'hangequote to stop the m4
+	pass from consuming the word.
+
+	* part2.texi (Invoking configure): ditto,
+	* part1.texi (Microsoft Windows Development): Fixed broken xref.
+
+	* part2.texi (Invoking configure): Renamed back to this so that
+	the xrefs to it and menus aren't broken, and because @node names
+	can't have commas in them
+	(Using COLLECTIVE Tools): ditto.
+
+	* TOC: Updated.
+
+	* examples/cc-g.m4: example extracted from document body.
+	* examples/Makefile.am (noinst_DATA): added cc-g.texi
+	* part3.texi (Caching results): m4_include the preprocessed
+	example to avoid m4 conflicts.
+
+	* part2.texi (How to run configure): changed an xref to pxref.
+	* part3.texi (Output from macros): ditto.
+	(Macro interface): fixed unterminated @code.
+	(Macro interface): fixed unterminated @samp.
+	(Writing shell code): fixed malformed xref.
+	(m4 and traps for young players): double up literal @'s.
+	(Reusing existing macros): fixed malformed xref.
+	(Autoconf Preliminaries): renamed from Preliminaries to be
+	unique.
+
+1999-11-17  Ben Elliston  <bje@cygnus.com>
+
+	* TOC: Annotate my completed sections.
+
+1999-11-16  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/intro-libtool.texi: Tweak the first couple of
+	paragraphs in the interest of clarity.
+	From Ben Elliston <bje@cygnus.com>
+
+	* TOC:  Annotated with `Y' for the sections I have completed.
+
+	* chapters/intro-libtool.texi: Linking non-pic objects into
+	shared archives is not portable.
+
+1999-11-15  Ben Elliston  <bje@cygnus.com>
+
+	* part1.texi: Lots of stylistic changes.
+	(Microsoft Windows Development): Cross-ref `Prerequisite Tools'.
+	* part2.texi: Conform with the style guidelines. Simplify text.
+
+1999-11-14  Ben Elliston  <bje@cygnus.com>
+
+	* TOC: Update. Insert magic for emacs outline mode.
+	* part3.texi (Writing New Macros for autoconf): Wrote this
+	chapter--with one minor exception.
+
+	* part2.texi (How to run configure): Simplify some text.
+	(Introducing Makefiles): Likewise.
+	(Suffix rules): Likewise.
+	(Using COLLECTIVE Tools): Give this node its proper name.
+
+	* appendices.texi: Conform with the style guidelines.
+
+1999-11-11  Ben Elliston  <bje@cygnus.com>
+
+	* STYLE: More guidelines for program names.
+
+1999-11-09  Gary V. Vaughan  <gvv@techie.com>
+
+	* STYLE: Cygwin should be capitalised.
+	* *.texi chapters/*.texi:  ditto.
+	Reported by Ben Elliston <bje@cygnus.com>
+
+	* chapters/intro-libtool.texi:  Typos.
+
+1999-11-08  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/intro-libtool.texi (Creating libtool):  Wrote this
+	subsection.  The chapter is now complete!
+
+1999-11-05  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: updated.
+	* chapters/intro-libtool.texi: proofread and brutally revised the
+	entire chapter.
+	(Creating Convenience Libraries with libtool): Wrote this
+	subsection.
+	(Inter-library Dependencies): Wrote this subsection.
+	(Using Convenience Libraries): Finished this subsection.
+	renamed "Using .* Libraries" subsections to "Creating .*
+	Libraries".
+
+	* STYLE:  Remember to cvs add the file before commiting this time!
+	* chapters/intro-libtool.texi:  Typos.
+	* examples/Makefile.am:  Generate texi files for inclusion in the
+	text from the new files in examples/convenience/*.
+
+1999-11-04  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: updated.
+	* examples/convenience/*: Tweaked a little to show dependency
+	propogation.
+	* examples/convenience/lib/Makefile.am:  New file.
+	* examples/convenience/lib/source.*: source for a new convenience
+	library that depends on libm.
+	* examples/convenience/replace/*: moved here from the old lib
+	subdirectory.
+
+	* STYLE: Start to make notes on stylistic conventions I am using.
+
+	* chapters/intro-libtool.texi (Using Libtool Libraries with
+	libtool): New subsection for reorganisation of Libtool Libraries
+	text.
+	(Using Static Libraries with libtool): ditto.
+	(Position Independant Code):   Wrote this new subsection.
+	(Using Convenience Libraries with libtool):  Made a start on this
+	new subsection.
+
+1999-11-03  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: updated.
+	* chapters/intro-libtool.texi (Linking into a Library):  Wrote
+	this section.
+	* chapters/intro-libtool.texi: use m4 include to insert the
+	sources into the text directly.
+	* examples/Makefile.am: massage hello and intro-hello sources for
+	m4 include()ing.
+	* examples/intro-hello/*: New example to demonstrate basic
+	inter-library dependencies.
+	* examples/hello/*: Changes to make the source K&R compatible.
+	* examples/convenience: ditto.
+
+1999-11-02  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/convenience/*:  New example to demonstrate basic use
+	of libtool convenience libraries.
+	* examples/Makefile.am:  Enhanced to massage convenience sources
+	for suitability for m4 include()ing into the texinfo files.
+
+1999-11-01  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/using-libtool.texi (Library Versioning):  Wrote this
+	section.
+
+1999-10-28  Ben Elliston  <bje@cygnus.com>
+
+	* appendices.texi (Installing COLLECTIVE): Wrote this appendix.
+	(Downloading COLLECTIVE): Update libtool version number.
+
+	* TOC: Update.
+
+1999-10-17  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Advanced GNU automake Usage): Cleanups.
+
+1999-10-12  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Advanced GNU automake Usage): Wrote a chunk of this
+	chapter.
+
+1999-10-09  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/using-libtool.texi:  Texinfo cleanups to allow dvi
+	generation again.
+
+1999-10-07  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/using-libtool.texi:  Almost finished this chapter
+	* TOC (Using GNU libtool with configure.in and Makefile.am):
+	updated.
+
+1999-10-06  Gary V. Vaughan  <gvv@techie.com>
+
+	* chapters/using-libtool.texi:  Made a good start on this
+	chapter.
+
+	* TOC (A Large COLLECTIVE Project):  Claim this chapter.  I can
+	use the shell code for this example, and add the ltdl support as
+	a basis for `Complex Project'.
+
+1999-10-06  Ben Elliston  <bje@cygnus.com>
+
+	* part2.texi (Invoking configure): Remove some text that Ian has
+	already written--and should not be mentioned here anyway.
+
+1999-10-06  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/shell/*:  Use libtool.
+
+	* examples/openmode.m4: New file.  Maintain this outside of the
+	texi files but...
+	* examples/my_fopen.c: ditto.
+	* Makefile.am: ...use sed escape all the m4 and CVS meta-characters
+	and include these into the document at runtime,
+
+	* chapters/*.texi: Split my chapters out into separate files for
+	easier maintenance.
+	* part2.texi: suck the chapter text back in at compile time using m4.
+	* part3.texi: ditto.
+
+1999-10-04  Ian Lance Taylor  <ian@zembu.com>
+
+	* part2.texi: Fix some typos and grammatical errors.
+
+1999-10-04  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/shell/*:  Now we can fork/exec commands in
+	the user's PATH and add subrs to the internal list.
+
+	* part2.texi (Introducing GNU libtool):  Typos and grammatical
+	corrections.
+	Reported by Ian Lance Taylor <ian@zembu.com>
+
+1999-10-03  Ian Lance Taylor  <ian@zembu.com>
+
+	* part2.texi: Move much of the discussion of differences between
+	Unix and Windows filesystems from cygwin chapter to portability
+	chapter, leaving references behind.
+	* part3.texi: Corresponding change.
+
+	* part2.texi: Fix various misspellings and minor omissions.
+
+	* part2.texi: Change all uses of @sc to use lower case rather than
+	upper case, as recommended by the Texinfo manual.
+	* part3.texi: Likewise.
+
+1999-09-30  Gary V. Vaughan  <gvv@techie.com>
+
+	* example/shell/*: still evolving...
+
+	* examples/shell/*: Doh!  The last one had a serious
+	design flaw.  This is the start of a reimplementation
+	which uses a parse tree instead of trying to parse
+	subexpressions on the fly by reentering yyparse.
+
+1999-09-21  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/shell/*:  New example code for the "Complex
+	COLLECTIVE Project" chapter.
+
+1999-09-21  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC (A Complex COLLECTIVE Project):  Claim this chapter;  I have
+	a near complete example of a shell with dynamic runtime builtin
+	loading to check in shortly.  Tom, you might want to tweak the
+	example a little to use stuff you write about in the "More Advanced
+	Automake Usage" chapter...
+
+1999-09-20  Gary V. Vaughan  <gvv@techie.com>
+
+	* Makefile.am (.m4.texi):  generate the texi files in $(srcdir).
+	(M4FLAGS): add -I$(srcdir) to include path for M4.
+	(all): generate the info files as standard!
+
+1999-09-17  Ben Elliston  <bje@cygnus.com>
+
+	* TOC: Update.
+
+1999-09-17  Gary V. Vaughan  <gvv@techie.com>
+
+	* part2.texi:  texinfo cleanups.
+
+1999-09-16  Ben Elliston  <bje@cygnus.com>
+
+	* part2.texi (Invoking configure): Wrote this chapter.
+
+	* TOC: Sign up for the C++ portability chapter.
+
+1999-09-13  Gary V. Vaughan  <gvv@techie.com>
+
+	* part2.texi:  layout skeleton (in @c's) for some my remaining
+	part II chapters.
+	* part3.texi:  layout skeleton (in @c's) for some my remaining
+	part III chapters.
+
+1999-09-10  Gary V. Vaughan  <gvv@techie.com>
+
+	* TOC: Updated (again!).
+	* appendices.texi (Generated File Dependencies): Finished this
+	chapter.
+	* part2.texi, part3.texi: judicious use of @group to stop examples
+	being split across pages.
+
+	* appendices.texi (Generated File Dependencies): some ugly ascii
+	diagrams to give the New Riders artists something to work with.
+
+	* TOC: Updated. And attributions added to every line... whitespace
+	at the start of a line denotes a chapter which no-one has claimed
+	(of which there are currently 12).
+	* part2.texi (Introducing GNU libtool): Finished this chapter.
+
+1999-09-09  Ian Lance Taylor  <ian@zembu.com>
+
+	* part2.texi: Remove some FIXME comments reminding me to check
+	dates.
+
+1999-09-07  Gary V. Vaughan  <gvv@techie.com>
+
+	* part3.texi (Porting an existing Package): Removed this section,
+	since there is a whole chapter which covers this topic fully, and
+	this chapter is already rather fat...
+
+	* TOC: Unpdated.
+	* part3.texi:  Fixed a few typos preventing `make dvi' from
+	working.
+
+1999-09-06  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/*/*: Updated to match text of book and tested.
+
+	* part3.texi (Shared Libraries with libtool): Finished this
+	section -- this chapter is already *much* bigger than I
+	anticipated.  Maybe we should split it into a couple or three
+	chapters somehow?  Perhaps I can move some of the content into
+	other chapters too/instead.
+
+1999-09-01  Gary V. Vaughan  <gvv@techie.com>
+
+	* part2.texi (Introducing GNU libtool):  HP/UX example to cut up
+	into pieces and explain!
+
+1999-08-31  Gary V. Vaughan  <gvv@techie.com>
+
+	* autobook.m4: Remove references to Elef in copyright notices.
+
+	* appendices.texi(OPL): s/GPL/OPL/g
+
+	* part2.texi (Introducing GNU libtool): Much improved first
+	revision of the draft text.
+
+1999-08-30  Gary V. Vaughan  <gvv@techie.com>
+
+	* part3.texi (Shared Libraries with libtool): almost complete now...
+
+1999-08-29  Ian Lance Taylor  <ian@zembu.com>
+
+	* part2.texi (Writing Portable C): Wrote chapter.
+	* part3.texi (Cross Compilation): Wrote chapter.
+
+1999-08-25  Gary V. Vaughan  <gvv@techie.com>
+
+	* AUTHORS: Removed Elef.
+
+	* part2.texi (Rolling Distribution Tarballs): Add missing `@'
+	s/bug-automake@gnu.org/bug-automake@@gnu.org/
+	(Linking into an Executable): Add missing `@' in C sources.
+
+	* part2.texi (Introducing GNU libtool): Made a start at this
+	chapter.
+
+1999-08-18  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Installing and Uninstalling): Wrote much of this
+	chapter.
+
+1999-08-12  Tom Tromey  <tromey@cygnus.com>
+
+	* part2.texi (Rolling Distribution Tarballs): Wrote most of this
+	chapter.
+
+1999-08-09  Ian Lance Taylor  <ian@zembu.com>
+
+	* part1.texi (Microsoft Windows Development): Add comment.
+	* part2.texi (Configuration Names): Say that config.sub and
+	config.guess are part of autocvs.  Add comments.
+
+1999-08-07  Gary V. Vaughan  <gvv@techie.com>
+
+	* bootstrap: replace broken sed script with an equivalent
+	(but working) grep.
+
+1999-07-27  Gary V. Vaughan  <gvv@techie.com>
+
+	* COPYING: reformatting.
+
+	* part3.texi (Integration with Cygnus cygwin):  Grammar cleanups,
+	and concept index entries throughout.
+	(Package Installation): Wrote this subsection.
+
+	* examples/cygwin-hello/*: Make sure this actually runs after
+	compilation on cygwin:  a couple of typos and a problem with flag
+	propogation when the dll and main.o are built using the same
+	Makefile.am are now fixed.
+
+1999-07-22  Gary V. Vaughan  <gvv@techie.com>
+
+	* examples/cygwin-hello/*: Hello world as a shared library.
+
+	* TOC: Latest Table of Contents + owners.
+
+	* examples/hello/*: Hello world as a shared library.
+
+	* part2.texi (Using GNU libtool): I've signed up to write this
+	chapter.
+	(Dynamic Loading): And this one.
+	(Using GNU libltdl): And this one too.
+
+1999-07-21  Ian Lance Taylor  <ian@zembu.com>
+
+	* part2.texi: Add a section on configuration names.
+
+1999-07-20  Gary V. Vaughan  <gvv@techie.com>
+
+	* part3.texi (Integration with Cygnus cygwin): It seems the latest
+	debian potato texinfo-3.13k can't produce typeset docs with
+	apostrophes in the chapter headings =(O|
+
+	* part3.texi: Moved all the url's out of the body of the text into
+	footnotes.
+
+1999-07-20  Ian Lance Taylor  <ian@zembu.com>
+
+	* part1.texi (First Configure Programs): metaconfig scripts can be
+	made to run noninteractively (Tromey).
+	(Microsoft Windows Development): Mention that Windows automake
+	requires Windows perl (from Vaughan).
+
+1999-07-20  Gary V. Vaughan  <gvv@techie.com>
+
+	* PLATFORMS: New file.
+	* COPYING: Insert open publication license draft v0.4.
+
+1999-07-19  Tom Tromey  <tromey@cygnus.com>
+
+	* part1.texi (First Configure Programs): Changed `three' to
+	`four'.
+
+1999-07-19  Gary V. Vaughan  <gvv@techie.com>
+
+	* part3.texi (Integration with Cygnus' cygwin): Proofread, and
+	tidied the draft.  Improved the typesetting a lot.
+	(Writing Portable Bourne Shell): s/@code/@file/g, what was I
+	thinking?
+
+	* part3.texi (Separators and Drive Letters): new subsection
+	completed.
+
+1999-07-18  Ian Lance Taylor  <ian@zembu.com>
+
+	* AUTHORS: Change my address to ian@zembu.com.
+	* part1.texi (History): Write history section.
+
+1999-07-09  Gary V. Vaughan  <gvv@techie.com>
+
+	* part3.texi (Integration with Cygnus' cygwin): Mostly finish 1st
+	draft of this chapter, except for one meaty section at the end and
+	the examples.
+	(Writing Portable Bourne Shell): s/@filename/@code/g otherwise it
+	won't build on my debian potato... [for real this time!]
+
+1999-07-05  Gary V. Vaughan  <gvv@techie.com>
+
+	* part3.texi: s/@filename/@code/g otherwise it won't build
+	on my debian potato...
+
+1999-07-04  Ben Elliston  <bje@cygnus.com>
+
+	* part3.texi (Writing New Macros for autoconf): Make a start.
+
+1999-06-29  Gary V. Vaughan  <gvv@techie.com>
+
+	* part3.texi (Integration with Cygnus' cygwin): 1st cut &&
+	some notes to remind me of the remainder of the content.
+
+1999-05-20  Gary V. Vaughan  <gary@oranda.goldfish>
+
+	* bootstrap: make a temporary autobook.texi during automake
+	runtime.
+	* commit: libtool's commit script to extract ChangeLog sections
+	for check-in comments.

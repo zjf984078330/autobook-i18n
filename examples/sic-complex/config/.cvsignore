@@ -1,0 +1,6 @@
+*.texi
+*.la
+*.lo
+*.o
+configure.scan
+mdate-sh

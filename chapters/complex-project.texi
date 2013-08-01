@@ -1,0 +1,978 @@
+@c -*-texinfo-*-
+
+This chapter polishes the worked example I introduced in @ref{A Small
+COLLECTIVE Project}, and developed in @ref{A Large COLLECTIVE Project}.
+As always, the ideas presented here are my own views and not necessarily
+the only way to do things.  Everything I present here has, however,
+served me well for quite some time, and you should find plenty of
+interesting ideas for your own projects.
+
+Herein, I will add a libltdl module loading system to Sic, as
+well as some sample modules to illustrate how extensible such a project
+can be. I will also explain how to integrate the @file{dmalloc} library
+into the development of a project, and show why this is important.
+
+If you noticed that, as it stands, Sic is only useful as an interactive
+shell unable to read commands from a file, then go to the top of the
+class!  In order for it to be of genuine use, I will extend it to
+interpret commands from a file too.
+
+@ignore LW
+I like how you explain here what will be covered--very helpful!  I have
+a question.  Maybe this is evident to you, but I've been wondering why
+these example chapters aren't next to one another sequentially, and also
+why they aren't set apart in a kind of separate Part in the book--They
+definitely seem to stand apart from the other content.
+
+Also, and this comes up again in my reviews, I'm wondering about how you
+switch from a kind of first person "Then I do this" to a more distanced,
+explanation approach.  It can be confusing, and I'm wondering whether to
+list the steps of what you do might not be more direct and clear than
+paragraphs included --and would set up the structure for the one
+approach.  Let me know.
+
+2000-07-05  Gary V. Vaughan
+
+        The idea is to use a common example which develops throughoyut
+        the course of the book using the parts of autotools that have
+        been explained at that point.
+
+        As I have said before, the examples require explanation, and the
+        explanations require illustration.  The one is poorer without
+        the other.   The explanatory prose would be awkward in first
+        person, and the example description would be tired and
+        lacklustre in passive voice.  I'll even it out where I can, but
+        I really don't think it is particularly onerous as it stands.
+
+LW
+Shouldn't this be Interpretation and Integration to more fully match the
+other headings?
+
+2000-07-05  Gary V. Vaughan
+
+        Not any more, I changed the sense of the others to be in line
+        with this one.
+@end ignore
+
+@menu
+* A Module Loading Subsystem::
+* A Loadable Module::
+* Interpreting Commands from a File::
+* Integrating Dmalloc::
+@end menu
+
+@node A Module Loading Subsystem
+@section A Module Loading Subsystem
+
+@ignore Didier Verna Fri Jun 23 09:51:51 CEST 2000
+The paragraph below should be placed in chapter 18, and more precisely
+as a `18.2.1 "Installing libltdl in your package"' -like subsection I
+suggested that you add there. I find that this paragraph actually
+clarifies many obsucurities I noted in my review of chapter 18.
+
+2000-07-05  Gary V. Vaughan
+
+        Logistics prevent me from moving it now =(O|  I did address you
+        ch18 comments though, so hpefully it stands alone now.
+@end ignore
+
+As you saw in @ref{Using GNU libltdl}, I need to put an invocation of
+the macro @samp{AC_LIBTOOL_DLOPEN} just before @samp{AC_PROG_LIBTOOL},
+in the file @file{configure.in}.  But, as well as being able to use
+@command{libtoolize --ltdl}, which adds libltdl in a subdirectory
+with its own subconfigure, you can also manually copy just the ltdl
+source files into your project@footnote{If you have an early 1.3c
+snapshot of Libtool, you will also need to copy the @file{ltdl.m4} file
+into your distribution.}, and use @code{AC_LIB_LTDL} in your existing
+@file{configure.in}.  At the time of writing, this is still a very new
+and (as yet) undocumented feature, with a few kinks that need to be
+ironed out.  In any case you probably shouldn't use this method to add
+@file{ltdl.lo} to a C++ library, since @file{ltdl.c} is written in C.
+If you do want to use libltdl with a C++ library, things will
+work much better if you build it in a subdirectory generated with
+@command{libtoolize --ltdl}.
+
+@ignore
+2000-06-12  Akim Demaille
+We don't need the footnote.  Drop the past, and especially if ephemera,
+dead.  But if you want to keep it, capitalization and period.
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+
+2000-06-12  Akim Demaille
+AC_LIB_LTDL?  But in the previous chapter you talked about
+AC_LIBLTDL_CONVENIENCE?  This macro, AC_LIB_LTDL is referred to several
+times in this chapter.
+
+2000-07-05  Gary V. Vaughan
+
+        This chapter presents a different way of doing things.
+
+LW
+Please introduce code more.  Thanks.
+
+2000-07-05  Gary V. Vaughan
+
+        Done.
+@end ignore
+
+For this project, lets:
+
+@example
+$ cp /usr/share/libtool/libltdl/ltdl.[ch] sic/
+@end example
+
+The Sic module loader is probably as complicated as any you will ever
+need to write, since it must support two kinds of modules: modules which
+contain additional built-in commands for the interpreter; and modules
+which extend the Sic syntax table.  A single module can also provide
+both syntax extensions @emph{and} additional built-in commands.
+
+@menu
+* Initialising the Module Loader::
+* Managing Module Loader Errors::
+* Loading a Module::
+* Unloading a Module::
+@end menu
+@ignore LW
+Consistency--intialization (not ing) but loading--can I switch one for
+consistency?
+
+2000-07-05  Gary V. Vaughan
+
+        Done.
+@end ignore
+
+@node Initialising the Module Loader
+@subsection Initialising the Module Loader
+
+Before using this code (or any other libltdl based module loader
+for that matter), a certain amount of initialisation is required:
+
+@itemize @bullet
+@item
+libltdl itself requires initialisation.
+
+@enumerate
+@item
+libltdl should be told to use the same memory allocation routines
+used by the rest of Sic.
+
+@item
+Any preloaded modules (@pxref{dlpreopen Loading}) need to be initialised
+with @code{LTDL_SET_PRELOADED_SYMBOLS()}.
+@ignore LW
+Please address FIXME
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@item
+@code{ltdl_init()} must be called.
+@end enumerate
+
+@item
+The module search path needs to be set.  Here I allow the installer to
+specify a default search path to correspond with the installed Sic
+modules at compile time, but search the directories in the runtime
+environment variable @samp{SIC_MODULES_PATH} first.
+
+@item
+The internal error handling needs to be initialised.
+@end itemize
+
+@ignore LW
+Does this example fall under the preceding bullet?  Either way, it
+should be introduced.
+
+2000-07-05  Gary V. Vaughan
+
+Didier Verna Fri Jun 23 09:51:51 CEST 2000
+<Insert a small introductory word for the code below>
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.  Twice =)O|
+@end ignore
+
+Here is the start of the module loader, @file{sic/module.c}, including
+the initialisation code for libltdl:
+
+@example
+m4_include(examples/sic-complex/sic/module_1.texi)
+@end example
+
+@ignore Didier Verna Fri Jun 23 09:51:51 CEST 2000
+Remarks on the code above:
+
+ ,----
+| #ifndef SIC_MODULE_PATH
+| #  define SIC_MODULE_PATH       "SIC_MODULE_PATH"
+| #endif
+`-----
+  When you declare macros corresponding to env vars, you usually prefix
+  them with _ENV before. Do it here also for coherency:
+  (SIC_MODULE_PATH ... _ENV). I guess you should check all your code for
+  this book as I might have missed some other inconsistencies.
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+
+Didier Verna Fri Jun 23 09:51:51 CEST 2000
+,----
+| /* ltdl should use the same mallocation as us. */
+| lt_dlmalloc = (lt_ptr_t (*) PARAMS((size_t))) xmalloc;
+| lt_dlfree = (void (*) PARAMS((lt_ptr_t))) free;
+`-----
+  This single line comment appears to say something very important. It
+shouldn't be only a comment. Actually, I think it even cancels a remark
+I made in chapter 18 (18.2.1 Memory Management): I had suggested that
+you remove this subsection, but on a second thought, it should probably
+be even more stressed.
+
+2000-07-05  Gary V. Vaughan
+
+        I didn't remove it, so no harm done =)O|  Too late to beef it up
+        now though.  Sorry.
+
+2000-06-12  Akim Demaille
+Aaaaaaaaarg, PARAMS(VOID) is atrocious!  Program ANSI :)
+
+There are a couple of missing spaces before the `('.
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+
+
+@node Managing Module Loader Errors
+@subsection Managing Module Loader Errors
+
+@ignore LW
+Because it's a subsection, is it obvious it's module loader error
+managing w/o saying module loader?
+
+2000-07-05  Gary V. Vaughan
+
+        Maybe.  But I have introduced general concepts in these example
+        chapters, so it doesn't hurt to be specific -- besides the is an
+        Error Management section in an earlier chapter.
+@end ignore
+The error handling is a very simplistic wrapper for the libltdl
+error functions, with the addition of a few extra errors specific to
+this module loader code@footnote{This is very different to the way
+errors are managed when writing a custom loader for libltdl. Compare
+this section with @ref{libltdl Loader Errors, Loader Errors}.}.  Here
+are the error messages from @file{module.c}:
+
+@ignore
+Didier Verna Fri Jun 23 09:51:51 CEST 2000
+This footnote is useless as-is. Explain the differences or shut up :-)
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+
+2000-06-12  Akim Demaille
+footnote, period.
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+
+LW
+Introduce code listing
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+@example
+m4_include(examples/sic-complex/sic/module_2.texi)
+@end example
+
+@ignore
+Didier Verna Fri Jun 23 09:51:51 CEST 2000
+In the code above, is it a particular style of yours to declare static
+strings as undefined size arrays (`[]')? I don't like this much because
+the variable `last_error', which is going to hold these strings is
+declared as a `char *'.
+
+2000-07-05  Gary V. Vaughan
+
+	Not my own invention.  I see this a lot.  What alterative is
+        there?   last_error is indeed the address of the first character
+        of one of the char arrays in the read only section, except for
+        when it is NULL.  That makes sense doesn't it?
+        
+2000-06-12  Akim Demaille
+I don't get why there are so many `static' in there.  It seems to me
+that the previous file did use multi_init_error for instance, which
+seems to indicate these guys should be global, so why do you static
+them?
+
+Worse yet: we don't know what (who) this file is: what's its name?  Is
+it compiled, or #included?
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+
+@node Loading a Module
+@subsection Loading a Module
+
+Individual modules are managed by finding specified @dfn{entry points}
+(prescribed exported symbols) in the module:
+
+@deftypevar  {const Builtin *} builtin_table
+An array of names of built-in commands implemented by a module, with
+associated handler functions.
+@end deftypevar
+
+@deftypefn Function void module_init (Sic *@var{sic})
+If present, this function will be called when the module is loaded.
+@end deftypefn
+
+@deftypefn Function void module_finish (Sic *@var{sic})
+If supplied, this function will be called just before the module is
+unloaded.
+@end deftypefn
+
+@deftypevar  {const Syntax *} syntax_table
+An array of syntactically significant symbols, and associated handler
+functions.
+@end deftypevar
+
+@deftypefn Function int syntax_init (Sic *@var{sic})
+If specified, this function will be called by Sic before the syntax of
+each input line is analysed.
+@end deftypefn
+
+@deftypefn Function int syntax_finish (Sic *@var{sic}, BufferIn *@var{in}, BufferOut *@var{out})
+Similarly, this function will be call after the syntax analysis of each
+line has completed.
+@end deftypefn
+
+All of the hard work in locating and loading the module, and extracting
+addresses for the symbols described above is performed by
+libltdl.  The @code{module_load} function below simply registers
+these symbols with the Sic interpreter so that they are called at the
+appropriate times -- or diagnoses any errors if things don't go
+according to plan:
+
+@example
+m4_include(examples/sic-complex/sic/module_3.texi)
+@end example
+
+@ignore LW
+Does this example show it not going according to plan?
+
+2000-07-05  Gary V. Vaughan+
+
+        It shows how the code will diagnose an error wehen things are
+        not going according to plan.
+
+Didier Verna Fri Jun 23 09:51:51 CEST 2000
+ ,----
+| if (syntax_init)
+|   sic->syntax_init = list_cons (list_new (syntax_init),
+|                                 sic->syntax_init);
+| if (syntax_finish)
+|   sic->syntax_finish = list_cons (list_new (syntax_finish),
+|                                   sic->syntax_finish);
+`-----
+This is the nit-picker's club: usually, when you add hooks like this,
+the `before' hooks and the `after' hooks are executed in opposite order
+...
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.  But why?
+
+Didier Verna Fri Jun 23 09:51:51 CEST 2000
+More important: when you re-use your list API, don't forget to write the
+proper casts to `List *'. The remark is valid for all code in this chapter.
+
+2000-07-05  Gary V. Vaughan
+
+	Huh?  The only things I don't cast are List* already!
+
+Didier Verna Fri Jun 23 09:51:51 CEST 2000
+Also, you should describe a bit what `builtin_install' and
+`syntax_install' do. The same applies to `builtin_remove' and
+`syntax_remove' later in the code smaples, BTW.
+
+2000-07-05  Gary V. Vaughan
+
+	Hmmm.  It would take less space just to show the code -- but you
+        probably don't want me to do that =)O|  Sources will be
+        available via ftp, and the semantics are not obscure.
+@end ignore
+
+@noindent
+Notice that the generalised @code{List} data type introduced earlier
+(@pxref{A Small COLLECTIVE Project}) is reused to keep a list of
+accumulated module initialisation and finalisation functions.
+
+@node Unloading a Module
+@subsection Unloading a Module
+
+When unloading a module, several things must be done:
+
+@ignore LW
+Sequential steps rather than bullets?
+
+2000-07-05  Gary V. Vaughan
+
+        Nope.  There is no ordering as long as each is performed all
+        will be well.
+@end ignore
+
+@itemize @bullet
+@item
+Any built-in commands implemented by this module must be unregistered so
+that Sic doesn't try to call them after the implementation has been
+removed.
+
+@item
+Any syntax extensions implemented by this module must be similarly
+unregistered, including @code{syntax_init} and @code{syntax_finish}
+functions.
+
+@item
+If there is a finalisation entry point in the module,
+@samp{module_finish} (@pxref{Loading a Module}), it must be called.
+@end itemize
+
+@ignore
+Didier Verna Fri Jun 23 09:51:51 CEST 2000
+I think this function definition should go in the previous subsection
+(21.1.3). Actually, there's a small organisation problem here: in the
+previous subsection, the reader is provided with 3 function definitions:
+`module_init', `syntax_init', and `syntax_finish'. I was surprised not to
+find `module_finish' here, eventhough the subsection is called "loading
+a module". Actually, I think it is more important that the all API be
+grouped. This suggests (as I did for another chapter) that a more
+general description should be given somewhere earlier which should then
+incorporate all these API descriptions that are spreaded a bit everywhere.
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+
+2000-06-12  Akim Demaille
+The deftypefn inside the itemize doesn't come out right (IMHO).  You
+should probably try to rearrange this another way.
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+My first cut implementation of a module subsystem kept a list of the
+entry points associated with each module so that they could be looked up
+and removed when the module was subsequently unloaded.  It also kept
+track of multiply loaded modules so that a module wasn't unloaded
+prematurely.  libltdl already does all of this though, and it is
+wasteful to duplicate all of that work.  This system uses
+@code{lt_dlforeach} and @code{lt_dlgetinfo} to access libltdls records
+of loaded modules, and save on duplication.  These two functions are
+described fully in@ref{Libltdl interface, , , Libtool, The Libtool
+Manual}. 
+
+@ignore LW
+For clarity, I'd pull this into the previous graf.
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+
+2000-06-12  Akim Demaille
+In this chapter too, I think @file is wrong for libltdl.
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+
+Didier Verna Fri Jun 23 09:51:51 CEST 2000
+That's too fuzzy. Give more details on these two functions.
+
+2000-07-05  Gary V. Vaughan
+
+	Reference to the Libtool Manual added, along wth the details
+        below.
+@end ignore
+
+@example
+m4_include(examples/sic-complex/sic/module_4.texi)
+@end example
+
+@noindent
+This function asks libltdl to call the function
+@code{unload_ltmodule} for each of the modules it has loaded, along with
+some details of the module it wants to unload.  The tricky part of the
+callback function below is recalculating the entry point addresses for
+the module to be unloaded and then removing all matching addresses from
+the appropriate internal structures.  Otherwise, the balance of this
+callback is involved in informing the calling @code{lt_dlforeach} loop
+of whether a matching module has been found and handled:
+@ignore LW
+You may want to pull these paragraphs together.
+
+2000-07-05  Gary V. Vaughan
+
+        Alrighty then.
+@end ignore
+
+@example
+m4_include(examples/sic-complex/sic/module_5.texi)
+@end example
+
+@ignore
+2000-06-12  Akim Demaille
+I can't see the definition of the *_remove functions, but it's bizarre
+that one takes `module' as 2nd arg, and not the other one, no?  Dunno,
+looks bizarre anyway.
+
+2000-07-05  Gary V. Vaughan
+
+        I daren't include any more of my code, or I will be lynched.
+        The arguments make much more sense if you see the rest of the
+        code.
+@end ignore
+
+@noindent
+The @code{userdata_address_compare} helper function at the end is used
+to compare the address of recalculated entry points against the already
+registered functions and handlers to find which items need to be
+unregistered.
+
+There is also a matching header file to export the module interface, so
+that the code for loadable modules can make use of it:
+
+@example
+m4_include(examples/sic-complex/sic/module_h_1.texi)
+@end example
+
+@ignore Didier Verna Fri Jun 23 09:51:51 CEST 2000
+Watch out for the location of [BEGIN\\|END]_C_DECLS, as per my
+recommendation in chapter 8 (IIRC).
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+@noindent
+This header also includes some of the other Sic headers, so that in most
+cases, the source code for a module need only @samp{@w{#include
+<sic/module.h>}}.
+
+To make the module loading interface useful, I have added built-ins for
+@samp{load} and @samp{unload}.  Naturally, these must be compiled into
+the bare @command{sic} executable, so that it is able to load additional
+modules:
+
+@example
+m4_include(examples/sic-complex/src/sic_builtin_1.texi)
+@end example
+
+@ignore
+2000-06-12  Akim Demaille
+I don't understand well what the `#define builtin_functions' is being
+used.  Is this a .h file?  Hm, doesn't look at all as one.  Why is
+`exit' listed here?
+
+I'm a bit lost :(
+
+2000-07-05  Gary V. Vaughan
+
+	Again, I would need to include more of the source code for it to
+        make sense.  And I keep getting asked to cut down what I have.
+@end ignore
+@noindent
+These new built-in commands are simply wrappers around the module loading
+code in @file{module.c}.
+
+As with @samp{dlopen}, you can  use libltdl to @samp{lt_dlopen} the
+main executable, and then lookup @emph{its} symbols.  I have simplified
+the initialisation of Sic by replacing the @code{sic_init} function in
+@file{src/sic.c} by ``loading'' the executable itself as a module.  This
+works because I was careful to use the same format in
+@file{sic_builtin.c} and @file{sic_syntax.c} as would be required for a 
+genuine loadable module, like so:
+
+@example
+m4_include(examples/sic-complex/src/sic_1.texi)
+@end example
+
+@ignore Didier Verna Fri Jun 23 09:51:51 CEST 2000
+`Recall' from where ? I don't remember you mentioning that libltdl could
+lt_dlopen the main executable itself. This might have come from a chapter
+I've not read, however.
+
+2000-07-05  Gary V. Vaughan
+
+        I only mentioned it in passing, so the wording is probably
+        wrong.  Thanks.
+
+LW
+Please introduce code--
+
+You switch back and forth from this more personal approach back to the
+distanced, more formal approach.
+
+2000-07-05  Gary V. Vaughan
+
+	See my earlier reply.
+@end ignore
+
+@node A Loadable Module
+@section A Loadable Module
+
+A feature of the Sic interpreter is that it will use the @samp{unknown}
+built-in to handle any command line which is not handled by any of the
+other registered built-in callback functions.  This mechanism is very
+powerful, and allows me to lookup unhandled built-ins in the user's
+@samp{PATH}, for instance.
+
+Before adding any modules to the project, I have created a separate
+subdirectory, @file{modules}, to put the module source code into.  Not
+forgetting to list this new subdirectory in the @code{AC_OUTPUT} macro
+in @file{configure.in}, and the @code{SUBDIRS} macro in the top level
+@file{Makefile.am}, a new @file{Makefile.am} is needed to build the
+loadable modules:
+
+@example
+m4_include(examples/sic-complex/modules/Makefile_1.texi)
+@end example
+
+@ignore
+2000-06-12  Akim Demaille
+Minor nit: the third `=' is not aligned as the others.
+
+2000-07-05  Gary V. Vaughan
+
+	Okay.
+@end ignore
+
+@noindent
+@code{pkglibdir} is a Sic specific directory where modules will be
+installed, @xref{Installing and Uninstalling, , Installing and
+Uninstalling Configured Packages}.
+
+@quotation
+For a library to be maximally portable, it should be written so that it
+does not require back-linking@footnote{@xref{Introducing libltdl}} to
+resolve its own symbols.  That is, if at all possible you should design
+all of your libraries (not just dynamic modules) so that all of their
+symbols can be resolved at linktime.  Sometimes, it is impossible or
+undesirable to architect your libraries and modules in this way.  In
+that case you sacrifice the portability of your project to platforms
+such as @sc{aix} and Windows.
+@end quotation
+@ignore LW
+Should this be note instead of quotation?
+
+2000-07-05  Gary V. Vaughan
+
+        Yup.  But texinfo doesn't have notes, so we are marking them
+        between ``@quotation'' and ``@end quotation'.  See the style
+        file.
+
+2000-06-12  Akim Demaille
+Already said in a previous chapter.  I don't know if you meant it.
+
+2000-07-05  Gary V. Vaughan
+
+	Yup.  Can't emphasise that too much IMHO.
+@end ignore
+
+The key to building modules with libtool is in the options that are
+specified when the module is linked.  This is doubly true when the
+module must work with libltdl's dlpreopening mechanism.
+
+@example
+m4_include(examples/sic-complex/modules/Makefile_2.texi)
+@end example
+
+@noindent
+Sic modules are built without a @samp{lib} prefix (@option{-module}),
+and without version suffixes (@option{-avoid-version}).  All of the
+undefined symbols are resolved at linktime by @file{libsic.la}, hence
+@option{-no-undefined}.
+
+@noindent
+Having added @file{ltdl.c} to the @file{sic} subdirectory, and called
+the @code{AC_LIB_LTDL} macro in @file{configure.in}, @file{libsic.la}
+cannot build correctly on those architectures which do not support
+back-linking.  This is because @file{ltdl.c} simply abstracts the native
+@code{dlopen} @sc{api} with a common interface, and that local interface
+often requires that a special library be linked -- @file{-ldl} on linux,
+for example.  @code{AC_LIB_LTDL} probes the system to determine the name
+of any such dlopen library, and allows you to depend on it in a portable
+way by using the configure substitution macro, @samp{@@LIBADD_DL@@}.  If
+I were linking a @command{libtool} compiled libltdl at this
+juncture, the system library details would have already been taken care
+of.  In this project, I have bypassed that mechanism by compiling and
+linking @file{ltdl.c} myself, so I have altered @file{sic/Makefile.am}
+to use @samp{@@LIBADD_DL@@}:
+
+@example
+m4_include(examples/sic-complex/sic/Makefile_1.texi)
+@end example
+
+Having put all this infrastructure in place, the code for the
+@samp{unknown} module is a breeze (helper functions omitted for
+brevity):
+
+@example
+m4_include(examples/sic-complex/modules/unknown_1.texi)
+@end example
+
+@ignore
+2000-06-12  Akim Demaille
+It is very bizarre to see that you use a macro to write the proto of the
+definition of the builtin, but you don't use one when you declare it!
+Something is wrong.
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+@noindent
+In the first instance, notice that I have used the preprocessor to
+redefine the entry point functions to be compatible with libltdls
+@code{dlpreopen}, hence the @code{unknown_LTX_builtin_table}
+@command{cpp} macro.  The @samp{unknown} handler function itself looks
+for a suitable executable in the user's path, and if something suitable
+@emph{is} found, executes it.
+
+Notice that Libtool doesn't relink dependent libraries (@file{libsic}
+depends on @file{libcommon}, for example) on my @sc{gnu}/Linux system,
+since they are not required for the static library in any case, and
+because the dependencies are also encoded directly into the shared
+archive, @file{libsic.so}, by the original link.  On the other hand,
+Libtool @emph{will} relink the dependent libraries if that is necessary
+for the target host.
+
+@example
+$ make
+/bin/sh ../libtool --mode=compile gcc -DHAVE_CONFIG_H -I. -I. -I.. \
+-I.. -I.. -I../sic -I../sic -I../src -I../src    -g -O2 -c unknown.c
+mkdir .libs
+gcc -DHAVE_CONFIG_H -I. -I. -I.. -I.. -I.. -I../sic -I../sic -I../src \
+-I../src -g -O2 -Wp,-MD,.deps/unknown.pp -c unknown.c  -fPIC -DPIC \
+-o .libs/unknown.lo
+gcc -DHAVE_CONFIG_H -I. -I. -I.. -I.. -I.. -I../sic -I../sic -I../src \
+I../src -g -O2 -Wp,-MD,.deps/unknown.pp -c unknown.c -o unknown.o \
+>/dev/null 2>&1
+mv -f .libs/unknown.lo unknown.lo
+/bin/sh ../libtool --mode=link gcc  -g -O2  -o unknown.la -rpath \
+/usr/local/lib/sic -no-undefined -module -avoid-version unknown.lo \
+../sic/libsic.la
+rm -fr .libs/unknown.la .libs/unknown.* .libs/unknown.*
+gcc -shared  unknown.lo -L/tmp/sic/sic/.libs ../sic/.libs/libsic.so \
+-lc  -Wl,-soname -Wl,unknown.so -o .libs/unknown.so
+ar cru .libs/unknown.a  unknown.o
+creating unknown.la
+(cd .libs && rm -f unknown.la && ln -s ../unknown.la unknown.la)
+$ ./libtool --mode=execute ldd ./unknown.la
+        libsic.so.0 => /tmp/sic/.libs/libsic.so.0 (0x40002000)
+        libc.so.6 => /lib/libc.so.6 (0x4000f000)
+        libcommon.so.0 => /tmp/sic/.libs/libcommon.so.0 (0x400ec000)
+        libdl.so.2 => /lib/libdl.so.2 (0x400ef000)
+        /lib/ld-linux.so.2 => /lib/ld-linux.so.2 (0x80000000)
+@end example
+
+After compiling the rest of the tree, I can now use the @samp{unknown}
+module:
+
+@example
+m4_changequote(,)m4_dnl
+$ SIC_MODULE_PATH=`cd ../modules; pwd` ./sic
+m4_changequote(`,')m4_dnl
+] echo hello!
+command "echo" not found.
+] load unknown
+] echo hello!
+hello!
+] unload unknown
+] echo hello!
+command "echo" not found.
+] exit
+$
+@end example
+
+
+
+@node Interpreting Commands from a File
+@section Interpreting Commands from a File
+
+@ignore LW
+for consistency, should this be interpretation of?
+
+2000-07-05  Gary V. Vaughan
+
+        Point taken.  I have changed things in the opposite sense
+        though.
+@end ignore
+For all practical purposes, any interpreter is pretty useless if it only
+works interactively.  I have added a @samp{source} built-in command to
+@file{sic_builtin.c} which takes lines of input from a file and
+evaluates them using @file{sic_repl.c} in much the same way as lines
+typed at the prompt are evaluated otherwise.  Here is the built-in handler:
+
+@example
+m4_include(examples/sic-complex/src/sic_builtin_2.texi)
+@end example
+
+@ignore Didier Verna Fri Jun 23 09:51:51 CEST 2000
+It might be worth giving details on SIC_ASSERT. People might be
+interested in tricks dealing with these things.
+
+2000-07-05  Gary V. Vaughan
+
+	Alas, I have not the time =(O|  Duly noted for the second
+        edition, however =)O|
+@end ignore
+
+
+And the @code{source} function from @file{sic_repl.c}:
+
+@example
+m4_include(examples/sic-complex/src/sic_repl_1.texi)
+@end example
+
+@ignore
+2000-06-12  Akim Demaille
+I don't understand well why you `access || fopen' and not just `fopen'.
+
+2000-07-05  Gary V. Vaughan
+
+	Dunno.  Removed the access.
+@end ignore
+
+The reason for separating the @code{source} function in this way, is
+that it makes it easy for the startup sequence in @code{main} to
+evaluate a startup file.  In traditional Unix fashion, the startup file
+is named @file{.sicrc}, and is evaluated if it is present in the user's
+home directory:
+
+@ignore
+2000-06-12  Akim Demaille
+s/users home directory/users' home directory/
+                      /user's home directory/?
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+@example
+m4_include(examples/sic-complex/src/sic_2.texi)
+@end example
+
+
+
+@node Integrating Dmalloc
+@section Integrating Dmalloc
+
+A huge number of bugs in C and C++ code are caused by mismanagement of
+memory.  Using the wrapper functions described earlier (@pxref{Memory
+Management}), or their equivalent, can help immensely in reducing the
+occurrence of such bugs.  Ultimately, you will introduce a
+difficult-to-diagnose memory bug in spite of these measures.
+
+That is where Dmalloc@footnote{Dmalloc is distributed from
+@uref{http://www.dmalloc.com}.} comes in.  I recommend using it
+routinely in all of your projects --- you will find all sorts of leaks
+and bugs that might otherwise have lain dormant for some time.  Automake
+has explicit support for Dmalloc to make using it in your own projects
+as painless as possible.  The first step is to add the macro
+@samp{AM_WITH_DMALLOC} to @file{configure.in}.  Citing this macro adds
+a @option{--with-dmalloc} option to @command{configure}, which, when
+specified by the user, adds @option{-ldmalloc} to @samp{LIBS} and
+defines @samp{WITH_DMALLOC}.
+
+@ignore Didier Verna Fri Jun 23 09:51:51 CEST 2000
+Please provide a location where people can find the dmalloc library
+here, maybe as a footnote or something.
+
+Also, give more details about what AM_WITH_DMALLOC does.
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+The usefulness of Dmalloc is much increased by compiling an entire
+project with the header, @file{dmalloc.h} -- easily achieved in Sic by
+conditionally adding it to @file{common-h.in}:
+
+@example
+m4_include(examples/sic-complex/sic/common-h.texi)
+@end example
+
+@ignore Didier Verna Fri Jun 23 09:51:51 CEST 2000
+XCALLOC instead of XMALLOCO
+
+2000-07-05  Gary V. Vaughan
+
+        Way ahead of you!  Thanks.
+@end ignore
+
+@noindent
+I have been careful to include the @file{dmalloc.h} header from the end
+of this file so that it overrides my own @emph{definitions} without
+renaming the function @emph{prototypes}.  Similarly I must be careful to
+accommodate Dmalloc's redefinition of the mallocation routines in
+@file{sic/xmalloc.c} and @file{sic/xstrdup.c}, by putting each file
+inside an @samp{#ifndef WITH_DMALLOC}.  That way, when compiling the
+project, if @option{--with-dmalloc} is specified and the
+@samp{WITH_DMALLOC} preprocessor symbol is defined, then Dmalloc's
+debugging definitions of @code{xstrdup} et. al. will be used in place of
+the versions I wrote.
+
+Enabling Dmalloc is now simply a matter of reconfiguring the whole
+package using the @option{--with-dmalloc} option, and disabling it again
+is a matter of reconfiguring without that option.
+
+The use of Dmalloc is beyond the scope of this book, and is in any case
+described very well in the documentation that comes with the package.  I
+strongly recommend you become familiar with it -- the time you invest
+here will pay dividends many times over in the time you save debugging.
+
+@ignore LW
+Guess what I'm going to say?:)  Please transition more into the next
+chapter/ summarize this one for the purpose of flow.
+
+2000-07-05  Gary V. Vaughan
+
+        Okay.
+@end ignore
+
+This chapter completes the description of the Sic library project, and
+indeed this part of the book.  All of the infrastructure for building an
+advanced command line shell is in place now -- you need only add the
+builtin and syntax function definitions to create a complete shell of
+your own.
+
+Each of the chapters in the next part of the book explores a more
+specialised application of the COLLECTIVE, starting with a discussion of
+M4, a major part of the implementation of Autoconf.
+
+@c Local variables:
+@c fill-column: 72
+@c End:

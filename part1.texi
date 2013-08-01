@@ -1,0 +1,438 @@
+@c -*-texinfo-*-
+@ignore
+@c %**start of menu
+* Introduction::
+* History::
+@c %**end of menu
+@end ignore
+
+@node Introduction
+@chapter Introduction
+
+Autoconf, Automake and Libtool are packages for making your software
+more portable and to simplify building it---usually on someone else's
+system.  Software portability and effective build systems are crucial
+aspects of modern software engineering practice.  It is unlikely that a
+software project would be started today with the expectation that the
+software would run on only one platform.  Hardware constraints may
+change the choice of platform, new customers with different kinds of
+systems may emerge or your vendor might introduce incompatible changes
+in newer versions of their operating system.  In addition, tools that
+make building software easier and less error prone are valuable.
+
+Autoconf is a tool that makes your packages more portable by performing
+tests to discover system characteristics before the package is compiled.
+Your source code can then adapt to these differences.
+
+Automake is a tool for generating @file{Makefile}s---descriptions of
+what to build---that conform to a number of standards.  Automake
+substantially simplifies the process of describing the organization of a
+package and performs additional functions such as dependency tracking
+between source files.
+
+Libtool is a command line interface to the compiler and linker that
+makes it easy to portably generate static and shared libraries,
+regardless of the platform it is running on.
+
+@menu
+* What this book is::
+* What the book is not::
+* Who should read this book::
+* How this book is organized::
+@end menu
+
+@node What this book is
+@section What this book is
+
+This book is a tutorial for Autoconf, Automake and Libtool, hereafter
+referred to as the COLLECTIVE.  The @sc{gnu} manuals that accompany each
+tools adequately document each tool in isolation.  Until now, there has
+not been a guide that has described how these tools work
+@emph{together}.
+
+As these tools have evolved over the years, design decisions have been
+made by contributors who clearly understand the associated problems, but
+little documentation exists that captures why things are the way they
+are.  By way of example, one might wonder why some Autoconf macros use
+shell constructs like:
+
+@smallexample
+if test "x$var" = xbar; then
+  echo yes 1>&5
+fi
+@end smallexample
+
+instead of the simpler:
+
+@smallexample
+if [ $var = bar ]; then
+  echo yes 1>&5
+fi
+@end smallexample
+
+Much of this reasoning is recorded in this book.
+
+@node What the book is not
+@section What the book is not
+
+This book is not a definitive reference to Autoconf, Automake or
+Libtool.  Attempting to do so would fill this book with information that
+is doomed to obsolescence.  For instance, you will not find a
+description of every predefined macro provided by Autoconf.  Instead,
+the book will attempt to help you understand any macro you encounter
+and, instead, influence how you approach software portability and
+package building.  The @sc{gnu} manual for each tool should be consulted
+as a reference.
+
+This book briefly introduces pertinent concepts, but does not attempt to
+teach them comprehensively.  You will find an introduction to writing
+@file{Makefile}s and Bourne shell scripts, but you should consult other
+references to become familiar with these broader topics.
+
+@node Who should read this book
+@section Who should read this book
+
+Revealing the mystery around the COLLECTIVE is likely to raise the
+interest of a wide audience of software developers, system
+administrators and technical managers.
+
+Software developers, especially those involved with free software
+projects, will find it valuable to understand how to use these tools.
+The COLLECTIVE are enjoying growing popularity in the free software
+community.  Developers of in-house projects can reap the same benefits
+by using these tools.
+
+System administrators can benefit from a working knowledge of these
+tools -- a common task for system administrators is to compile and
+install packages which commonly use the COLLECTIVE framework.
+Occasionally, a feature test may produce a false result, leading to a
+compilation error or a misbehaving program.  Some hacking is usually
+sufficient to get the package to compile, but knowing the correct way to
+fix the problem can assist the package maintainer.
+
+Finally, technical managers may find the discussion to be an insight
+into the complex nature of software portability and the process of
+building a large project.
+
+@node How this book is organized
+@section How this book is organized
+
+Like any good tutorial, this book starts with an explanation of simple
+concepts and builds on these fundamentals to progress to advanced topics.
+
+Part I of the book provides a history of the development of these
+tools and why they exist.
+
+Part II contains most of the book's content, starting with an
+introduction to concepts such as @file{Makefile}s and configuration
+triplets.  Later chapters introduce each tool and how to manage projects
+of varying sizes using the tools in concert.  Programs written in C and
+C++ can be non-portable if written carelessly.  Chapters 14 and 15 offer
+guidelines for writing portable programs in C and C++, respectively.
+
+Part III provides information that you are unlikely to find in any other
+documentation, that is based on extensive experience with the tools.  It
+embodies chapters that treat some advanced, yet essential, concepts such
+as the @command{m4} macro processor and how to write portable Bourne
+shell scripts.  Chapter 23 outlines how to migrate an existing package
+to the COLLECTIVE framework and will be of interest to many developers.
+One of the most mystifying aspects of using the COLLECTIVE for building
+packages in a cross-compilation environment.  This is de-mystified in
+Chapter 25.
+
+@node History
+@chapter History
+
+In this chapter we provide a brief history of the tools described in
+this book.  You don't need to know this history in order to use the
+tools.  However, the history of how the tools developed over time helps
+explain why the tools act the way that they do today.  Also, in a book
+like this, it's only fair for us to credit the original authors and
+sources of inspiration, and to explain what they did.
+
+@menu
+* Unix Diversity::
+* First Configure Programs::
+* Configure Development::
+* Automake Development::
+* Libtool Development::
+* Microsoft Windows Development::
+@end menu
+
+@node Unix Diversity
+@section The Diversity of Unix Systems
+
+Of the programs discussed in this book, the first to be developed was
+Autoconf.  Its development was determined by the history of the Unix
+operating system.
+
+The first version of Unix was written by Dennis Ritchie and Ken Thompson
+at Bell Labs in 1969.  During the 1970s, Bell Labs was not permitted to
+sell Unix commercially, but did distribute Unix to universities at
+relatively low cost.  The University of California at Berkeley added
+their own improvements to the Unix sources; the result was known as the
+@acronym{BSD} version of Unix.
+
+In the early 1980s, @acronym{AT&T} signed an agreement permitting them
+to sell Unix commercially.  The first @acronym{AT&T} version of Unix was
+known as System III.
+
+As the popularity of Unix increased during the 1980s, several other
+companies modified the Unix sources to create their own variants.
+Examples include SunOS from Sun Microsystems, Ultrix from Digital
+Equipment Corporation, and @sc{hp-ux} from Hewlett Packard.
+
+Although all of the Unix variants were fundamentally similar, there were
+various differences between them.  They had slightly different sets of
+header files and slightly different lists of functions in the system
+libraries, as well as more significant differences in areas such as
+terminal handling and job control.
+
+The emerging @sc{posix} standards helped to eliminate some of these
+differences.  However, in some areas @sc{posix} introduced new features,
+leading to more variants.  Also, different systems adopted the
+@sc{posix} standard at different times, leading to further disparities.
+
+All of these variations caused problems for programs distributed as
+source code.  Even a function as straightforward as @code{memcpy} was
+not available everywhere; the @acronym{BSD} system library provided the
+similar function @code{bcopy} instead, but the order of arguments was
+reversed.
+
+Program authors who wanted their programs to run on a wide variety of
+Unix variants had to be familiar with the detailed differences between
+the variants.  They also had to worry about the ways in which the
+variants changed from one version to another, as variants on the one
+hand converged on the @sc{posix} standard and on the other continued to
+introduce new and different features.
+
+While it was generally possible to use @code{#ifdef} to identify
+particular systems and versions, it became increasingly difficult to
+know which versions had which features.  It became clear that some more
+organized approach was needed to handle the differences between Unix
+variants.
+
+@node First Configure Programs
+@section The First Configure Programs
+
+By 1992, four different systems had been developed to help with source
+code portability:
+@itemize @bullet
+@item
+The Metaconfig program, by Larry Wall, Harlan Stenn, and
+Raphael Manfredi.
+@item
+The Cygnus @file{configure} script, by K. Richard Pixley, and the
+original @sc{gcc} @file{configure} script, by Richard Stallman.  These
+are quite similar, and the developers communicated regularly. @sc{gcc}
+is the @sc{gnu} Compiler Collection, formerly the @sc{gnu} C compiler.
+@item
+The @sc{gnu} Autoconf package, by David MacKenzie.
+@item
+Imake, part of the X Window system.
+@end itemize
+
+These systems all split building a program into two steps: a
+configuration step, and a build step.  For all the systems, the build
+step used the standard Unix @command{make} program.  The @command{make}
+program reads a set of rules in a @file{Makefile}, and uses them to
+build a program.  The configuration step would generate
+@file{Makefile}s, and perhaps other files, which would then be used
+during the build step.
+
+Metaconfig and Autoconf both use feature tests to
+determine the capabilities of the system.  They use Bourne shell scripts
+(all variants of Unix support the Bourne shell in one form or another)
+to run various tests to see what the system can support.
+
+The Cygnus @file{configure} script and the original @sc{gcc}
+@file{configure} script are also Bourne shell scripts.  They rely on
+little configuration files for each system variant, both header files
+and @file{Makefile} fragments.  In early versions, the user compiling
+the program had to tell the script which type of system the program
+should be built for; they were later enhanced with a shell script
+written by Per Bothner which determines the system type based on the
+standard Unix @command{uname} program and other information.
+
+Imake is a portable C program.  Imake can be
+customized for a particular system, and run as part of building a
+package.  However, it is more normally distributed with a package,
+including all the configuration information needed for supported
+systems.
+
+Metaconfig and Autoconf are programs used by program
+authors.  They produce a shell script which is distributed with the
+program's source code.  A user who wants to build the program runs the
+shell script in order to configure the source code for the particular
+system on which it is to be built.
+
+The Cygnus and @sc{gcc} @file{configure} scripts, and @command{imake},
+do not have this clear distinction between use by the developer and use
+by the user.
+
+The Cygnus and @sc{gcc} @file{configure} scripts included features to
+support cross development, both to support building a cross-compiler
+which compiles code to be run on another system, and to support building
+a program using a cross-compiler.
+
+Autoconf, Metaconfig and Imake did not
+have these features (they were later added to Autoconf); they
+only worked for building a program on the system on which it was to run.
+
+The scripts generated by Metaconfig are interactive by
+default: they ask questions of the user as they go along.  This permits
+them to determine certain characteristics of the system which it is
+difficult or impossible to test, such as the behavior of setuid
+programs.
+
+The Cygnus and @sc{gcc} @file{configure} scripts, and the scripts
+generated by @command{autoconf}, and the @command{imake} program, are
+not interactive: they determine everything themselves.  When using
+Autoconf, the package developer normally writes the script to accept
+command line options for features which can not be tested for, or
+sometimes requires the user to edit a header file after the
+@file{configure} script has run.
+
+@node Configure Development
+@section Configure Development
+
+The Cygnus @file{configure} script and the original @sc{gcc}
+@file{configure} script both had to be updated for each new Unix variant
+they supported.  This meant that packages which used them were
+continually out of date as new Unix variants appeared.  It was not hard
+for the developer to add support for a new system variant; however, it
+was not something which package users could easily do themselves.
+
+The same was true of Imake as it was commonly used.  While it
+was possible for a user to build and configure Imake for a
+particular system, it was not commonly done.  In practice, packages such
+as the X window system which use Imake are shipped with
+configuration information detailed for specific Unix variants.
+
+Because Metaconfig and Autoconf used feature tests,
+the scripts they generated were often able to work correctly on new Unix
+variants without modification.  This made them more flexible and easier
+to work with over time, and led to the wide adoption of Autoconf.
+
+In 1994, David MacKenzie extended Autoconf to incorporate the features
+of the Cygnus @file{configure} script and the original @sc{gcc}
+@file{configure} script.  This included support for using system
+specified header file and makefile fragments, and support for
+cross-compilation.
+
+@sc{gcc} has since been converted to use Autoconf, eliminating the
+@sc{gcc} @file{configure} script.  Most programs which use the Cygnus
+@file{configure} script have also been converted, and no new programs
+are being written to use the Cygnus @file{configure} script.
+
+The @command{metaconfig} program is still used today to configure Perl
+and a few other programs.  @command{imake} is still used to configure
+the X window system.  However, these tools are not generally used for
+new packages.
+
+@node Automake Development
+@section Automake Development
+
+By 1994, Autoconf was a solid framework for handling the differences
+between Unix variants.  However, program developers still had to write
+large @file{Makefile.in} files in order to use it.  The @file{configure}
+script generated by @command{autoconf} would transform the
+@file{Makefile.in} file into a @file{Makefile} used by the
+@command{make} program.
+
+A @file{Makefile.in} file has to describe how to build the program.  In
+the Imake equivalent of a @file{Makefile.in}, known as an
+@file{Imakefile}, it is only necessary to describe which source files
+are used to build the program.  When Imake generates a
+@file{Makefile}, it adds the rules for how to build the program itself.
+Later versions of the @acronym{BSD} @command{make} program also include
+rules for building a program.
+
+Since most programs are built in much the same way, there was a great
+deal of duplication in @file{Makefile.in} files.  Also, the @sc{gnu}
+project developed a reasonably complex set of standards for
+@file{Makefile}s, and it was easy to get some of the details wrong.
+
+These factors led to the development of Automake.  @command{automake},
+like @command{autoconf}, is a program run by a developer.  The developer
+writes files named @file{Makefile.am}; these use a simpler syntax than
+ordinary @file{Makefile}s.  @command{automake} reads the
+@file{Makefile.am} files and produces @file{Makefile.in} files.  The
+idea is that a script generated by @command{autoconf} converts these
+@file{Makefile.in} files into @file{Makefile}s.
+
+As with Imake and BSD @command{make}, the @file{Makefile.am}
+file need only describe the files used to build a program.
+@command{automake} automatically adds the necessary rules when it
+generates the @file{Makefile.in} file.  @command{automake} also adds any
+rules required by the @sc{gnu} @file{Makefile} standards.
+
+The first version of Automake was written by David MacKenzie in 1994.
+It was completely rewritten in 1995 by Tom Tromey.
+
+@node Libtool Development
+@section Libtool Development
+
+Over time, Unix systems added support for shared libraries.
+
+Conventional libraries, or static libraries, are linked into a program
+image.  This means that each program which uses a static library
+includes some or all of the library in the program binary on disk.
+
+Shared libraries, on the other hand, are a separate file.  A program
+which uses a shared library does not include a copy of the library; it
+only includes the name of the library.  Many programs can use a single
+shared library.
+
+Using a shared library reduces disk space requirements.  Since the
+system can generally share a single executable instance of the shared
+library among many programs, it also reduces swap space requirements at
+run time.  Another advantage is that it is possible to fix a bug by
+updating the single shared library file on disk, without requiring all
+the programs which use the library to be rebuilt.
+
+The first Unix shared library implementation was in System V release 3
+from @acronym{AT&T}.  The idea was rapidly adopted by other Unix
+vendors, appearing in SunOS, @sc{hp-ux}, @sc{aix}, and Digital Unix
+among others.  Unfortunately, each implementation differed in the
+creation and use of shared libraries and in the specific features which
+were supported.
+
+Naturally, packages distributed as source code which included libraries
+wanted to be able to build their own shared libraries.  Several
+different implementations were written in the Autoconf/Automake
+framework.
+
+In 1996, Gordon Matzigkeit began work on a package known as Libtool.
+Libtool is a collection of shell scripts which handle the differences
+between shared library generation and use on different systems.  It is
+closely tied to Automake, although it is possible to use it
+independently.
+
+Over time, Libtool has been enhanced to support more Unix variants and
+to provide an interface for standardizing shared library features.
+
+@node Microsoft Windows Development
+@section Microsoft Windows
+
+In 1995, Microsoft released Windows 95, which soon became the
+most widely-used operating system in the world.  Autoconf and Libtool
+were written to support portability across Unix variants, but they
+provided a framework to support portability to Windows as well.  This
+made it possible for a program to support both Unix and Windows from a
+single source code base.
+
+The key requirement of both Autoconf and Libtool was the Unix shell.
+The @sc{gnu} bash shell was ported to Windows as part of the Cygwin
+project, which was originally written by Steve Chamberlain.  The Cygwin
+project implements the basic Unix @sc{api} in Windows, making it
+possible to port Unix programs directly.
+
+Once the shell and the Unix @command{make} program (also provided by
+Cygwin) were available, it was possible to make Autoconf and Libtool
+support Windows directly, using either the Cygwin interface or the
+Visual C++ tools from Microsoft.  This involved handling details like
+the different file extensions used by the different systems, as well as
+yet another set of shared library features.  This first version of this
+work was by Ian Lance Taylor in 1998.  Automake has also been ported to
+Windows.  It requires Perl to be installed (@pxref{Prerequisite tools}).

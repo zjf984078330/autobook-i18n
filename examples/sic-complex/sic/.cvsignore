@@ -1,0 +1,7 @@
+*.texi
+*.la
+*.lo
+*.o
+configure.scan
+stamp-common
+common.h

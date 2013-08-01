@@ -1,0 +1,2171 @@
+@c -*-texinfo-*-
+@ignore
+@c %**start of menu
+* M4 ::
+* Writing Portable Bourne Shell::
+* Writing New Macros for Autoconf::
+* Migrating Existing Packages::
+* Integration with Cygnus Cygwin::
+* Cross Compilation::
+@c %**end of menu
+@end ignore
+
+
+@node M4
+@chapter M4
+
+M4 is a general purpose tool for processing text and has existed on Unix
+systems of all kinds for many years, rarely catching the attention of
+users.  Text generation through macro processing is not a new concept.
+Originally M4 was designed as the preprocessor for the Rational FORTRAN
+system and was influenced by the General Purpose Macro generator, GPM,
+first described by Stratchey in 1965!  @sc{gnu} M4 is the @sc{gnu}
+project's implementation of M4 and was written by Ren@'e Seindal in
+1990.
+
+In recent years, awareness of M4 has grown through its use by
+popular free software packages.  The Sendmail package incorporates a
+configuration system that uses M4 to generate its complex
+@file{sendmail.cf} file from a simple specification of the desired
+configuration.  Autoconf uses M4 to generate output files such
+as a @file{configure} script.
+
+It is somewhat unfortunate that users of COLLECTIVE need to know so much
+about M4, because it has been too exposed.  Many of these
+tools' implementation details were simply left up to M4,
+forcing the user to know about M4 in order to use them.  It is
+a well-known problem and there is a movement amongst the development
+community to improve this shortcoming in the future.  This deficiency is
+the primary reason that this chapter exists---it is important to have a
+good working knowledge of M4 in order to use the COLLECTIVE
+and to extend it with your own macros (@pxref{Writing New Macros for
+Autoconf}).
+
+The @sc{gnu} M4 manual provides a thorough tutorial on M4.  Please refer
+to it for additional information.
+
+@menu
+* What does M4 do? ::
+* How COLLECTIVE uses M4 ::
+* Fundamentals of M4 processing ::
+* Features of M4 ::
+* Writing macros within the COLLECTIVE framework ::
+@end menu
+
+@node What does M4 do?
+@section What does M4 do?
+
+@command{m4} is a general purpose tool suitable for all kinds of text
+processing applications---not unlike the C preprocessor, @command{cpp},
+with which you are probably familiar.  Its obvious application is as a
+front-end for a compiler---@command{m4} is in many ways superior to
+@command{cpp}.
+
+Briefly, @command{m4} reads text from the input and writes processed
+text to the output.  Symbolic macros may be defined which have
+replacement text.  As macro invocations are encountered in the input,
+they are replaced (``expanded'') with the macro's definition.  Macros
+may be defined with a set of parameters and the definition can specify
+where the actual parameters will appear in the expansion.  These
+concepts will be elaborated on in @ref{Fundamentals of M4 processing}.
+
+M4 includes a set of pre-defined macros that make it
+substantially more useful.  The most important ones will be discussed in
+@ref{Features of M4}.  These macros perform functions such as
+arithmetic, conditional expansion, string manipulation and running
+external shell commands.
+
+@node How COLLECTIVE uses M4
+@section How COLLECTIVE uses M4
+
+The COLLECTIVE may all appear to use M4, but in actual fact,
+it all boils down to @command{autoconf} that invokes @command{m4} to
+generate your @file{configure} script.  You might be surprised to learn
+that the shell code in @file{configure} does not use @command{m4} to
+generate a final @file{Makefile} from @file{Makefile.in}.  Instead, it
+uses @command{sed}, since that is more likely to be present on an
+end-user's system and thereby removes the dependency on @command{m4}.
+
+Automake and Libtool include a lot of M4 input files.  These
+are macros provided with each package that you can use directly (or
+indirectly) from your @file{configure.in}.  These packages don't invoke
+@command{m4} themselves.
+
+If you have already installed Autoconf on your system, you may have
+encountered problems due to its strict M4 requirements.
+Autoconf @emph{demands} to use @sc{gnu} M4, mostly due to it
+exceeding limitations present in other M4 implementations.  As
+noted by the Autoconf manual, this is not an onerous requirement, as it
+only affects package maintainers who must regenerate @file{configure}
+scripts.
+
+Autoconf's own @file{Makefile} will freeze some of the Autoconf
+@file{.m4} files containing macros as it builds Autoconf.  When M4
+freezes an input file, it produces another file which represents the
+internal state of the M4 processor so that the input file does not need
+to be parsed again.  This helps to reduce the startup time for
+@command{autoconf}.
+
+@node Fundamentals of M4 processing
+@section Fundamentals of M4 processing
+
+When properly understood, M4 seems like child's play.  However, it is
+common to learn M4 in a piecemeal fashion and to have an incomplete or
+inaccurate understanding of certain concepts.  Ultimately, this leads to
+hours of furious debugging.  It is important to understand the
+fundamentals well before progressing to the details.
+
+@menu
+* Token scanning ::
+* Macros and macro expansion ::
+* Quoting ::
+@end menu
+
+@node Token scanning
+@subsection Token scanning
+
+@command{m4} scans its input stream, generating (often, just copying)
+text to the output stream.  The first step that @command{m4} performs in
+processing is to recognize @emph{tokens}.  There are three kinds of
+tokens:
+
+@table @asis
+@item Names
+A name is a sequence of characters that starts with a letter or an
+underscore and may be followed by additional letters, characters and
+underscores.  The end of a name is recognized by the occurrence a
+character which is not any of the permitted characters---for example, a
+period.  A name is always a candidate for macro expansion (@ref{Macros
+and macro expansion}), whereby the name will be replaced in the output
+by a macro definition of the same name.
+
+@item Quoted strings
+m4_changequote(,)m4_dnl
+A sequence of characters may be @emph{quoted} (@ref{Quoting}) with a
+starting quote at the beginning of the string and a terminating quote at
+the end.  The default M4 quote characters are @samp{`} and
+@samp{'}, however Autoconf reassigns them to @samp{[} and @samp{]},
+respectively.  Suffice to say, M4 will remove the quote
+characters and pass the inner string to the output (@ref{Quoting}).
+m4_changequote(`,')m4_dnl
+
+@item Other tokens
+All other tokens are those single characters which are not recognized as
+belonging to any of the other token types.  They are passed through to
+the output unaltered.
+@end table
+
+Like most programming languages, M4 allows you to write
+comments in the input which will be ignored.  Comments are delimited by
+the @samp{#} character and by the end of a line.  Comments in
+M4 differ from most languages, though, in that the text within
+the comment, including delimiters, is passed through to the output
+unaltered.  Although the comment delimiting characters can be reassigned
+by the user, this is highly discouraged, as it may break COLLECTIVE
+macros which rely on this fact to pass Bourne shell comment lines--which
+share the same comment delimiters--through to the output unaffected.
+
+@node Macros and macro expansion
+@subsection Macros and macro expansion
+
+Macros are definitions of replacement text and are identified by a
+name---as defined by the syntax rules given in @ref{Token scanning}.
+M4 maintains an internal table of macros, some of which are
+built-ins defined when @command{m4} starts.  When a name is found in the
+input that matches a name registered in M4's macro table, the
+macro @emph{invocation} in the input is replaced by the macro's
+definition in the output.  This process is known as
+@emph{expansion}---even if the new text may be shorter!  Many beginners
+to M4 confuse themselves the moment they start to use phrases
+like ``I am going to call this particular macro, which returns this
+value''.  As you will see, macros differ significantly from
+@emph{functions} in other programming languages, regardless of how
+similar their syntax may seem.  You should instead use phrases like ``If
+I invoke this macro, it will expand to this text''.
+
+Suppose M4 knows about a simple macro called @samp{foo} that is
+defined to be @samp{bar}.  Given the following input, @command{m4} would
+produce the corresponding output:
+
+@smallexample
+That is one big foo.
+@result{}That is one big bar.
+@end smallexample
+
+The period character at the end of this sentence is not permitted in
+macro names, thus @command{m4} knows when to stop scanning the @samp{foo}
+token and consult the table of macro definitions for a macro named
+@samp{foo}.
+
+Curiously, macros are defined to @command{m4} using the built-in macro
+@code{define}.  The example shown above would be defined to @command{m4}
+with the following input:
+
+@smallexample
+m4_changequote(,)m4_dnl
+define(`foo', `bar')
+m4_changequote(`,')m4_dnl
+@end smallexample
+
+Since @code{define} is itself a macro, it too must have an
+expansion---by definition, it is the empty string, or @emph{void}.
+Thus, @command{m4} will appear to consume macro invocations like these from
+m4_changequote(,)m4_dnl
+the input.  The @code{`} and @code{'} characters are M4's default
+m4_changequote(`,')m4_dnl
+quote characters and play an important role (@ref{Quoting}).  Additional
+built-in macros exist for managing macro definitions (@ref{Macro
+management}).
+
+We've explored the simplest kind of macros that exist in M4.  To make
+macros substantially more useful, M4 extends the concept to macros which
+accept a number of arguments @footnote{@sc{gnu} M4 permits an unlimited
+number of arguments, whereas other versions of M4 limit the number of
+addressable arguments to nine.}.  If a macro is given arguments, the
+macro may address its arguments using the special macro names @samp{$1}
+through to @samp{$n}, where @samp{n} is the maximum number of arguments
+that the macro cares to reference.  When such a macro is invoked, the
+argument list must be delimited by commas and enclosed in parentheses.
+Any whitespace that precedes an argument is discarded, but trailing
+whitespace (for example, before the next comma) is preserved.  Here is
+an example of a macro which expands to its third argument:
+
+@smallexample
+m4_changequote(,)m4_dnl
+define(`foo', `$3')
+That is one big foo(3, `0x', `beef').
+m4_changequote(`,')m4_dnl
+@result{}That is one big beef.
+@end smallexample
+
+Arguments in M4 are simply text, so they have no type.  If a
+macro which accepts arguments is invoked, @command{m4} will expand the
+macro regardless of how many arguments are provided.  M4 will
+not produce errors due to conditions such as a mismatched number of
+arguments, or arguments with malformed values/types.  It is the
+responsibility of the macro to validate the argument list and this is an
+important practice when writing COLLECTIVE macros.  Some common
+M4 idioms have developed for this purpose and are covered in
+@ref{Conditionals}.  A macro that expects arguments can still be invoked
+without arguments---the number of arguments seen by the macro will be
+zero:
+
+@smallexample
+This is still one big foo.
+@result{}That is one big .
+@end smallexample
+
+A macro invoked with an empty argument list is not empty at all, but
+rather is considered to be a single empty string:
+
+@smallexample
+This is one big empty foo().
+@result{}That is one big .
+@end smallexample
+
+It is also important to understand how macros are expanded.  It is here
+that you will see why an M4 macro is not the same as a
+function in any other programming language.  The explanation you've been
+reading about macro expansion thus far is a little bit simplistic:
+macros are not exactly matched in the input and expanded in the output.
+In actual fact, the macro's expansion replaces the invocation in the
+input stream and it is @emph{rescanned} for further expansions until
+there are none remaining.  Here is an illustrative example:
+
+@smallexample
+m4_changequote(,)m4_dnl
+define(`foobar', `FUBAR')
+define(`f', `foo')
+f()bar
+@result{}FUBAR
+m4_changequote(`,')m4_dnl
+@end smallexample
+
+If the token @samp{a1} were to be found in the input, @command{m4} would
+replace it with @samp{a2} in the input stream and rescan.  This
+continues until no definition can be found for @code{a4}, at which point
+the literal text @samp{a4} will be sent to the output.  This is @emph{by
+far the biggest point of misunderstanding} for new M4 users.
+
+The same principles apply for the collection of arguments to macros
+which accept arguments.  Before a macro's actual arguments are handed to
+the macro, they are expanded until there are no more expansions left.
+Here is an example---using the built-in @code{define} macro (where the
+problems are no different) which highlights the consequences of this.
+Normally, @code{define} will redefine any existing macro:
+
+@smallexample
+define(foo, bar)
+define(foo, baz)
+@end smallexample
+
+In this example, we expect @samp{foo} to be defined to @samp{bar} and
+then redefined to @samp{baz}.  Instead, we've defined a new macro
+@samp{bar} that is defined to be @samp{baz}!  Why?  The second
+@code{define} invocation has its arguments expanded prior to the
+expanding the @code{define} macro.  At this stage, the name @samp{foo}
+is expanded to its original definition, @code{bar}.  In effect, we've
+stated:
+
+@smallexample
+define(`foo', `bar')
+define(`bar', `baz')
+@end smallexample
+
+Sometimes this can be a very useful property, but mostly it serves to
+thoroughly confuse the COLLECTIVE macro writer.  The key is to know that
+@command{m4} will expand as much text as it can as early as possible in its
+processing.  Expansion can be prevented by quoting @footnote{Which is
+m4_changequote(,)m4_dnl
+precisely what the @samp{`} and @samp{'} characters in all of the
+m4_changequote(`,')m4_dnl
+examples in this section are.} and is discussed in detail in the
+following section.
+
+@node Quoting
+@subsection Quoting
+
+It is been shown how @command{m4} expands macros when it encounters a name
+that matches a defined macro in the input.  There are times, however,
+when you wish to defer expansion.  Principally, there are three situations
+when this is so:
+
+@table @asis
+@item Free-form text
+There may be free-form text that you wish to appear at the output--and
+as such, be unaltered by any macros that may be inadvertently invoked in
+the input.  It is not always possible to know if some particular name is
+defined as a macro, so it should be quoted.
+
+@item Overcoming syntax rules
+Sometimes you may wish to form strings which would violate M4's
+syntax rules -- for example, you might wish to use leading whitespace or
+a comma in a macro argument.  The solution is to quote the entire
+string.
+
+@item Macro arguments
+This is the most common situation for quoting: when arguments to macros
+are to be taken literally and not expanded as the arguments are
+collected.  In the previous section, an example was given that
+demonstrates the effects of not quoting the first argument to
+@code{define}.  Quoting macro arguments is considered a good practice
+that you should emulate.
+@end table
+
+m4_changequote(,)m4_dnl
+Strings are quoted by surrounding the quoted text with the @samp{`} and
+m4_changequote(`,')m4_dnl
+@samp{'} characters.  When @command{m4} encounters a quoted string--as a
+type of token (@ref{Token scanning})--the quoted string is expanded to
+the string itself, with the outermost quote characters removed.
+
+Here is an example of a string that is triple quoted:
+
+@smallexample
+m4_changequote(,)m4_dnl
+```foo'''
+@result{}``foo''
+m4_changequote(`,')m4_dnl
+@end smallexample
+
+A more concrete example uses quoting to demonstrate how to prevent
+unwanted expansion within macro definitions:
+
+@smallexample
+m4_changequote(,)m4_dnl
+define(`foo', ``bar'')dnl
+define(`bar', `zog')dnl
+m4_changequote(`,')m4_dnl
+foo
+@result{}bar
+@end smallexample
+
+When the macro @samp{foo} is defined, @command{m4} strips off the outermost
+m4_changequote(,)m4_dnl
+quotes and registers the definition @code{`bar'}.  The @code{dnl} text has
+a special purpose, too, which will be covered in @ref{Discarding input}.
+m4_changequote(`,')m4_dnl
+
+As the macro @samp{foo} is expanded, the next pair of quote characters
+are stripped off and the string is expanded to @samp{bar}.  Since the
+expansion of the quoted string is the string itself (minus the quote
+characters), we have prevented unwanted expansion from the string
+@samp{bar} to @samp{zog}.
+
+As mentioned in @ref{Token scanning}, the default M4 quote
+m4_changequote(,)m4_dnl
+characters are @samp{`} and @samp{'}.  Since these are two commonly used
+characters in Bourne shell programming @footnote{The @samp{`} is used in
+grave redirection and @samp{'} for the shell's own quote character!},
+m4_changequote(`,')m4_dnl
+Autoconf reassigns these to the @samp{[} and @samp{]} characters--a
+symmetric looking pair of characters least likely to cause problems when
+writing COLLECTIVE macros.  From this point forward, we shall use
+@samp{[} and @samp{]} as the quote characters and you can forget about
+the default M4 quotes.
+
+Autoconf uses M4's built-in @code{changequote} macro to
+perform this reassignment and, in fact, this built-in is still available
+to you.  In recent years, the common practice when needing to use the
+quote characters @samp{[} or @samp{]} or to quote a string with an
+legitimately imbalanced number of the quote characters has been to
+invoke @code{changequote} and temporarily reassign them around the
+affected area:
+
+@smallexample
+dnl Uh-oh, we need to use the apostrophe! And even worse, we have two
+dnl opening quote marks and no closing quote marks.
+changequote(<<, >>)dnl
+perl -e 'print "$]\n";'
+changequote([, ])dnl
+@end smallexample
+
+This leads to a few potential problems, the least of which is that it's
+easy to reassign the quote characters and then forget to reset them,
+leading to total chaos!  Moreover, it is possible to entirely disable
+M4's quoting mechanism by blindly changing the quote characters
+to a pair of empty strings.
+
+In hindsight, the overwhelming conclusion is that using
+@code{changequote} within the COLLECTIVE framework is a bad idea.
+Instead, leave the quote characters assigned as @samp{[} and @samp{]}
+and use the special strings @code{@@<:@@} and @code{@@:>@@} anywhere you
+want real square brackets to appear in your output.  This is an easy
+practice to adopt, because it's faster and less error prone than using
+@code{changequote}:
+
+@smallexample
+perl -e 'print "$@@:>@@\n";'
+@end smallexample
+
+This, and other guidelines for using M4 in the COLLECTIVE
+framework are covered in detail in @ref{Writing macros within the
+GNU Autotools framework}.
+
+@node Features of M4
+@section Features of M4
+
+M4 includes a number of pre-defined macros that make it a
+powerful preprocessor.  We will take a tour of the most important
+features provided by these macros.  Although some of these features are
+not very relevant to COLLECTIVE users, Autoconf is implemented using
+most of them.  For this reason, it is useful to understand the features
+to better understand Autoconf's behavior and for debugging your own
+@file{configure} scripts.
+
+@menu
+* Discarding input ::
+* Macro management ::
+* Conditionals ::
+* Looping ::
+* Diversions ::
+* Including files ::
+@end menu
+
+@node Discarding input
+@subsection Discarding input
+
+A macro called @code{dnl} discards text from the input.  The @code{dnl}
+macro takes no arguments and expands to the empty string, but it has the
+side effect of discarding all input up to and including the next newline
+character.  Here is an example of @code{dnl} from the Autoconf source
+code:
+
+@c FIXME: ensure this comes out correctly!
+
+@example
+@group
+# AC_LANG_POP
+# -----------
+# Restore the previous language.
+define([AC_LANG_POP],
+[popdef([_AC_LANG])dnl
+ifelse(_AC_LANG, [_AC_LANG],
+        [AC_FATAL([too many $0])])dnl
+AC_LANG(_AC_LANG)])
+@end group
+@end example
+
+It is important to remember @code{dnl}'s behavior: it discards the
+newline character, which can have unexpected effects on generated
+@file{configure} scripts!  If you want a newline to appear in the
+output, you must add an extra blank line to compensate.
+
+@code{dnl} need not appear in the first column of a given line -- it
+will begin discarding input at any point that it is invoked in the input
+file.  However, be aware of the newline eating problem again!  In the example
+of @code{AC_TRY_LINK_FUNC} above, note the deliberate use of @code{dnl}
+to remove surplus newline characters.
+
+In general, @code{dnl} makes sense for macro invocations that appear on
+a single line, where you would expect the whole line to simply vanish
+from the output.  In the following subsections, @code{dnl} will be used
+to illustrate where it makes sense to use it.
+
+@node Macro management
+@subsection Macro management
+
+A number of built-in macros exist in M4 to manage macros.  We
+shall examine the most common ones that you're likely to encounter.
+There are others and you should consult the @sc{gnu} M4 manual for
+further information.
+
+The most obvious one is @code{define}, which defines a macro.  It
+expands to the empty string:
+
+@smallexample
+define([foo], [bar])dnl
+define([combine], [$1 and $2])dnl
+@end smallexample
+
+It is worth highlighting again the liberal use of quoting.  We wish to
+define a pair of macros whose names are @emph{literally} @code{foo} and
+@code{combine}.  If another macro had been previously defined with
+either of these names, @command{m4} would have expanded the macro
+immediately and passed the expansion of @code{foo} to @code{define},
+giving unexpected results.
+
+The @code{undefine} macro will remove a macro's definition from
+M4's macro table.  It also expands to the empty string:
+
+@smallexample
+undefine([foo])dnl
+undefine([combine])dnl
+@end smallexample
+
+Recall that once removed from the macro table, unmatched text will once
+more be passed through to the output.
+
+The @code{defn} macro expands to the definition of a macro, named by the
+single argument to @code{defn}.  It is quoted, so that it can be used as
+the body of a new, renamed macro:
+
+@smallexample
+define([newbie], defn([foo]))dnl
+undefine([foo])dnl
+@end smallexample
+
+The @code{ifdef} macro can be used to determine if a macro name has an
+existing definition.  If it does exist, @code{ifdef} expands to the
+second argument, otherwise it expands to the third:
+
+@smallexample
+ifdef([foo], [yes], [no])dnl
+@end smallexample
+
+Again, @code{yes} and @code{no} have been quoted to prevent expansion
+due to any pre-existing macros with those names.  @emph{Always} consider
+this a real possibility!
+
+Finally, a word about built-in macros: these macros are all defined for
+you when @command{m4} is started.  One common problem with these macros
+is that they are not in any kind of name space, so it's easier to
+accidentally invoke them or want to define a macro with an existing
+name.  One solution is to use the @code{define} and @code{defn}
+combination shown above to rename all of the macros, one by one.  This
+is how Autoconf makes the distinction clear.
+
+@node Conditionals
+@subsection Conditionals
+
+Macros which can expand to different strings based on runtime tests are
+extremely useful--they are used extensively throughout macros in
+COLLECTIVE and third party macros.  The macro that we will examine
+closely is @code{ifelse}.  This macro compares two strings and expands
+to a different string based on the result of the comparison.  The first
+form of @code{ifelse} is akin to the @code{if}/@code{then}/@code{else}
+construct in other programming languages:
+
+@smallexample
+ifelse(string1, string2, equal, not-equal)
+@end smallexample
+
+The other form is unusual to a beginner because it actually resembles a
+@code{case} statement from other programming languages:
+
+@smallexample
+ifelse(string1, string2, equala, string3, string4, equalb, default)
+@end smallexample
+
+If @samp{string1} and @samp{string2} are equal, this macro expands to
+@samp{equala}.  If they are not equal, @command{m4} will shift the argument
+list three positions to the left and try again:
+
+@smallexample
+ifelse(string3, string4, equalb, default)
+@end smallexample
+
+If @samp{string3} and @samp{string4} are equal, this macro expands to
+@samp{equalb}.  If they are not equal, it expands to @samp{default}.
+The number of cases that may be in the argument list is unbounded.
+
+As it has been mentioned in @ref{Macros and macro expansion}, macros
+that accept arguments may access their arguments through specially named
+macros like @samp{$1}.  If a macro has been defined, no checking of
+argument counts is performed before it is expanded and the macro may
+examine the number of arguments given through the @samp{$#} macro.  This
+has a useful result: you may invoke a macro with too few (or too many)
+arguments and the macro will still be expanded.  In the example below,
+@samp{$2} will expand to the empty string.
+
+@smallexample
+define([foo], [$1 and $2])dnl
+foo([a])
+@result{}a and
+@end smallexample
+
+This is useful because @command{m4} will expand the macro and give the
+macro the opportunity to test each argument for the empty string.  In
+effect, we have the equivalent of default arguments from other
+programming languages.  The macro can use @code{ifelse} to provide a
+default value if, say, @samp{$2} is the empty string.  You will notice
+in much of the documentation for existing Autoconf macros that arguments
+may be left blank to accept the default value.  This is an important
+idiom that you should practice in your own macros.
+
+In this example, we wish to accept the default shell code fragment for
+the case where @file{/etc/passwd} is found in the build system's file
+system, but output ``Big trouble!'' if it is not.
+
+@smallexample
+AC_CHECK_FILE([/etc/passwd], [], [echo "Big trouble!"])
+@end smallexample
+
+@node Looping
+@subsection Looping
+
+There is no support in M4 for doing traditional iterations
+(ie. @samp{for-do} loops), however macros may invoke themselves.  Thus,
+it is possible to iterate using recursion.  The recursive definition can
+use conditionals (@ref{Conditionals}) to terminate the loop at its
+completion by providing a trivial case.  The @sc{gnu} M4
+manual provides some clever recursive definitions, including a
+definition for a @code{forloop} macro that emulates a @samp{for-do}
+loop.
+
+It is conceivable that you might wish to use these M4 constructs when
+writing macros to generate large amounts of in-line shell code or
+arbitrarily nested @code{if; then; fi} statements.
+
+@node Diversions
+@subsection Diversions
+
+Diversions are a facility in M4 for diverting text from the input stream
+into a holding buffer.  There is a large number of diversion buffers in
+@sc{gnu} M4, limited only by available memory.  Text can be diverted
+into any one of these buffers and then ``undiverted'' back to the output
+(diversion number 0) at a later stage.
+
+Text is diverted and undiverted using the @code{divert} and
+@code{undivert} macros.  They expand to the empty string, with the side
+effect of setting the diversion.  Here is an illustrative example:
+
+@smallexample
+divert(1)dnl
+This goes at the end.
+divert(0)dnl
+This goes at the beginning.
+undivert(1)dnl
+@result{}This goes at the beginning.
+@result{}This goes at the end.
+@end smallexample
+
+It is unlikely that you will want to use diversions in your own macros,
+and it is difficult to do reliably without understanding the internals
+of Autoconf.  However, it is interesting to note that this is how
+@command{autoconf} generates fragments of shell code on-the-fly that
+must precede shell code at the current point in the @file{configure}
+script.
+
+@node Including files
+@subsection Including files
+
+M4 permits you to include files into the input stream using the
+@code{include} and @code{sinclude} macros.  They simply expand to the
+contents of the named file.  Of course, the expansion will be rescanned
+as the normal rules dictate (@ref{Fundamentals of M4 processing}).
+
+The difference between @code{include} and @code{sinclude} is subtle: if
+the filename given as an argument to @code{include} is not present, an
+error will be raised.  The @code{sinclude} macro will instead expand to
+the empty string---presumably the ``s'' stands for ``silent''.
+
+Older COLLECTIVE macros that tried to be modular would use the
+@code{include} and @code{sinclude} macros to import libraries of macros
+from other sources.  While this is still a workable mechanism, there is
+an active effort within the COLLECTIVE development community to improve
+the packaging system for macros.  An @option{--install} option is being
+developed to improve the mechanism for importing macros from a library.
+
+@node Writing macros within the COLLECTIVE framework
+@section Writing macros within the COLLECTIVE framework
+
+With a good grasp of M4 concepts, we may turn our attention to
+applying these principles to writing @file{configure.in} files and new
+@file{.m4} macro files.  There are some differences between writing
+generic M4 input files and macros within the COLLECTIVE framework
+and these will be covered in this section, along with some useful hints
+on working within the framework.  This section ties in closely with
+@ref{Writing New Macros for Autoconf}.
+
+Now that you are familiar with the capabilities of M4, you can
+forget about the names of the built-in M4 macros--they should
+be avoided in the COLLECTIVE framework.  Where appropriate, the
+framework provides a collection of macros that are laid on top of the
+M4 built-ins.  For instance, the macros in the @code{AC_}
+family are just regular M4 macros that take a number of
+arguments and rely on an extensive library of @code{AC_} support macros.
+
+@menu
+* Syntactic conventions ::
+* Debugging with M4 ::
+@end menu
+
+@node Syntactic conventions
+@subsection Syntactic conventions
+
+Some conventions have grown over the life of the COLLECTIVE, mostly as a
+disciplined way of avoiding M4 pitfalls.  These conventions
+are designed to make your macros more robust, your code easier to read
+and, most importantly, improve your chances for getting things to work
+the first time!  A brief list of recommended conventions appears below:
+
+@itemize @minus
+@item
+Do not use the M4 built-in @code{changequote}.  Any good macro
+will already perform sufficient quoting.
+
+@c FIXME: make sure the eg. part comes out correctly.
+
+@item
+Never use the argument macros (e.g. @samp{$1}) within shell comments and
+`dnl' remarks.  If such a comment were to be placed within a macro
+definition, M4 will expand the argument macros leading to strange
+results.  Instead, quote the argument number to prevent unwanted
+expansion.  For instance, you would use @samp{$[1]} in the comment.
+
+@item
+Quote the M4 comment character, @samp{#}.  This can appear often in
+shell code fragments and can have undesirable effects if M4 ignores any
+expansions in the text between the @samp{#} and the next newline.
+
+@item
+In general, macros invoked from @file{configure.in} should be placed one
+per line.  Many of the COLLECTIVE macros conclude their definitions with
+a @code{dnl} to prevent unwanted whitespace from accumulating in
+@file{configure}.
+
+@item
+Many of the @code{AC_} macros, and others which emulate their good
+behavior, permit default values for unspecified arguments.  It is
+considered good style to explicitly show your intention to use an empty
+argument by using a pair of quotes, such as @code{[]}.
+
+@item Always quote the names of macros used within the definitions of
+other macros.
+
+@item When writing new macros, generate a small @file{configure.in} that
+uses (and abuses!) the macro---particularly with respect to quoting.
+Generate a @file{configure} script with @command{autoconf} and inspect
+the results.
+@end itemize
+
+@node Debugging with M4
+@subsection Debugging with M4
+
+After writing a new macro or a @file{configure.in} template, the
+generated @file{configure} script may not contain what you expect.
+Frequently this is due to a problem in quoting (@pxref{Quoting}), but
+the interactions between macros can be complex.  When you consider that
+the arguments to COLLECTIVE macros are often shell scripts, things can
+get rather hairy.  A number of techniques exist for helping you to debug
+these kinds of problems.
+
+Expansion problems due to over-quoting and under-quoting can be
+difficult to pinpoint.  Autoconf half-heartedly tries to detect this
+condition by scanning the generated @file{configure} script for any
+remaining invocations of the @code{AC_} and @code{AM_} families of
+macros.  However, this only works for the @code{AC_} and @code{AM_}
+macros and not for third party macros.
+
+M4 provides a comprehensive facility for tracing expansions.  This makes
+it possible to see how macro arguments are expanded and how a macro is
+finally expanded.  Often, this can be half the battle in discovering if
+the macro definition or the invocation is at fault.  Autoconf 2.15 will
+include this tracing mechanism.  To trace the generation of
+@file{configure}, Autoconf can be invoked like so:
+
+@smallexample
+$ autoconf --trace=AC_PROG_CC
+@end smallexample
+
+Autoconf provides fine control over which macros are traced and the
+format of the trace output.  You should refer to the Autoconf manual for
+further details.
+
+@sc{gnu} @code{m4} also provides a debugging mode that can be helpful in
+discovering problems such as infinite recursion.  This mode is activated
+with the @option{-d} option.  In order to pass options to @code{m4},
+invoke Autoconf like so:
+
+@smallexample
+$ M4='m4 -dV' autoconf
+@end smallexample
+
+Another situation that can arise is the presence of shell syntax errors
+in the generated @file{configure} script.  These errors are usually
+obvious, as the shell will abort @file{configure} when the syntax error
+is encountered.  The task of then locating the troublesome shell code in
+the input files can be potentially quite difficult.  If the erroneous
+shell code appears in @file{configure.in}, it should be easy to
+spot--presumably because you wrote it recently!  If the code is imported
+from a third party macro, though, it may only be present because you
+invoked that macro.  A trick to help locate these kinds of errors is to
+place some magic text (@code{__MAGIC__}) throughout @file{configure.in}:
+
+@smallexample
+AC_INIT
+AC_PROG_CC
+__MAGIC__
+MY_SUSPECT_MACRO
+__MAGIC__
+AC_OUTPUT(Makefile)
+@end smallexample
+
+After @command{autoconf} has generated @file{configure}, you can search
+through it for the magic text to determine the extremities of the
+suspect macro.  If your erroneous code appears within the magic text
+markers, you've found the culprit!  Don't be afraid to hack up
+@file{configure}.  It can easily be regenerated.
+
+Finally, due to an error on your part, @command{m4} may generate a
+@file{configure} script that contains semantic errors.  Something as
+simple as inverted logic may lead to a nonsense test result:
+
+@smallexample
+checking for /etc/passwd... no
+@end smallexample
+
+Semantic errors of this kind are usually easy to solve once you can spot
+them.  A fast and simple way of tracing the shell execution is to use
+the shell's @option{-x} and @option{-v} options to turn on its own
+tracing.  This can be done by explicitly placing the required @code{set}
+commands into @file{configure.in}:
+
+@smallexample
+AC_INIT
+AC_PROG_CC
+set -x -v
+MY_BROKEN_MACRO
+set +x +v
+AC_OUTPUT(Makefile)
+@end smallexample
+
+This kind of tracing is invaluable in debugging shell code containing
+semantic errors.
+
+@node Writing Portable Bourne Shell
+@chapter Writing Portable Bourne Shell
+
+m4_include(chapters/portable-sh.texi)
+
+
+@node Writing New Macros for Autoconf
+@chapter Writing New Macros for Autoconf
+
+Autoconf is an extensible system which permits new macros to be written
+and shared between Autoconf users.  Although it is possible to perform
+custom tests by placing fragments of shell code into your
+@file{configure.in} file, it is better practice to encapsulate that test
+in a macro.  This encourages macro authors to make their macros more
+general purpose, easier to test and easier to share with other users.
+
+This chapter presents some guidelines for designing and implementing
+good Autoconf macros.  It will conclude with a discussion of the
+approaches being considered by the Autoconf development community for
+improving the creation and distribution of macros.  A more general
+discussion of macros can be found in @ref{Macros and macro expansion}.
+
+@menu
+* Autoconf Preliminaries::
+* Reusing Existing Macros::
+* Guidelines for writing macros::
+* Implementation specifics::
+* Future directions for macro writers::
+@end menu
+
+@node Autoconf Preliminaries
+@section Autoconf Preliminaries
+
+In a small package which only uses Autoconf, your own macros are placed
+in the @file{aclocal.m4} file--this includes macros that you may have
+obtained from third parties such as the Autoconf macro archive
+(@pxref{Autoconf macro archive}).  If your package additionally uses
+Automake, then these macros should be placed in @file{acinclude.m4}.
+The @code{aclocal} program from Automake reads in macro definitions from
+@file{acinclude.m4} when generating @file{aclocal.m4}.  When using
+Automake, for instance, @file{aclocal.m4} will include the definitions
+of @code{AM_} macros needed by Automake.
+
+In larger projects, it's advisable to keep your custom macros in a more
+organized structure.  Autoconf version 2.15 will introduce a new
+facility to explicitly include files from your @file{configure.in} file.
+The details have not solidified yet, but it will almost certainly
+include a mechanism for automatically included files with the correct
+filename extension from a subdirectory, say @file{m4/}.
+
+@node Reusing Existing Macros
+@section Reusing Existing Macros
+
+It goes without saying that it makes sense to reuse macros where
+possible--indeed, a search of the Autoconf macro archive might turn up a
+macro which does exactly what you want, alleviating the need to write a
+macro at all (@pxref{Autoconf macro archive}).
+
+It's more likely, though, that there will be generic, parameterized
+tests available that you can use to help you get your job done.
+Autoconf''s ``generic'' tests provide one such collection of macros.  A
+macro that wants to test for support of a new language keyword, for
+example, should rely on the @code{AC_TRY_COMPILE} macro.  This macro can
+be used to attempt to compile a small program and detect a failure due
+to, say, a syntax error.
+
+In any case, it is good practice when reusing macros to adhere to their
+publicized interface--do not rely on implementation details such as
+shell variables used to record the test's result unless this is
+explicitly mentioned as part of the macro's behavior.  Macros in the
+Autoconf core can, and do, change their implementation from time to
+time.
+
+Reusing a macro does not imply that the macro is necessarily invoked
+from within the definition of your macro.  Sometimes you might just want
+to rely on some action performed by a macro earlier in the configuration
+run--this is still a form of reuse.  In these cases, it is necessary to
+ensure that this macro has indeed run at least once before your macro is
+invoked.  It is possible to state such a dependency by invoking the
+@code{AC_REQUIRE} macro at the beginning of your macro's definition.
+
+Should you need to write a macro from scratch, the following sections
+will provide guidelines for writing better macros.
+
+@node Guidelines for writing macros
+@section Guidelines for writing macros
+
+There are some guidelines which should be followed when writing a macro.
+The criteria for a well-written macro are that it should be easy to use,
+well documented and, most importantly, portable.  Portability is a
+difficult problem that requires much anticipation on the part of the
+macro writer.  This section will discuss the design considerations for
+using a static Autoconf test at compile time versus a test at runtime.
+It will also cover some of the characteristics of a good macro including
+non-interactive behavior, properly formatted output and a clean
+interface for the user of the macro.
+
+@menu
+* Non-interactive behavior::
+* Testing system features at application runtime::
+* Output from macros::
+* Naming macros::
+* Macro interface::
+@end menu
+
+@node Non-interactive behavior
+@subsection Non-interactive behavior
+
+Autoconf's generated @file{configure} scripts are designed to be
+non-interactive -- they should not prompt the user for input.  Many
+users like the fact that @file{configure} can be used as part of a
+automated build process.  By introducing code into @file{configure}
+which prompts a user for more information, you will prohibit unattended
+operation.  Instead, you should use the @code{AC_ARG_ENABLE} macro in
+@file{configure.in} to add extra options to @file{configure} or consider
+runtime configuration (@pxref{Testing system features at application
+runtime}).
+
+@node Testing system features at application runtime
+@subsection Testing system features at application runtime
+
+When pondering how to handle a difficult portability problem or
+configurable option, consider whether the problem is better solved by
+performing tests at runtime or by providing a configuration file to
+customize the application.  Keep in mind that the results of tests that
+Autoconf can perform will ultimately affect how the program will be
+built--and can limit the number of machines that the program can be
+moved to without recompiling it.  Here is an example where this
+consideration had to be made in a real life project:
+
+The pthreads for Win32 project has sought to provide a standards
+compliant implementation for the @sc{posix} threads @sc{api}.  It does
+so by mapping the @sc{posix} @sc{api} functions into small functions
+which achieve the desired result using the Win32 thread @sc{api}.
+Windows 95, Windows 98 and Windows NT have different levels of support
+for a system call primitive that attempts to enter a critical section
+without blocking.  The @code{TryEnterCriticalSection} function is
+missing on Windows 95, is an inoperative stub on Windows 98, and works
+as expected on Windows NT.  If this behavior was to be checked by
+@file{configure} at compile time, then the resultant library would only
+work on the variant of Windows that it was compiled for.  Because it's
+more common to distribute packages for Windows in binary form, this
+would be an unfortunate situation.  Instead, it is sometimes preferable
+to handle this kind of portability problem with a test, performed by
+your code at runtime.
+
+@node Output from macros
+@subsection Output from macros
+
+Users who run @file{configure} expect a certain style of output as tests
+are performed.  As such, you should use the well-defined interface to
+the existing Autoconf macros for generating output.  Your tests should
+not arbitrarily echo messages to the standard output.
+
+Autoconf provides the following macros to output the messages for you in
+a consistent way (@pxref{Invoking configure}).  They are introduced here
+with a brief description of their purpose and are documented in more
+detail in @ref{Autoconf Macro Reference}.  Typically, a test starts by
+invoking @code{AC_MSG_CHECKING} to describe to the user what the test is
+doing and @code{AC_MSG_RESULT} is invoked to output the result of the
+test.
+
+@table @samp
+@item AC_MSG_CHECKING
+This macro is used to notify the user that a test is commencing.  It
+prints the text @samp{checking} followed by your message and ends with
+@samp{...}.  You should use @samp{AC_MSG_RESULT} after this macro to
+output the result of the test.
+@item AC_MSG_RESULT
+This macro notifies the user of a test result.  In general, the result
+should be the word @samp{yes} or @samp{no} for boolean tests, or the
+actual value of the result, such as a directory or filename.
+@item AC_MSG_ERROR
+This macro emits a hard error message and aborts @file{configure}--this
+should be used for fatal errors.
+@item AC_MSG_WARN
+This macro emits a warning to the user and proceeds.
+@end table
+
+@node Naming macros
+@subsection Naming macros
+
+Just like functions in a C program, it's important to choose a good name
+for your Autoconf macros.  A well-chosen name helps to unambiguously
+describe the purpose of the macro.  Macros in M4 are all named
+within a single namespace and, thus, it is necessary to follow a
+convention to ensure that names retain uniqueness.  This reasoning goes
+beyond just avoiding collisions with other macros--if you happen to
+choose a name that is already known to M4 as a definition of any
+kind, your macro's name could be rewritten by the prior definition
+during macro processing.
+
+One naming convention has emerged--prefixing each macro name with the
+name of the package that the macro originated in or the initials of the
+macro's author.  Macros are usually named in a hierarchical fashion,
+with each part of the name separated by underscores.  As you move
+left-to-right through each component of the name, the description
+becomes more detailed.  There are some high-level categories of macros
+suggested by the Autoconf manual that you may wish to use when forming a
+descriptive name for your own macro.  For example, if your macro tries
+to discover the existence of a particular C structure, you might wish to
+use @code{C} and @code{STRUCT} as components of its name.
+
+@table @samp
+@item C
+Tests related to constructs of the C programming language.
+@item DECL
+Tests for variable declarations in header files.
+@item FUNC
+Tests for functions present in (or absent from) libraries.
+@item HEADER
+Tests for header files.
+@item LIB
+Tests for libraries.
+@item PATH
+Tests to discover absolute filenames (especially programs).
+@item PROG
+Tests to determine the base names of programs.
+@item STRUCT
+Tests for definitions of C structures in header files.
+@item SYS
+Tests for operating system features, such as restartable system calls.
+@item TYPE
+Tests for built-in or declared C data types.
+@item VAR
+Tests for C variables in libraries.
+@end table
+
+Some examples of macro names formed in this way include:
+
+@table @samp
+@item AC_PROG_CC
+A test that looks for a program called @code{cc}.
+
+@item AC_C_INLINE
+A test that discovers if the C keyword @code{inline} is recognized.
+
+@item bje_CXX_MUTABLE
+A test, written by "bje", that discovers if the C++ keyword
+@code{mutable} is recognized.
+@end table
+
+@node Macro interface
+@subsection Macro interface
+
+When designing your macro, it is worth spending some time deciding on
+what your macro's interface--the macro's name and argument list--will
+be.  Often, it will be possible to extract general purpose
+functionality into a generic macro and to write a second macro which is
+a client of the generic one.  Like planning the prototype for a C
+function, this is usually a straightforward process of deciding what
+arguments are required by the macro to perform its function.  However,
+there are a couple of further considerations and they are discussed
+below.
+
+M4 macros refer to their arguments by number with a syntax such
+as @code{$1}.  It is typically more difficult to read an M4 macro
+definition and understand what each argument's designation is than in a
+C function body, where the formal argument is referred to by its name.
+Therefore, it's a good idea to include a standard comment block above
+each macro that documents the macro and gives an indication of what each
+argument is for.  Here is an example from the Autoconf source code:
+
+@example
+# AC_CHECK_FILE(FILE, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
+# -------------------------------------------------------------
+#
+# Check for the existence of FILE.
+@end example
+
+To remain general purpose, the existing Autoconf macros follow the
+convention of keeping side-effects outside the definition of the macro.
+Here, when a user invokes @samp{AC_CHECK_FILE}, they must provide shell
+code to implement the side effect that they want to occur if the
+@samp{FILE} is found or is not found.  Some macros implement a basic and
+desirable action like defining a symbol like @samp{HAVE_UNISTD_H} if no
+user-defined actions are provided.  In general, your macros should
+provide an interface which is consistent with the interfaces provided by
+the core Autoconf macros.
+
+M4 macros may have variable argument lists, so it is possible to
+implement macros which have defaults for arguments.  By testing each
+individual argument against the empty string with @samp{ifelse}, it is
+possible for users to accept the default behavior for individual
+arguments by passing empty values:
+
+@example
+AC_CHECK_FILE([/etc/passwd], [],
+              [AC_MSG_ERROR([something is really wrong])])
+@end example
+
+One final point to consider when designing the interface for a macro is
+how to handle macros that are generic in nature and, say, wish to set a
+cache variable whose name is based on one of the arguments.  Consider
+the @samp{AC_CHECK_HEADER} macro--it defines a symbol and makes an entry
+in the cache that reflects the result of the test it performs.
+@samp{AC_CHECK_HEADER} takes an argument -- namely the name of a header
+file to look for.  This macro cannot just make a cache entry with a name
+like @code{ac_cv_check_header}, since it would only work once; any
+further uses of this macro in @file{configure.in} would cause an
+incorrect result to be drawn from the cache.  Instead, the name of the
+symbol that is defined and the name of the cache variable that is set
+need to be computed from one of the arguments: the name of the header
+file being sought.  What we really need is to define
+@code{HAVE_UNISTD_H} and set the cache variable
+@code{ac_cv_header_unistd_h}.  This can be achieved with some @code{sed}
+and @code{tr} magic in the macro which transforms the filename into
+uppercase characters for the call to @code{AC_DEFINE} and into lowercase
+for the cache variable name.  Unknown characters such as @samp{.} need
+to be transformed into underscores.
+
+Some existing macros also allow the user to pass in the name of a cache
+variable name so that the macro does not need to compute a name.  In
+general, this should be avoided, as it makes the macro harder to use and
+exposes details of the caching system to the user.
+
+@node Implementation specifics
+@section Implementation specifics
+
+This section provides some tips about how to actually go about writing
+your macros once you've decided what it is that you want to test and how
+to go about testing for it.  It covers writing shell code for the test
+and optionally caching the results of those tests.
+
+@menu
+* Writing shell code::
+* Using M4 correctly::
+* Caching results::
+@end menu
+
+@node Writing shell code
+@subsection Writing shell code
+
+It is necessary to adopt a technique of writing portable Bourne shell
+code.  Often, shell programming tricks you might have learned are
+actually extensions provided by your favorite shell and are
+non-portable.  When in doubt, check documentation or try the construct
+on another system's Bourne shell.  For a thorough treatment of this topic,
+@ref{Writing Portable Bourne Shell}.
+
+@node Using M4 correctly
+@subsection Using M4 correctly
+
+Writing macros involves interacting with the M4 macro processor, which
+expands your macros when they are used in @file{configure.in}.  It is
+crucial that your macros use M4 correctly--and in particular, that they
+quote strings correctly.  @ref{M4} for a thorough treatment of this
+topic.
+
+@node Caching results
+@subsection Caching results
+
+Autoconf provides a caching facility, whereby the results of a test may
+be stored in a cache file.  The cache file is itself a Bourne shell
+script which is sourced by the @file{configure} script to set any
+``cache variables'' to values that are present in the cache file.
+
+The next time @file{configure} is run, the cache will be consulted for a
+prior result.  If there is a prior result, the value is re-used and the
+code that performs that test is skipped.  This speeds up subsequent runs
+of @file{configure} and configuration of deep trees, which can share a
+cache file in the top-level directory (@pxref{Invoking configure}).
+
+A custom macro is not required to do caching, though it is considered
+best practice.  Sometimes it doesn't make sense for a macro to do
+caching--tests for system aspects which may frequently change should not
+be cached.  For example, a test for free disk space should not employ
+caching as it is a dynamic characteristic.
+
+The @samp{AC_CACHE_CHECK} macro is a convenient wrapper for caching the
+results of tests.  You simply provide a description of the test, the
+name of a cache variable to store the test result to, and the body of
+the test.  If the test has not been run before, the cache will be primed
+with the result.  If the result is already in the cache, then the cache
+variable will be set and the test will be skipped.  Note that the name
+of the cache variable must contain @samp{_cv_} in order to be saved
+correctly.
+
+Here is the code for an Autoconf macro that ties together many of the
+concepts introduced in this chapter:
+
+@example
+m4_include(examples/cc-g.texi)
+@end example
+
+@node Future directions for macro writers
+@section Future directions for macro writers
+
+A future trend for Autoconf is to make it easier to write reliable
+macros and re-use macros written by others.  This section will describe
+some of the ideas that are currently being explored by those actively
+working on Autoconf.
+
+@menu
+* Autoconf macro archive::
+* Primitive macros to aid in building macros::
+@end menu
+
+@node Autoconf macro archive
+@subsection Autoconf macro archive
+
+In mid-1999, an official Autoconf macro archive was established on the
+World Wide Web by Peter Simons in Germany.  The archive collects useful
+Autoconf macros that might be useful to some users, but are not
+sufficiently general purpose to include in the core Autoconf
+distribution.  The URL for the macro archive is:
+@example
+http://www.gnu.org/software/ac-archive/
+@end example
+
+It is possible to retrieve macros that perform different kinds of tests
+from this archive.  The macros can then be inserted, in line, into your
+@file{aclocal.m4} or @file{acinclude.m4} file. The archive has been
+steadily growing since its inception.  Please try and submit your macros
+to the archive!
+
+@node Primitive macros to aid in building macros
+@subsection Primitive macros to aid in building macros
+
+Writing new macros is one aspect of Autoconf that has proven troublesome
+to users in the past, since this is one area where Autoconf's
+implementation details leak out.  Autoconf extensively uses @command{m4}
+to perform the translation of @file{configure.in} to @file{configure}.
+Thus, it is necessary to understand implementation details such as
+M4's quoting rules in order to write Autoconf macros (@ref{M4}).
+
+Another aspect of macro writing which is extremely hard to get right is
+writing portable Bourne shell scripts (@pxref{Writing Portable Bourne
+Shell}).  Writing portable software, be it in Bourne shell or C++, is
+something that can only be mastered with years of experience--and
+exposure to many different kinds of machines!  Rather than expect all
+macro writers to acquire this experience, it makes sense for Autoconf to
+become a ``knowledge base'' for this experience.
+
+With this in mind, one future direction for Autoconf will be to provide
+a library of low-level macros to assist in writing new macros. By way of
+hypothetical example, consider the benefit of using a macro named
+@code{AC_FOREACH} instead of needing to learn the hard way that some
+vendor's implementation of Bourne shell has a broken @code{for} loop
+construct.  This idea will be explored in future versions of Autoconf.
+
+When migrating existing packages to the COLLECTIVE, which is the topic
+of the next chapter, it is worth remember these guidelines for best
+practices as you write the necessary tests to make those packages
+portable.
+
+@node Migrating Existing Packages
+@chapter Migrating an Existing Package to COLLECTIVE
+
+Sometimes you have to take an existing package and wrap it in an
+Autoconf framework.  This is called @emph{autoconfiscating} @footnote{A
+term coined by Noah Friedman in the early days of Autoconf to denote the
+process of converting a package that configures itself without Autoconf
+to one which does.} a package.
+
+This chapter gives an overview of various approach that have been taken
+when autoconfiscating, explains some important points through examples,
+and discusses some of potential pitfalls.  It is not an exhaustive guide
+to autoconfiscation, as this process is much more art than it is
+science.
+
+@section Why autconfiscate
+
+There are a few reasons to autoconfiscate a package.  You might be
+porting your package to a new platform for the first time, or your might
+have outstripped the capabilities of an ad hoc system.  Or, you might be
+assuming maintenance of a package and you want to make it fit in with
+other packages that use the COLLECTIVE.
+
+For instance, for libgcj, we wanted to distribute some libraries needed
+for proper operation, such as the zip archiving program and the Boehm
+garbage collector.  In neither case was an autoconf framework available.
+However, we felt one was required in order to give the overall package a
+seamless and easy-to-use configuration and build system.  This attention
+to ease of install by users is important; it is one reason that the
+COLLECTIVE were written.
+
+In another case, a group I worked with was taking over maintenance of a
+preexisting package.  We preferred an Autoconf-based solution to the
+home-grown one already in use by the package -- the existing system was
+based on platform tests, not feature tests, and was difficult to
+navigate and extend.
+
+@section Overview of the Two Approaches
+
+The two fundamental approaches to autoconfiscation, which we call
+``quick and dirty'', and ``the full pull''.  In practice each project is
+a mix of the two.
+
+There are no hard-and-fast rules when autoconficating an existing
+package, particularly when you are planning to track future releases of
+the original source.  However, since Autoconf is so flexible, it is
+usually possible to find some reasonable way to implement whatever is
+required.  Automake isn't as flexible, and with ``strangely''
+constructed packages you're sometimes required to make a difficult
+choice: restructure the package, or avoid automake.
+
+@enumerate
+@item
+Quick And Dirty.
+
+In the quick and dirty approach, the goal is to get the framework up and
+running with the least effort.  This is the approach we took when we
+autoconficated both zip and the Boehm garbage collector.  Our reasons
+were simple: we knew we would be tracking the original packages closely,
+so we wanted to minimize the amount of work involved in importing the
+next release and subsequently merging in our changes.  Also, both
+packages were written to be portable (but in very different ways), so
+major modifications to the source were not required.
+
+@item
+The Full Pull.
+@c I believe this term comes from monster truck rallies.
+
+Sometimes you'd rather completely convert a package to COLLECTIVE.  For
+instance, you might have just assumed maintenance of a package.  Or, you
+might read this book and decide that your company's internal projects
+should use a state-of-the-art configuration system.
+
+The full pull is more work than the quick-and-dirty approach, but in the
+end it yields a more easily understood, and more idiomatic package.
+This in turn has maintenance benefits due to the relative absence of
+quirks, traps, and special cases -- oddities which creep into quick and
+dirty ports due to the need, in that case, to structure the build system
+around the package instead of having the ability to restructure the
+package to fit the build system.
+
+@end enumerate
+
+@section Example: Quick And Dirty
+
+As part of the @code{libgcj} project @footnote{See
+@uref{http://sourceware.cygnus.com/java/}}, I had to incorporate the
+@code{zip} program into our source tree.  Since this particular program
+is only used in one part of the build, and since this program was
+already fairly portable, I decided to take a quick-and-dirty approach to
+autoconfiscation.
+
+First I read through the @file{README} and @file{install.doc} files to
+see how @code{zip} is ordinarily built.  From there I learned that
+@code{zip} came with a @file{Makefile} used to build all Unix ports
+(and, for the initial autoconfiscation, Unix was all I was interested
+in), so I read that.  This file indicated that @code{zip} had few
+configurability options.
+
+Running @code{ifnames} on the sources, both Unix and generic, confirmed
+that the @code{zip} sources were mostly self-configuring, using
+system-specific @samp{#defines}---a practice which we recommend against;
+however for a quicky-and-dirty port it is not worth cleaning up:
+
+@example
+$ ifnames *.[ch] unix/*.[ch] | grep ^__ | head
+__386BSD__ unix/unix.c
+__CYGWIN32__ unix/osdep.h
+__CYGWIN__ unix/osdep.h
+__DATE__ unix/unix.c zipcloak.c zipnote.c zipsplit.c
+__DEBUG_ALLOC__ zip.c
+__ELF__ unix/unix.c
+__EMX__ fileio.c ttyio.h util.c zip.c
+__FreeBSD__ unix/unix.c
+__G ttyio.h
+__GNUC__ unix/unix.c zipcloak.c zipnote.c zipsplit.c
+@end example
+
+Based on this information I wrote my initial @file{configure.in}, which
+is the one still in use today:
+
+@example
+m4_dnl Process this file with autoconf to create configure.
+
+AC_INIT(ziperr.h)
+AM_INIT_AUTOMAKE(zip, 2.1)
+AM_MAINTAINER_MODE
+
+AC_PROG_CC
+
+AC_HEADER_DIRENT
+AC_DEFINE(UNIX)
+
+AC_LINK_FILES(unix/unix.c, unix.c)
+
+AC_OUTPUT(Makefile)
+@end example
+
+The one mysterious part of this @file{configure.in} is the define of the
+@samp{UNIX} preprocessor macro.  This define came directly from
+@code{zip}'s @file{unix/Makefile} file; @code{zip} uses this define to
+enable certain Unix-specific pieces of code.
+
+In this particular situation, I lucked out.  @code{zip} was unusually
+easy to autoconficate.  Typically more actual checks are required in
+@file{configure.in}, and more than a single iteration is required to get
+a workable configuration system.
+
+From @file{unix/Makefile} I also learned which files were expected to be
+built in order to produce the @code{zip} executable.  This information
+let me write my @file{Makefile.am}:
+
+@example
+## Process this file with automake to create Makefile.in.
+
+## NOTE: this file doesn't really try to be complete.  In particular
+m4_changequote(,)m4_dnl
+## `make dist' won't work at all.  We're just aiming to get the
+m4_changequote(`,')m4_dnl
+## program built.  We also don't bother trying to assemble code, or
+## anything like that.
+
+AUTOMAKE_OPTIONS = no-dependencies
+
+INCLUDES = -I$(srcdir)/unix
+
+bin_PROGRAMS = zip
+
+zip_SOURCES = zip.c zipfile.c zipup.c fileio.c util.c globals.c \
+    crypt.c ttyio.c unix.c crc32.c crctab.c deflate.c trees.c bits.c
+
+## This isn't really correct, but we don't care.
+$(zip_OBJECTS) : zip.h ziperr.h tailor.h unix/osdep.h crypt.h \
+		revision.h ttyio.h unix/zipup.h
+@end example
+
+This file provides a good look at some of the tradeoffs involved.  In my
+case, I didn't care about full correctness of the resulting
+@file{Makefile.am} -- I wasn't planning to maintain the project, I just
+wanted it to build in my particular set of environments.
+
+So, I sacrificed @samp{dist} capability to make my work easier.  Also, I
+decided to disable dependency tracking and instead make all the
+resulting object files depend on all the headers in the project.  This
+approach is inefficient, but in my situation perfectly reasonable, as I
+wasn't planning to do any actual development on this package -- I was
+simply looking to make it build so that it could be used to build the
+parts of the package I was actually hacking.
+
+
+@section Example: The Full Pull
+
+Suppose instead that I wanted to fully autoconfiscate @code{zip}.  Let's
+ignore for now that @code{zip} can build on systems to which the
+COLLECTIVE have not been ported, like @sc{tops-20}---perhaps a big
+problem back in the real world.
+
+The first step should always be to run @code{autoscan}.  @code{autoscan}
+is a program which examines your source code and then generates a file
+called @file{configure.scan} which can be used as a rough draft of a
+@file{configure.in}.  @code{autoscan} isn't perfect, and in fact in some
+situations can generate a @file{configure.scan} which @command{autoconf}
+won't directly accept, so you should examine this file by hand before
+renaming it to @file{configure.in}.
+
+@code{autoscan} doesn't take into account macro names used by your
+program.  For instance, if @code{autoscan} decides to generate a check
+for @file{<fcntl.h>}, it will just generate ordinary @command{autoconf}
+code which in turn might define @samp{HAVE_FCNTL_H} at @code{configure}
+time.  This just means that @code{autoscan} isn't a panacea -- you will
+probably have to modify your source to take advantage of the code that
+@code{autoscan} generates.
+
+Here is the @file{configure.scan} I get when I run @code{autoscan} on
+@code{zip}:
+@example
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(bits.c)
+
+dnl Checks for programs.
+AC_PROG_AWK
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+
+dnl Checks for libraries.
+m4_changequote(,)m4_dnl
+dnl Replace `main' with a function in -lx:
+m4_changequote(`,')m4_dnl
+AC_CHECK_LIB(x, main)
+
+dnl Checks for header files.
+AC_HEADER_DIRENT
+AC_HEADER_STDC
+AC_CHECK_HEADERS(fcntl.h malloc.h sgtty.h strings.h sys/ioctl.h \
+termio.h unistd.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_SIZE_T
+AC_STRUCT_ST_BLKSIZE
+AC_STRUCT_ST_BLOCKS
+AC_STRUCT_ST_RDEV
+AC_STRUCT_TM
+
+dnl Checks for library functions.
+AC_PROG_GCC_TRADITIONAL
+AC_FUNC_MEMCMP
+AC_FUNC_MMAP
+AC_FUNC_SETVBUF_REVERSED
+AC_TYPE_SIGNAL
+AC_FUNC_UTIME_NULL
+AC_CHECK_FUNCS(getcwd mktime regcomp rmdir strstr)
+
+AC_OUTPUT(acorn/makefile unix/Makefile Makefile atari/Makefile)
+@end example
+
+As you can see, this isn't suitable for immediate use as
+@file{configure.in}.  For instance, it generates several
+@file{Makefile}s which we know we won't need.  At this point there are
+two things to do in order to fix this file.
+
+First, we must fix outright flaws in @file{configure.scan}, add checks
+for libraries, and the like.  For instance, we might also add code to
+see if we are building on Windows and set a variable appropriately:
+
+@example
+AC_CANONICAL_HOST
+case "$target" in
+  *-cygwin* | *-mingw*)
+    INCLUDES='-I$(srcdir)/win32'
+    ;;
+  *)
+    # Assume Unix.
+    INCLUDES='-I$(srcdir)/unix'
+    ;;
+esac
+AC_SUBST(INCLUDES)
+@end example
+
+Second, we must make sure that the @code{zip} sources use the results we
+compute.  So, for instance, we would check the @code{zip} source to see
+if we should use @samp{HAVE_MMAP}, which is the result of calling
+@code{AC_FUNC_MMAP}.
+
+At this point you might also consider using a configuration header such
+as is generated by @code{AC_CONFIG_HEADER}.  Typically this involves
+editing all your source files to include the header, but in the long run
+this is probably a cleaner way to go than using many @code{-D} options
+on the command line.  If you are making major source changes in order to
+fully adapt your code to @command{autoconf}'s output, adding a
+@samp{#include} to each file will not be difficult.
+
+This step can be quite difficult if done thoroughly, as it can involve
+radical changes to the source.  After this you will have a minimal but
+functional @file{configure.in} and a knowledge of what portability
+information your program has already incorporated.
+
+Next, you want to write your @file{Makefile.am}s.  This might involve
+restructuring your package so that it can more easily conform to what
+Automake expects.  This work might also involve source code changes if
+the program makes assumptions about the layout of the install tree --
+these assumptions might very well break if you follow the @sc{gnu} rules
+about the install layout.
+
+At the same time as you are writing your @file{Makefile.am}s, you might
+consider @emph{libtoolizing} your package.  This makes sense if you want
+to export shared libraries, or if you have libraries which several
+executables in your package use.
+
+In our example, since there is no library involved, we won't use Libtool.
+The @file{Makefile.am} used in the minimal example is nearly sufficient
+for our use, but not quite.  Here's how we change it to add dependency
+tracking and @code{dist} support:
+
+@example
+## Process this file with automake to create Makefile.in.
+
+bin_PROGRAMS = zip
+
+if UNIX
+bin_SCRIPTS = unix/zipgrep
+os_sources = unix/unix.c
+else
+os_sources = win32/win32.c win32zip.c
+endif
+zip_SOURCES = zip.c zipfile.c zipup.c fileio.c util.c globals.c \
+              crypt.c ttyio.c crc32.c crctab.c deflate.c trees.c \
+              bits.c $(os_sources)
+
+## It was easier to just list all the source files than to pick out the
+## non-source files.
+EXTRA_DIST = algorith.doc README TODO Where crc_i386.S bits.c crc32.c \
+acorn/RunMe1st acorn/ReadMe acorn/acornzip.c acorn/makefile \
+acorn/match.s acorn/osdep.h acorn/riscos.c acorn/riscos.h \
+acorn/sendbits.s acorn/swiven.h acorn/swiven.s acorn/zipup.h crctab.c \
+crypt.c crypt.h deflate.c ebcdic.h fileio.c globals.c history \
+...
+wizdll/wizdll.def wizdll/wizmain.c wizdll/wizzip.h wizdll/zipdll16.mak \
+wizdll/zipdll32.mak
+@end example
+@noindent
+The extremely long @samp{EXTRA_DIST} macro above has be truncated for
+brevity, denoted by the @samp{...} line.
+
+Note that we no longer define @code{INCLUDES} -- it is now automatically
+defined by @code{configure}.  Note also that, due to a small
+technicality, this @file{Makefile.am} won't really work with Automake
+1.4.  Instead, we must modify things so that we don't try to compile
+@file{unix/unix.c} or other files from subdirectories.
+
+
+@node Integration with Cygnus Cygwin
+@chapter Using COLLECTIVE with Cygnus Cygwin
+
+m4_include(chapters/cygwin.texi)
+
+@node Cross Compilation
+@chapter Cross Compilation with COLLECTIVE
+@cindex cross compilation
+
+Normally, when you build a program, it runs on the system on which you
+built it.  For example, if you compile a simple program, you can
+immediately run it on the same machine.
+
+This is normally how COLLECTIVE is used as well.  You run the
+@file{configure} script on a particular machine, you run @code{make} on
+the same machine, and the resulting program also runs on the same
+machine. However, there are cases where it is useful to build a program
+on one machine and run it on another.
+
+One common example is a program which runs on an @dfn{embedded system}.
+An embedded system is a special purpose computer, often part of a larger
+system, such as the computers found within modern automobiles.  An
+embedded system often does not support a general programming
+environment, so there is no way to run a shell or a compiler on the
+embedded system.  However, it is still necessary to write programs to
+run on the embedded system.  These programs are built on a different
+machine, normally a general purpose computer.  The resulting programs
+can not be run directly on the general purpose computer.  Instead, they
+are copied onto the embedded system and run there.  (We are omitting
+many details and possibilities of programming embedded systems here, but
+this should be enough to understand the the points relevant to
+COLLECTIVE.  For more information, see a book such as @cite{Programming
+Embedded Systems} by Michael Barr.)
+
+Another example where it is useful to build a program on one machine and
+run it on another is the case when one machine is much faster.  It can
+sometimes be useful to use the faster machine as a compilation server,
+to build programs which are then copied to the slower machine and run
+there.
+
+Building a program on one type of system which runs on a different type
+of system is called @dfn{cross compiling}.  Doing this requires a
+specially configured compiler, known as a @dfn{cross compiler}.
+Similarly, we speak of cross assemblers, cross linkers, etc.  When it is
+necessary to explicitly distinguish the ordinary sort of compiler, whose
+output runs on the same type of system, from a cross compiler, we call
+the ordinary compiler a @dfn{native compiler}.  Although the debugger is
+not strictly speaking a compilation tool, it is meaningful to speak of a
+cross debugger: a debugger which is used to debug code which runs on
+another system.
+
+COLLECTIVE supports cross compilation in two distinct though related
+ways.  Firstly, COLLECTIVE supports configuring and building a cross
+compiler or other cross compilation tools.  Secondly, COLLECTIVE
+supports building tools using a cross compiler (this is sometimes called
+a @dfn{Canadian Cross}).  In the rest of this chapter we will explain
+how to use COLLECTIVE to do these tasks.
+
+If you are not interested in doing cross compilation, you may skip this
+chapter.  However, if you are developing @file{configure} scripts, we
+recommend that you at least skim this chapter to get some hints as to
+how to write them so that it is possible to build your package using a
+cross compiler; in particular, see @ref{Supporting Cross Compiler}.
+Even if your package is useless for an embedded system, it is possible
+that somebody with a very fast compilation server will want to use it to
+cross compile your package.
+
+@menu
+* Host and Target::
+* Specifying the Target::
+* Using the Target Type::
+* Building with a Cross Compiler::
+@end menu
+
+@node Host and Target
+@section Host and Target
+@cindex host system
+@cindex target system
+
+We will first discuss using COLLECTIVE to build cross compilation tools.
+For example, the information in this section will explain how to
+configure and build the @sc{gnu} cc compiler as a cross compiler.
+
+When building cross compilation tools, there are two different systems
+involved: the system on which the tools will run, and the system for
+which the tools will generate code.  The system on which the tools will
+run is called the @dfn{host} system.  The system for which the tools
+generate code is called the @dfn{target} system.
+
+For example, suppose you have a compiler which runs on a @sc{gnu}/Linux
+system and generates @acronym{ELF} programs for a MIPS-based embedded
+system.  In this case, the @sc{gnu}/Linux system is the host, and the
+MIPS @acronym{ELF} system is the target.  Such a compiler could be
+called a @sc{gnu}/Linux cross MIPS @acronym{ELF} compiler, or,
+equivalently, a @samp{i386-linux-gnu} cross @samp{mips-elf} compiler.
+We discussed the latter sorts of names earlier; see @ref{Configuration
+Names}.
+@c the @ref above is a reference to section 6.5 on Configuration
+@c Names.
+
+Naturally, most programs are not cross compilation tools.  For those
+programs, it does not make sense to speak of a target.  It only makes
+sense to speak of a target for programs like the @sc{gnu} compiler or
+the @sc{gnu} binutils which actually produce running code.  For example,
+it does not make sense to speak of the target of a program like
+@command{make}.
+
+Most cross compilation tools can also serve as native tools.  For a
+native compilation tool, it is still meaningful to speak of a target.
+For a native tool, the target is the same as the host.  For example, for
+a @sc{gnu}/Linux native compiler, the host is @sc{gnu}/Linux, and the target is
+also @sc{gnu}/Linux.
+
+@node Specifying the Target
+@section Specifying the Target
+
+By default, the @samp{configure} script will assume that the target is
+the same as the host.  This is the more common case; for example, when
+the target is the same as the host, you get a native compiler rather
+than a cross compiler.
+
+@cindex @option{--target} option
+@cindex target option
+@cindex configure target
+If you want to build a cross compilation tool, you must specify the
+target explicitly by using the @option{--target} option when you run
+@samp{configure} @xref{Invoking configure}.  The argument to
+@option{--target} is the configuration name of the system for which you
+wish to generate code.  @xref{Configuration Names}.  For example, to
+build tools which generate code for a MIPS @acronym{ELF} embedded
+system, you would use @option{--target mips-elf}.
+@c the @xref above is a reference to section 6.5 on Configuration
+@c Names.
+
+@node Using the Target Type
+@section Using the Target Type
+
+A @file{configure} script for a cross compilation tool will use the
+@option{--target} option to control how it is built, so that the
+resulting program will produce programs which run on the appropriate
+system.  In this section we explain how you can write your own configure
+scripts to support the @option{--target} option.
+
+@cindex @samp{AC_CANONICAL_SYSTEM}
+You must start by putting @samp{AC_CANONICAL_SYSTEM} in
+@file{configure.in}.@*  @samp{AC_CANONICAL_SYSTEM} will look for a
+@option{--target} option and canonicalize it using the @file{config.sub}
+shell script (for more information about configuration names,
+canonicalizing them, and @file{config.sub}, @pxref{Configuration
+Names}).  @samp{AC_CANONICAL_SYSTEM} will also run
+@samp{AC_CANONICAL_HOST} to get the host information.
+
+The host and target type will be recorded in the following shell
+variables:
+
+@c This table is a list of terms with definitions.  Each @item is the
+@c term being defined.  The text after the @item line defines the term.
+@c This can be formatted in any reasonable fashion.
+@table @samp
+@item host
+The canonical configuration name of the host.  This will normally be
+determined by running the @file{config.guess} shell script, although the
+user is permitted to override this by using an explicit @option{--host}
+option.
+@item target
+The canonical configuration name of the target.
+@item host_alias
+The argument to the @option{--host} option, if used.  Otherwise, the same
+as the @samp{host} variable.
+@item target_alias
+The argument to the @option{--target} option.  If the user did not specify
+a @option{--target} option, this will be the same as @samp{host_alias}.
+@item host_cpu
+@itemx host_vendor
+@itemx host_os
+The first three parts of the canonical host configuration name.
+@item target_cpu
+@itemx target_vendor
+@itemx target_os
+The first three parts of the canonical target configuration name.
+@end table
+
+Note that if @samp{host} and @samp{target} are the same string, you can
+assume a native configuration.  If they are different, you can assume a
+cross configuration.
+
+It is possible for @samp{host} and @samp{target} to represent the same
+system, but for the strings to not be identical.  For example, if
+@samp{config.guess} returns @samp{sparc-sun-sunos4.1.4}, and somebody
+configures with @option{--target sparc-sun-sunos4.1}, then the slight
+differences between the two versions of SunOS may be unimportant for
+your tool.  However, in the general case it can be quite difficult to
+determine whether the differences between two configuration names are
+significant or not.  Therefore, by convention, if the user specifies a
+@option{--target} option without specifying a @option{--host} option, it is
+assumed that the user wants to configure a cross compilation tool.
+
+The @samp{target} variable should not be handled in the same way as the
+@samp{target_alias} variable.  In general, whenever the user may
+actually see a string, @samp{target_alias} should be used.  This
+includes anything which may appear in the file system, such as a
+directory name or part of a tool name.  It also includes any tool
+output, unless it is clearly labelled as the canonical target
+configuration name.  This permits the user to use the @option{--target}
+option to specify how the tool will appear to the outside world.  On the
+other hand, when checking for characteristics of the target system,
+@samp{target} should be used.  This is because a wide variety of
+@option{--target} options may map into the same canonical configuration
+name.  You should not attempt to duplicate the canonicalization done by
+@samp{config.sub} in your own code.
+
+By convention, cross tools are installed with a prefix of the argument
+used with the @option{--target} option, also known as
+@samp{target_alias}.  If the user does not use the @option{--target}
+option, and thus is building a native tool, no prefix is used.  For
+example, if @command{gcc} is configured with @option{--target mips-elf},
+then the installed binary will be named @file{mips-elf-gcc}.  If
+@command{gcc} is configured without a @option{--target} option, then the
+installed binary will be named @file{gcc}.
+
+The Autoconf macro @samp{AC_ARG_PROGRAM} will handle the names of
+binaries for you.  If you are using Automake, no more need be done; the
+programs will automatically be installed with the correct prefixes.
+Otherwise, see the Autoconf documentation for @samp{AC_ARG_PROGRAM}.
+
+@node Building with a Cross Compiler
+@section Building with a Cross Compiler
+
+It is possible to build a program which uses COLLECTIVE on one system
+and to run it on a different type of system.  In other words, it is
+possible to build programs using a cross compiler.  In this section, we
+explain what this means, how to build programs this way, and how to
+write your @file{configure} scripts to support it.  Building a program
+on one system and running it on another is sometimes referred to as a
+@dfn{Canadian Cross}@footnote{The name Canadian Cross comes from the
+most complex case, in which three different types of systems are used.
+At the time that these issues were being hashed out, Canada had three
+national political parties.}.
+
+@menu
+* Canadian Cross Example::
+* Canadian Cross Concepts::
+* Build Cross Host Tools::
+* Build and Host Options::
+* Canadian Cross Tools::
+* Supporting Cross Compiler::
+@end menu
+
+@node Canadian Cross Example
+@subsection Canadian Cross Example
+
+We'll start with an example of a Canadian Cross, to make sure that the
+concepts are clear.  Using a @sc{gnu}/Linux system, you can build a
+program which will run on a Solaris system.  You would use a
+@sc{gnu}/Linux cross Solaris compiler to build the program.  You could
+not run the resulting programs on your @sc{gnu}/Linux system.  After
+all, they are Solaris programs.  Instead, you would have to copy the
+result over to a Solaris system before you could run it.
+
+Naturally, you could simply build the program on the Solaris system in
+the first place.  However, perhaps the Solaris system is not available
+for some reason; perhaps you don't actually have one, but you want to
+build the tools for somebody else to use.  Or perhaps your @sc{gnu}/Linux
+system is much faster than your Solaris system.
+
+A Canadian Cross build is most frequently used when building programs to
+run on a non-Unix system, such as DOS or Windows.  It may be simpler to
+configure and build on a Unix system than to support the COLLECTIVE
+tools on a non-Unix system.
+
+@node Canadian Cross Concepts
+@subsection Canadian Cross Concepts
+
+When building a Canadian Cross, there are at least two different systems
+involved: the system on which the tools are being built, and the system
+on which the tools will run.  The system on which the tools are being
+built is called the @dfn{build} system.  The system on which the tools
+will run is called the host system.  For example, if you are building a
+Solaris program on a @sc{gnu}/Linux system, as in the previous example,
+the build system would be @sc{gnu}/Linux, and the host system would be
+Solaris.
+
+Note that we already discussed the host system above; see @ref{Host and
+Target}.  It is, of course, possible to build a cross compiler using a
+Canadian Cross (i.e., build a cross compiler using a cross compiler).
+In this case, the system for which the resulting cross compiler
+generates code is the target system.
+
+An example of building a cross compiler using a Canadian Cross would be
+building a Windows cross MIPS @acronym{ELF} compiler on a @sc{gnu}/Linux
+system.  In this case the build system would be @sc{gnu}/Linux, the host
+system would be Windows, and the target system would be MIPS
+@acronym{ELF}.
+
+@node Build Cross Host Tools
+@subsection Build Cross Host Tools
+
+In order to configure a program for a Canadian Cross build, you must
+first build and install the set of cross tools you will use to build the
+program.  These tools will be build cross host tools.  That is, they
+will run on the build system, and will produce code that runs on the
+host system.  It is easy to confuse the meaning of build and host here.
+Always remember that the build system is where you are doing the build,
+and the host system is where the resulting program will run.  Therefore,
+you need a build cross host compiler.
+
+In general, you must have a complete cross environment in order to do
+the build.  This normally means a cross compiler, cross assembler, and
+so forth, as well as libraries and header files for the host system.
+Setting up a complete cross environment can be complex, and is beyond
+the scope of this book.  You may be able to get more information from
+the @samp{crossgcc} mailing list and FAQ; see
+@uref{http://www.objsw.com/CrossGCC/}.
+
+@node Build and Host Options
+@subsection Build and Host Options
+@cindex configuring a canadian cross
+@cindex canadian cross, configuring
+
+@cindex @option{--build} option
+@cindex build option
+@cindex configure build system
+@cindex @option{--host} option
+@cindex host optionxgr
+@cindex configure host
+m4_changequote(,)m4_dnl
+
+When you run @file{configure} for a Canadian Cross, you must use both
+the @option{--build} and @option{--host} options.  The @option{--build}
+option is used to specify the configuration name of the build system.
+This can normally be the result of running the @file{config.guess} shell
+script, and when using a Unix shell it is reasonable to use
+@option{--build=`config.guess`}.  The @option{--host} option is used to
+specify the configuration name of the host system.
+
+m4_changequote(`,')m4_dnl
+
+As we explained earlier, @file{config.guess} is used to set the default
+value for the @option{--host} option (@pxref{Using the Target Type}).  We
+can now see that since @file{config.guess} returns the type of system on
+which it is run, it really identifies the build system.  Since the host
+system is normally the same as the build system (or, in other words,
+people do not normally build using a cross compiler), it is reasonable
+to use the result of @file{config.guess} as the default for the host
+system when the @option{--host} option is not used.
+
+It might seem that if the @option{--host} option were used without the
+@option{--build} option that the @file{configure} script could run
+@file{config.guess} to determine the build system, and presume a
+Canadian Cross if the result of @file{config.guess} differed from the
+@option{--host} option.  However, for historical reasons, some configure
+scripts are routinely run using an explicit @option{--host} option,
+rather than using the default from @file{config.guess}.  As noted
+earlier, it is difficult or impossible to reliably compare configuration
+names (@pxref{Using the Target Type}).  Therefore, by convention, if the
+@option{--host} option is used, but the @option{--build} option is not
+used, then the build system defaults to the host system.  (This
+convention may be changing in the Autoconf 2.5 release.  Check the
+release notes.)
+
+@node Canadian Cross Tools
+@subsection Canadian Cross Tools
+
+You must explicitly specify the cross tools which you want to use to
+build the program.  This is done by setting environment variables before
+running the @file{configure} script.  You must normally set at least the
+environment variables @samp{CC}, @samp{AR}, and @samp{RANLIB} to the
+cross tools which you want to use to build.  For some programs, you must
+set additional cross tools as well, such as @samp{AS}, @samp{LD}, or
+@samp{NM}.  You would set these environment variables to the build cross
+host tools which you are going to use.
+
+For example, if you are building a Solaris program on a @sc{gnu}/Linux
+system, and your @sc{gnu}/Linux cross Solaris compiler were named
+@samp{solaris-gcc}, then you would set the environment variable
+@samp{CC} to @samp{solaris-gcc}.
+
+@node Supporting Cross Compiler
+@subsection Supporting Building with a Cross Compiler
+
+If you want to make it possible to build a program which you are
+developing using a cross compiler, you must take some care when writing
+your @file{configure.in} and @command{make} rules.  Simple cases will
+normally work correctly.  However, it is not hard to write configure
+tests which will fail when building with a cross compiler, so some care
+is required to avoid this.
+
+You should write your @file{configure} scripts to support building with
+a cross compiler if you can, because that will permit others to build
+your program on a fast compilation server.
+
+@menu
+* Supporting Cross Compiler in Configure::
+* Supporting Cross Compiler in Make::
+@end menu
+
+@node Supporting Cross Compiler in Configure
+@subsubsection Supporting Building with a Cross Compiler in Configure Scripts
+@cindex cross compiler support in configure
+@cindex configure cross compiler support
+@cindex canadian cross in configure
+
+In a @file{configure.in} file, after calling @samp{AC_PROG_CC}, you can
+find out whether the program is being built by a cross compiler by
+examining the shell variable @samp{cross_compiling}.  If the compiler is
+a cross compiler, which means that this is a Canadian Cross,
+@samp{cross_compiling} will be @samp{yes}.  In a normal configuration,
+@samp{cross_compiling} will be @samp{no}.
+
+You ordinarily do not need to know the type of the build system in a
+@file{configure} script.  However, if you do need that information, you
+can get it by using the macro @samp{AC_CANONICAL_SYSTEM}, the same macro
+which is used to determine the target system.  This macro will set the
+variables @samp{build}, @samp{build_alias}, @samp{build_cpu},
+@samp{build_vendor}, and @samp{build_os}, which correspond to the
+similar @samp{target} and @samp{host} variables, except that they
+describe the build system.  @xref{Using the Target Type}.
+
+When writing tests in @file{configure.in}, you must remember that you
+want to test the host environment, not the build environment.  Macros
+which use the compiler, such as like @samp{AC_CHECK_FUNCS}, will test
+the host environment.  That is because the tests will be done by running
+the compiler, which is actually a build cross host compiler.  If the
+compiler can find the function, that means that the function is present
+in the host environment.
+
+Tests like @samp{test -f /dev/ptyp0}, on the other hand, will test the
+build environment.  Remember that the @file{configure} script is running
+on the build system, not the host system.  If your @file{configure}
+scripts examines files, those files will be on the build system.
+Whatever you determine based on those files may or may not be the case
+on the host system.
+
+Most Autoconf macros will work correctly when building with a cross
+compiler.  The main exception is @samp{AC_TRY_RUN}.  This macro tries to
+compile and run a test program.  This will fail when building with a
+cross compiler, because the program will be compiled for the host
+system, which means that it will not run on the build system.
+
+The @samp{AC_TRY_RUN} macro provides an optional argument to tell the
+@file{configure} script what to do when building with a cross compiler.
+If that argument is not present, you will get a warning when you run
+@samp{autoconf}:
+@smallexample
+warning: AC_TRY_RUN called without default to allow cross compiling
+@end smallexample
+@noindent
+This tells you that the resulting @file{configure} script will not work
+when building with a cross compiler.
+
+In some cases while it may better to perform a test at configure time,
+it is also possible to perform the test at run time (@pxref{Testing
+system features at application runtime}).  In such a case you can use
+the cross compiling argument to @samp{AC_TRY_RUN} to tell your program
+that the test could not be performed at configure time.
+
+There are a few other autoconf macros which will not work correctly when
+building with a cross compiler: a partial list is
+@samp{AC_FUNC_GETPGRP}, @samp{AC_FUNC_SETPGRP},
+@samp{AC_FUNC_SETVBUF_REVERSED}, and @samp{AC_SYS_RESTARTABLE_SYSCALLS}.
+The @samp{AC_CHECK_SIZEOF} macro is generally not very useful when
+building with a cross compiler; it permits an optional argument
+indicating the default size, but there is no way to know what the
+correct default should be.
+
+@node Supporting Cross Compiler in Make
+@subsubsection Supporting Building with a Cross Compiler in Makefiles
+@cindex cross compiler support in make
+@cindex make cross compiler support
+@cindex canadian cross in make
+
+The main cross compiling issue in a @file{Makefile} arises when you want
+to use a subsidiary program to generate code or data which you will then
+include in your real program.  If you compile this subsidiary program
+using @samp{$(CC)} in the usual way, you will not be able to run it.
+This is because @samp{$(CC)} will build a program for the host system,
+but the program is being built on the build system.  You must instead
+use a compiler for the build system, rather than the host system.  This
+compiler is conventionally called @samp{$(CC_FOR_BUILD)}.
+
+A @file{configure} script should normally permit the user to define
+@samp{CC_FOR_BUILD} explicitly in the environment.  Your configure
+script should help by selecting a reasonable default value.  If the
+@file{configure} script is not being run with a cross compiler (i.e.,
+the @samp{cross_compiling} shell variable is @samp{no} after calling
+@samp{AC_PROG_CC}), then the proper default for @samp{CC_FOR_BUILD} is
+simply @samp{$(CC)}.  Otherwise, a reasonable default is simply
+@samp{cc}.
+
+Note that you should not include @file{config.h} in a file you are
+compiling with @samp{$(CC_FOR_BUILD)}.  The @file{configure} script will
+build @file{config.h} with information for the host system.  However,
+you are compiling the file using a compiler for the build system (a
+native compiler).  Subsidiary programs are normally simple filters which
+do no user interaction, and it is often possible to write them in a
+highly portable fashion so that the absence of @file{config.h} is not
+crucial.
+
+@cindex @samp{HOST_CC}
+The @command{gcc} @file{Makefile.in} shows a complex situation in which
+certain files, such as @file{rtl.c}, must be compiled into both
+subsidiary programs run on the build system and into the final program.
+This approach may be of interest for advanced COLLECTIVE hackers.  Note
+that, at least in @sc{gcc} 2.95, the build system compiler is rather
+confusingly called @samp{HOST_CC}.

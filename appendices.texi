@@ -1,0 +1,768 @@
+@c -*-texinfo-*-
+@ignore
+@c %**start of menu
+* Installing COLLECTIVE::
+* Autoconf Macro Reference::
+* PLATFORMS::
+* Generated File Dependencies::
+* OPL::
+@c %**end of menu
+@end ignore
+
+
+@node Installing COLLECTIVE
+@appendix Installing COLLECTIVE
+
+The COLLECTIVE may already be installed at your site, particularly if
+you are using a @sc{gnu}/Linux system.  If you don't have these tools
+installed, or do not have the most recent versions, this appendix will
+help you install them.
+
+@menu
+* Prerequisite tools::
+* Downloading COLLECTIVE::
+* Installing the tools::
+@end menu
+
+@node Prerequisite tools
+@section Prerequisite tools
+
+The COLLECTIVE make use of a few additional tools to get their jobs
+done.  This makes it necessary to gather all of the prerequisite tools
+to get started.  Before installing COLLECTIVE, it is necessary to obtain
+and install these tools.
+
+The COLLECTIVE are all built around the assumption that the system
+will have a relatively functional version of the Bourne shell.  If your
+system is missing a Bourne shell or your shell behaves different to
+most, as is the case with the Bourne shell provided with Ultrix, then
+you might like to obtain and install @sc{gnu} @code{bash}.
+@c ----
+@c lw: yes, the following sentences on Cygwin should be a sidebar. --bje
+@c lw: yes, this @xref will produce the right text (See ...)
+@c ----
+@xref{Downloading COLLECTIVE}, for details on obtaining @sc{gnu}
+packages.  If you are using a Windows system, the easiest way to obtain
+a Bourne shell and all of the shell utilities that you will need is to
+download and install Cygnus Solutions' Cygwin product.  You can locate
+further information about Cygwin by reading
+@uref{http://www.cygnus.com/cygwin/}.
+
+Autoconf requires @sc{gnu} M4. Vendor-provided versions of
+M4 have proven to be troublesome, so Autoconf checks that
+@sc{gnu} M4 is installed on your system.  Again,
+@pxref{Downloading COLLECTIVE}, for details on obtaining @sc{gnu}
+packages such as M4.  At the time of writing, the latest version
+is 1.4.  Earlier versions of @sc{gnu} M4 will work, but they may
+not be as efficient.
+
+Automake requires Perl version 5 or greater.  You should download and
+install a version of Perl for your platform which meets these
+requirements.
+
+@node Downloading COLLECTIVE
+@section Downloading COLLECTIVE
+
+The COLLECTIVE are distributed as part of the @sc{gnu} project, under
+the terms of the @sc{gnu} General Public License.  Each tool is packaged
+in a compressed archive that you can retrieve from sources such as
+Internet @acronym{FTP} archives and CD-ROM distributions.  While you may use
+any source that is convenient to you, it is best to use one of the
+recognized @sc{gnu} mirror sites.  A current list of mirror sites is
+listed at @uref{http://www.gnu.org/order/ftp.html}.
+
+The directory layout of the @sc{gnu} archives has recently been improved
+to make it easier to locate particular packages.  The new scheme places
+package archive files under a subdirectory whose name reflects the base
+name of the package.  For example, @sc{gnu} Autoconf 2.13 can be found
+at:
+
+@example
+/gnu/autoconf/autoconf-2.13.tar.gz
+@end example
+
+The filenames corresponding to the latest versions of COLLECTIVE, at the
+time of writing, are:
+
+@example
+autoconf-2.13.tar.gz
+automake-1.4.tar.gz
+libtool-1.3.5.tar.gz
+@end example
+
+These packages are stored as @code{tar} archives and compressed with the
+@code{gzip} compression utility.  Once you have obtained all of these
+packages, you should unpack them using the following commands:
+
+@example
+gunzip TOOL-VERSION.tar.gz
+tar xfv TOOL-VERSION.tar
+@end example
+
+@sc{gnu} @code{tar} archives are created with a directory name prefixed
+to all of the files in the archive.  This means that files will be
+tidily unpacked into an appropriately named subdirectory, rather than
+being written all over your current working directory.
+
+@node Installing the tools
+@section Installing the tools
+
+When installing COLLECTIVE, it is a good idea to install the tools in
+the same location (eg. @file{/usr/local}).  This allows the tools to
+discover each others' presence at installation time.  The location shown
+in the examples below will be the default, @file{/usr/local}, as this
+choice will make the tools available to all users on the system.
+
+Installing Autoconf is usually a quick and simple exercise, since
+Autoconf itself uses @file{configure} to prepare itself for building and
+installation.  Automake and Libtool can be installed using the same
+steps as for Autoconf.  As a matter of personal preference, I like to
+create a separate build tree when configuring packages to keep the
+source tree free of derived files such as object files.  Applying what
+we know about invoking @file{configure} (@pxref{Invoking configure}), we
+can now configure and build Autoconf.  The only @file{configure} option
+we're likely to want to use is @option{--prefix}, so if you want to
+install the tools in another location, include this option on the
+command line.  It might be desirable to install the package elsewhere
+when operating in networked environments.
+
+@smallexample
+$ mkdir ac-build && cd ac-build
+$ ~/autoconf-2.13/configure
+@end smallexample
+
+You will see @file{configure} running its tests and producing a
+@file{Makefile} in the build directory:
+
+@example
+  creating cache ./config.cache
+  checking for gm4... no
+  checking for gnum4... no
+  checking for m4... /usr/bin/m4
+  checking whether we are using GNU m4... yes
+  checking for mawk... no
+  checking for gawk... gawk
+  checking for perl... /usr/bin/perl
+  checking for a BSD compatible install... /usr/bin/install -c
+  updating cache ./config.cache
+  creating ./config.status
+  creating Makefile
+  creating testsuite/Makefile
+@end example
+
+To build Autoconf, type the following:
+
+@smallexample
+$ make all
+@end smallexample
+
+Autoconf has no architecture-specific files to be compiled, so this
+process finishes quickly.  To install files into @file{/usr/local}, it
+may be necessary to become the root user before installing.
+
+@smallexample
+# make install
+@end smallexample
+
+Autoconf is now installed on your system.
+
+@node PLATFORMS
+@appendix PLATFORMS
+
+This table lists platforms and toolchains known to be supported by
+Libtool.  Each row represents completion of the self test suite shipped
+with the Libtool distribution on the platform named in that row.
+
+There is a @file{PLATFORMS} file maintained in the Libtool source tree,
+updated whenever a Libtool user volunteers updated information, or when
+the Libtool team runs pre-release tests on the platforms to which they
+individually have access.
+
+The table from the latest source tree at the time of writing follows:
+
+@table @code
+@item canonical host name
+This is the configuration triplet returned by @command{config.guess} on
+each system for which the test suite was executed.  Where the developer
+who ran the tests considered it to be significant, versions of tools in
+the compiler toolchain are named below the configuration triplet.
+
+@item compiler
+The compiler used for the tests.
+
+@item libtool release
+The version number of the Libtool distribution most recently tested for
+the associated configuration triplet.  The COLLECTIVE all use an alpha
+version numbering system where ``odd'' letters (a, c, e, g etc.)
+represent many @sc{cvs} snapshots between the ``even'' lettered (b, d, f
+etc) alpha release versions.  After version 1.4, the @sc{cvs} revision
+number of the @file{Changelog} file will be appended to odd lettered
+@sc{cvs} snapshots, @samp{1.4a 1.641.2.54}, for example.
+
+@item results
+Either @samp{ok} if the Libtool test suite passed all tests, or
+optionally @samp{NS} if the test suite would only pass when the
+distribution was configured with the @option{--disable-shared} option.
+@end table
+
+@example
+@include PLATFORMS
+@end example
+
+You too can contribute to this file, either if you use a platform which
+is missing from the table entirely, or if you are using a newer release
+of Libtool than the version listed in the table.  From a freshly
+unpacked release, do the following:
+
+@smallexample
+$ cd libtool-1.4
+$ ./configure
+...
+
+---------------------------------------------------------
+Configuring libtool 1.4a (1.641.2.54 2000/06/18 03:02:52)
+---------------------------------------------------------
+
+...
+checking host system type... i586-pc-linux-gnu
+checking build system type... i586-pc-linux-gnu
+...
+$ make
+...
+$ make check
+...
+===================
+All 76 tests passed
+===================
+...
+@end smallexample
+
+@noindent
+If there are no test failures, and you see a message similar to the
+above, send a short message to @email{libtool@@gnu.org} stating what you
+did and the configuration triplet for your platform as reported for the
+@samp{host system} by @command{configure} (see the example directly above),
+and the precise version number of the release you have tested as reported by
+@samp{libtool --version}:
+
+@smallexample
+$ pwd
+/tmp/cvs/libtool
+$ ./libtool --version
+ltmain.sh (GNU libtool) 1.4a (1.641.2.41 2000/05/29 10:40:46)
+@end smallexample
+
+The official @file{PLATFORMS} file will be updated shortly thereafter.
+
+@node Generated File Dependencies
+@appendix Generated File Dependencies
+
+m4_include(chapters/flow-diagrams.texi)
+
+@node Autoconf Macro Reference
+@appendix Autoconf Macro Reference
+
+This is an alphabetical list of each Autoconf macro used in this book,
+along with a description of what each does.  They are provided for your
+reference while reading this book.  The descriptions are only brief; see
+the appropriate reference manual for a complete description.
+
+@ignore akim
+Nit picking:  I was bothered by the fact that the `[ ]' denoting
+optional parameters were in fixed space fonts.  This gives the
+impression they're quotes.  I know you know of course not, but using
+another font in the final result should help.
+@end ignore
+
+@table @code
+@item AC_ARG_ENABLE(@var{feature}, @var{help-text}, [@var{if-given}], [@var{if-not-given}])
+This macro allows the maintainer to specify additional package options
+accepted by @file{configure}--for example, @option{--enable-zlib}.  The
+action shell code may access any arguments to the option in the shell
+variable @code{enableval}.  For example, @option{--enable-buffers=128}
+would cause @file{configure} to set @code{enableval} to @samp{128}.
+
+@item AC_ARG_PROGRAM
+This macro places a @code{sed} transformation program into the output
+variable @code{program_transform_name} that can be used to transform the
+filenames of installed programs.  If the @option{--program-prefix},
+@option{--program-suffix} or@* @option{--program-transform-name} options
+are passed to @file{configure}, an appropriate transformation program
+will be generated.  If no options are given, but the type of the host
+system differs from the type of the target system, program names are
+transformed by prefixing them with the type of the target
+(eg. @code{arm-elf-gcc}).
+
+@item AC_ARG_WITH(@var{package}, @var{help-text}, [@var{if-given}], [@var{if-not-given}])
+This macro allows the maintainer to specify additional packages that
+this package should work with (for example, a library to manipulate
+shadow passwords).  The user indicates this preference by invoking
+@file{configure} with an option such as @option{--with-shadow}.  If an
+optional argument is given, this value is available to shell code in the
+shell variable @code{withval}.
+
+@item AC_CACHE_CHECK(@var{message}, @var{cache-variable}, @var{commands})
+This macro is a convenient front-end to the @code{AC_CACHE_VAL} macro
+that takes care of printing messages to the user, including whether or
+not the result was found in the cache.  It should be used in preference
+to @code{AC_CACHE_VAL}.
+
+@item AC_CACHE_VAL(@var{cache-variable}, @var{commands})
+This is a low-level macro which implements the Autoconf cache feature.
+If the named variable is set at runtime (for instance, if it was read
+from @file{config.cache}), then this macro does nothing.  Otherwise, it
+runs the shell code in @var{commands}, which is assumed to set the cache
+variable.
+
+@item AC_CANONICAL_HOST
+This macro determines the type of the host system and sets the output
+variable @samp{host}, as well as other more obscure variables.
+
+@item AC_CANONICAL_SYSTEM
+This macro determines the type of the build, host and target systems and
+sets the output variables @samp{build}, @samp{host} and @samp{target},
+amongst other more obscure variables.
+
+@item AC_CHECK_FILE(@var{file}, [@var{if-found}], [@var{if-not-found}])
+This macro tests for the existence of a file in the file system of the
+build system, and runs the appropriate shell code depending on whether
+or not the file is found.
+
+@item AC_CHECK_FUNCS(@var{function-list}, [@var{if-found}], [@var{if-not-found}])
+This looks for a series of functions.  If the function @code{quux} is
+found, the C preprocessor macro @code{HAVE_QUUX} will be defined.  In
+addition, if the @var{if-found} argument is given, it will be run (as
+shell code) when a function is found -- this code can use the @code{sh}
+@code{break} command to prevent @code{AC_CHECK_FUNCS} from looking for
+the remaining functions in the list.  The shell code in
+@var{if-not-found} is run if a function is not found.
+
+@item AC_CHECK_HEADER(@var{header}, [@var{if-found}], [@var{if-not-found}])
+This macro executes some specified shell code if a header file exists.
+If it is not present, alternative shell code is executed instead.
+
+@item AC_CHECK_HEADERS(@var{header-list}, [@var{if-found}], [@var{if-not-found}])
+This looks for a series of headers.  If the header @code{quux.h} is
+found, the C preprocessor macro @code{HAVE_QUUX_H} will be defined.  In
+addition, if the @var{if-found} argument is given, it will be run (as
+shell code) when a header is found -- this code can use the @code{sh}
+@code{break} command to prevent @code{AC_CHECK_HEADERS} from looking for
+the remaining headers in the list.  The shell code in @var{if-not-found}
+is run if a header is not found.
+
+@item AC_CHECK_LIB(@var{library}, @var{function}, [@var{if-found}], [@var{if-not-found}], [@var{other-libraries}])
+This looks for the named function in the named library specified by its
+base name.  For instance the math library, @file{libm.a}, would be named
+simply @samp{m}.  If the function is found in the library @samp{foo},
+then the C preprocessor macro @code{HAVE_LIBFOO} is defined.
+
+@item AC_CHECK_PROG(@var{variable}, @var{program-name}, @var{value-if-found}, [@var{value-if-not-found}], [@var{path}], [@var{reject}])
+Checks to see if the program named by @var{program-name} exists in the
+path @var{path}.  If found, it sets the shell variable @var{variable} to
+the value @var{value-if-found}; if not it uses the value
+@var{value-if-not-found}.  If @var{variable} is already set at runtime,
+this macro does nothing.
+
+@item AC_CHECK_SIZEOF(@var{type}, [@var{size-if-cross-compiling}])
+This macro determines the size of C and C++ built-in types and defines
+@code{SIZEOF_type} to the size, where @code{type} is transformed--all
+characters to upper case, spaces to underscores and @samp{*} to
+@samp{P}.  If the type is unknown to the compiler, the size is set to 0.
+An optional argument specifies a default size when cross-compiling.  The
+@file{configure} script will abort with an error message if it tries to
+cross-compile without this default size.
+
+@item AC_CONFIG_AUX_DIR(@var{directory})
+This macro allows an alternative directory to be specified for the
+location of auxiliary scripts such as @file{config.guess},
+@file{config.sub} and @file{install-sh}.  By default, @file{$srcdir},
+@file{$srcdir/..} and @file{$srcdir/../..} are searched for these files.
+
+@item AC_CONFIG_HEADER(@var{header-list})
+This indicates that you want to use a config header, as opposed to
+having all the C preprocessor macros defined via @code{-D} options in
+the @code{DEFS} @file{Makefile} variable.  Each header named in
+@var{header-list} is created at runtime by @file{configure} (via
+@code{AC_OUTPUT}).  There are a variety of optional features for use
+with config headers (different naming schemes and so forth); see the
+reference manual for more information.
+
+@item AC_C_CONST
+This macro defines the C preprocessor macro @code{const} to the string
+@code{const} if the C compiler supports the @code{const} keyword.
+Otherwise it is defined to be the empty string.
+
+@item AC_C_INLINE
+This macro tests if the C compiler can accept the @code{inline} keyword.
+It defines the C preprocessor macro @code{inline} to be the keyword
+accepted by the compiler or the empty string if it is not accepted at
+all.
+
+@item AC_DEFINE(@var{variable}, [@var{value}], [@var{description}])
+This is used to define C preprocessor macros.  The first argument is the
+name of the macro to define.  The @var{value} argument, if given, is the
+value of the macro.  The final argument can be used to avoid adding an
+@samp{#undef} for the macro to @file{acconfig.h}.
+
+@item AC_DEFINE_UNQUOTED(@var{variable}, [@var{value}], [@var{description}])
+This is like @code{AC_DEFINE}, but it handles the quoting of @var{value}
+differently.  This macro is used when you want to compute the value
+instead of having it used verbatim.
+
+@item AC_DEFUN(@var{name}, @var{body})
+This macro is used to define new macros.  It is similar to M4's
+@code{define} macro, except that it performs additional internal
+functions.
+
+@item AC_DISABLE_FAST_INSTALL
+This macro can be used to disable Libtool's ``fast install'' feature.
+
+@item AC_DISABLE_SHARED
+This macro changes the default behavior of @code{AC_PROG_LIBTOOL} so
+that shared libraries will not be built by default.  The user can still
+override this new default by using @option{--enable-shared}.
+
+@item AC_DISABLE_STATIC
+This macro changes the default behavior of @code{AC_PROG_LIBTOOL} so
+that static libraries will not be built by default.  The user can still
+override this new default by using @option{--enable-static}.
+
+@item AC_EXEEXT
+Sets the output variable @code{EXEEXT} to the extension of executables
+produced by the compiler.  It is usually set to the empty string on Unix
+systems and @samp{.exe} on Windows.
+
+@item AC_FUNC_ALLOCA
+This macro defines the C preprocessor macro @code{HAVE_ALLOCA} if the
+various tests indicate that the C compiler has built-in @code{alloca}
+support.  If there is an @file{alloca.h} header file, this macro defines
+@code{HAVE_ALLOCA_H}.  If, instead, the @code{alloca} function is found
+in the standard C library, this macro defines @code{C_ALLOCA} and sets
+the output variable @code{ALLOCA} to @code{alloca.o}.
+
+@item AC_FUNC_GETPGRP
+This macro tests if the @code{getpgrp} function takes a process ID as an
+argument or not.  If it does not, the C preprocessor macro
+@code{GETPGRP_VOID} is defined.
+
+@item AC_FUNC_MEMCMP
+This macro tests for a working version of the @code{memcmp} function.
+If absent, or it does not work correctly, @file{memcmp.o} is added to
+the @code{LIBOBJS} output variable.
+
+@item AC_FUNC_MMAP
+Defines the C preprocessor macro @code{HAVE_MMAP} if the @code{mmap}
+function exists and works.
+
+@item AC_FUNC_SETVBUF_REVERSED
+On some systems, the order of the @code{mode} and @code{buf} arguments
+is reversed with respect to the @sc{ansi} C standard.  If so, this macro
+defines the C preprocessor macro @code{SETVBUF_REVERSED}.
+
+@item AC_FUNC_UTIME_NULL
+Defines the C preprocessor macro @code{HAVE_UTIME_NULL} if a call to
+@code{utime} with a NULL @code{utimbuf} pointer sets the file's
+timestamp to the current time.
+
+@item AC_FUNC_VPRINTF
+Defines the C preprocessor macro @code{HAVE_VPRINTF} if the
+@code{vprintf} function is available.  If not and the @code{_doprnt}
+function is available instead, this macro defines @code{HAVE_DOPRNT}.
+
+@item AC_HEADER_DIRENT
+This macro searches a number of specific header files for a declaration
+of the C type @code{DIR}.  Depending on which header file the
+declaration is found in, this macro may define one of the C preprocessor
+macros @code{HAVE_DIRENT_H}, @code{HAVE_SYS_NDIR_H},
+@code{HAVE_SYS_DIR_H} or @code{HAVE_NDIR_H}.  Refer to the Autoconf
+manual for an example of how these macros should be used in your source
+code.
+
+@item AC_HEADER_STDC
+This macro defines the C preprocessor macro @code{STDC_HEADERS} if the
+system has the @sc{ansi} standard C header files.  It determines this by
+testing for the existence of the @file{stdlib.h}, @file{stdarg.h},
+@file{string.h} and @file{float.h} header files and testing if
+@file{string.h} declares @code{memchr}, @file{stdlib.h} declares
+@code{free}, and @file{ctype.h} macros such as @code{isdigit} work with
+8-bit characters.
+
+@item AC_INIT(@var{filename})
+This macro performs essential initialization for the generated
+@file{configure} script.  An optional argument may provide the name of a
+file from the source directory to ensure that the directory has been
+specified correctly.
+
+@item AC_LIBTOOL_DLOPEN
+Call this macro before @code{AC_PROG_LIBTOOL} to indicate that your
+package wants to use Libtool's support for @code{dlopen}ed modules.
+
+@item AC_LIBTOOL_WIN32_DLL
+Call this macro before @code{AC_PROG_LIBTOOL} to indicate that your
+package has been written to build @sc{dll}s on Windows.  If this macro
+is not called, Libtool will only build static libraries on Windows.
+
+@item AC_LIB_LTDL
+This macro does the @code{configure}-time checks needed to cause
+@file{ltdl.c} to be compiled correctly.  That is, this is used to enable
+dynamic loading via @code{libltdl}.
+
+@item AC_LINK_FILES(@var{source-list}, @var{dest-list})
+Use this macro to create a set of links; if possible, symlinks are made.
+The two arguments are parallel lists: the first element of
+@var{dest-list} is the name of a to-be-created link whose target is the
+first element of @var{source-list}.
+
+@item AC_MSG_CHECKING(@var{message})
+This macro outputs a message to the user in the usual style of
+@file{configure} scripts: leading with the word @samp{checking} and
+ending in @samp{...}.  This message gives the user an indication that
+the @file{configure} script is still working.  A subsequent invocation
+of @code{AC_MSG_RESULT} should be used to output the result of a test.
+
+@item AC_MSG_ERROR(@var{message})
+This macro outputs an error message to standard error and aborts the
+@file{configure} script.  It should only be used for fatal error
+conditions.
+
+@item AC_MSG_RESULT(@var{message})
+This macro should be invoked after a corresponding invocation of
+@code{AC_MSG_CHECKING} with the result of a test.  Often the result
+string can be as simple as @samp{yes} or @samp{no}.
+
+@item AC_MSG_WARN(@var{message})
+This macro outputs a warning to standard error, but allows the
+@file{configure} script to continue.  It should be used to notify the
+user of abnormal, but non-fatal, conditions.
+
+@item AC_OBJEXT
+Sets the output variable @code{OBJEXT} to the extension of object files
+produced by the compiler.  Usually, it is set to @samp{.o} on Unix
+systems and @samp{.obj} on Windows.
+
+@item AC_OUTPUT(@var{files}, [@var{extra-commands}], [@var{init-commands}])
+This macro must be called at the end of every @file{configure.in}.  It
+creates each file listed in @var{files}.  For a given file, by default,
+@code{configure} reads the template file whose name is the name of the
+input file with @samp{.in} appended -- for instance, @file{Makefile} is
+generated from @file{Makefile.in}.  This default can be overridden by
+using a special naming convention for the file.
+
+For each name @samp{foo} given as an argument to @code{AC_SUBST},
+@code{configure} will replace any occurrence of @samp{@@foo@@} in the
+template file with the value of the shell variable @samp{foo} in the
+generated file.  This macro also generates the config header, if
+@code{AC_CONFIG_HEADER} was called, and any links, if
+@code{AC_LINK_FILES} was called.  The additional arguments can be used
+to further tailor the output processing.
+
+@item AC_OUTPUT_COMMANDS(@var{extra-commands}, [@var{init-commands}])
+This macro works like the optional final arguments of @code{AC_OUTPUT},
+except that it can be called more than once from @file{configure.in}.
+(This makes it possible for macros to use this feature and yet remain
+modular.)  See the reference manual for the precise definition of this
+macro.
+
+@item AC_PROG_AWK
+This macro searches for an @code{awk} program and sets the output
+variable @code{AWK} to be the best one it finds.
+
+@item AC_PROG_CC
+This checks for the C compiler to use and sets the shell variable
+@code{CC} to the value.  If the @sc{gnu} C compiler is being used, this
+sets the shell variable @code{GCC} to @samp{yes}.  This macro sets the
+shell variable @code{CFLAGS} if it has not already been set.  It also
+calls @code{AC_SUBST} on @code{CC} and @code{CFLAGS}.
+
+@item AC_PROG_CC_STDC
+This macro attempts to discover a necessary command line option to have
+the C compiler accept @sc{ansi} C.  If so, it adds the option to the
+@code{CC}.  If it were not possible to get the C compiler to accept
+@sc{ansi}, the shell variable @code{ac_cv_prog_cc_stdc} will be set to
+@samp{no}.
+
+@item AC_PROG_CPP
+This macro sets the output variable @code{CPP} to a command that runs
+the C preprocessor.  If @samp{$CC -E} does not work, it will set the
+variable to @file{/lib/cpp}.
+
+@item AC_PROG_CXX
+This is like @code{AC_PROG_CC}, but it checks for the C++ compiler, and
+sets the variables @code{CXX}, @code{GXX} and @code{CXXFLAGS}.
+
+@item AC_PROG_GCC_TRADITIONAL
+This macro determines if @sc{gcc} requires the @samp{-traditional}
+option in order to compile code that uses @code{ioctl} and, if so, adds
+@samp{-traditional} to the @code{CC} output variable.  This condition is
+rarely encountered, thought mostly on old systems.
+
+@item AC_PROG_INSTALL
+This looks for an @code{install} program and sets the output variables
+@code{INSTALL}, @code{INSTALL_DATA}, @code{INSTALL_PROGRAM}, and
+@code{INSTALL_SCRIPT}.  This macro assumes that if an @code{install}
+program cannot be found on the system, your package will have
+@file{install-sh} available in the directory chosen by
+@code{AC_CONFIG_AUX_DIR}.
+
+@item AC_PROG_LEX
+This looks for a @code{lex}-like program and sets the @file{Makefile}
+variable @code{LEX} to the result.  It also sets @code{LEXLIB} to
+whatever might be needed to link against @code{lex} output.
+
+@item AC_PROG_LIBTOOL
+This macro is the primary way to integrate Libtool support into
+@file{configure}.  If you are using Libtool, you should call this macro
+in @file{configure.in}.  Among other things, it adds support for the
+@samp{--enable-shared} @code{configure} flag.
+
+@item AC_PROG_LN_S
+This sets the @file{Makefile} variable @code{LN_S} to @samp{ln -s} if
+symbolic links work in the current working directory.  Otherwise it sets
+@code{LN_S} to just @samp{ln}.
+
+@item AC_PROG_MAKE_SET
+Some versions of @code{make} need to have the @file{Makefile} variable
+@code{MAKE} set in @file{Makefile} in order for recursive builds to
+work.  This macro checks whether this is needed, and, if so, it sets the
+@file{Makefile} variable @code{SET_MAKE} to the result.
+@code{AM_INIT_AUTOMAKE} calls this macro, so if you are using Automake,
+you don't need to call it or use @code{SET_MAKE} in @file{Makefile.am}.
+
+@item AC_PROG_RANLIB
+This searches for the @code{ranlib} program.  It sets the
+@file{Makefile} variable @code{RANLIB} to the result.  If @code{ranlib} is
+not found, or not needed on the system, then the result is @code{:}.
+
+@item AC_PROG_YACC
+This searches for the @code{yacc} program -- it tries @code{bison},
+@code{byacc}, and @code{yacc}.  It sets the @file{Makefile} variable
+@code{YACC} to the result.
+
+@item AC_REPLACE_FUNCS(@var{function list})
+This macro takes a single argument, which is a list of functions.  For a
+given function @samp{func}, @file{configure} will do a link test to try
+to find it.  If the function cannot be found, then @samp{func.o} will be
+added to @code{LIBOBJS}.  If function can be found, then
+@file{configure} will define the C preprocessor symbol @code{HAVE_FUNC}.
+
+@item AC_REQUIRE(@var{macro-name})
+This macro takes a single argument, which is the name of another macro.
+(Note that you must quote the argument correctly:
+@code{AC_REQUIRE([FOO])} is correct, while @code{AC_REQUIRE(FOO)} is
+not.)  If the named macro has already been invoked, then
+@code{AC_REQUIRE} does nothing.  Otherwise, it invokes the named macro
+with no arguments.
+
+@item AC_REVISION(@var{revision})
+This macro takes a single argument, a version string.  Autoconf will
+copy this string into the generated @file{configure} file.
+
+@item AC_STRUCT_ST_BLKSIZE
+Defines the C preprocessor macro @code{HAVE_ST_BLKSIZE} if @code{struct
+stat} has an @code{st_blksize} member.
+
+@item AC_STRUCT_ST_BLOCKS
+Defines the C preprocessor macro @code{HAVE_ST_BLOCKS} if @code{struct
+stat} has an @code{st_blocks} member.
+
+@item AC_STRUCT_ST_RDEV
+Defines the C preprocessor macro @code{HAVE_ST_RDEV} if @code{struct
+stat} has an @code{st_rdev} member.
+
+@item AC_STRUCT_TM
+This macro looks for @code{struct tm} in @file{time.h} and defines
+@code{TM_IN_SYS_TIME} if it is not found there.
+
+@item AC_SUBST(@var{name})
+This macro takes a single argument, which is the name of a shell
+variable.  When @code{configure} generates the files listed in
+@code{AC_OUTPUT} (e.g., @file{Makefile}), it will substitute the
+variable's value (at the end of the @code{configure} run -- the value
+can be changed after @code{AC_SUBST} is called) anywhere a string of the
+form @samp{@@@var{name}@@} is seen.
+
+@item AC_TRY_COMPILE(@var{includes}, @var{body}, [@var{if-ok}], [@var{if-not-ok}])
+This macro is used to try to compile a given function, whose body is
+given in @var{body}.  @var{includes} lists any @samp{#include}
+statements needed to compile the function.  If the code compiles
+correctly, the shell commands in @var{if-ok} are run; if not,
+@var{if-not-ok} is run.  Note that this macro will not try to link the
+test program -- it will only try to compile it.
+
+@item AC_TRY_LINK(@var{includes}, @var{body}, [@var{if-found}], [@var{if-not-found}])
+This is used like @code{AC_TRY_COMPILE}, but it tries to link the
+resulting program.  The libraries and options in the @code{LIBS} shell
+variable are passed to the link.
+
+@item AC_TRY_RUN(@var{program}, [@var{if-true}, [@var{if-false}], [@var{if-cross-compiling}])
+This macro tries to compile and link the program whose text is in
+@var{program}.  If the program compiles, links, and runs successfully,
+the shell code @var{if-true} is run.  Otherwise, the shell code
+@var{if-false} is run.  If the current configure is a cross-configure,
+then the program is not run, and on a successful compile and link, the
+shell code @var{if-cross-compiling} is run.
+
+@item AC_TYPE_SIGNAL
+This macro defines the C preprocessor macro @code{RETSIGTYPE} to be the
+correct return type of signal handlers.  For instance, it might be
+@samp{void} or @samp{int}.
+
+@item AC_TYPE_SIZE_T
+This macro looks for the type @code{size_t}.  If not defined on the
+system, it defines it (as a macro) to be @samp{unsigned}.
+
+@item AM_CONDITIONAL(@var{name}, @var{testcode})
+This Automake macro takes two arguments: the name of a conditional and a
+shell statement that is used to determine whether the conditional should
+be true or false.  If the shell code returns a successful (0) status,
+then the conditional will be true.  Any conditional in your
+@file{configure.in} is automatically available for use in any
+@file{Makefile.am} in that project.
+
+@item AM_CONFIG_HEADER(@var{header})
+This is just like @code{AC_CONFIG_HEADER}, but does some additional
+setup required by Automake.  If you are using Automake, use this macro.
+Otherwise, use @code{AC_CONFIG_HEADER}.
+
+@item AM_INIT_AUTOMAKE(@var{package}, @var{version}, [@var{nodefine}])
+This macro is used to do all the standard initialization required by
+Automake.  It has two required arguments: the package name and the
+version number.  This macro sets and calls @code{AC_SUBST} on the shell
+variables @code{PACKAGE} and @code{VERSION}.  By default it also defines
+these variables (via @code{AC_DEFINE_UNQUOTED}).  However, this macro
+also accepts an optional third argument which, if not empty, means that
+the @code{AC_DEFINE_UNQUOTED} calls for @code{PACKAGE} and
+@code{VERSION} should be suppressed.
+
+@item AM_MAINTAINER_MODE
+This macro is used to enable a special Automake feature, maintainer
+mode, which we've documented elsewhere (@pxref{Maintaining Input Files}).
+
+@item AM_PROG_CC_STDC
+This macro takes no arguments.  It is used to try to get the C compiler
+to be @sc{ansi} compatible.  It does this by adding different options
+known to work with various system compilers.  This macro is most
+typically used in conjunction with Automake when you want to use the
+automatic de-@sc{ansi}-fication feature.
+
+@item AM_PROG_LEX
+This is like @code{AC_PROG_LEX}, but it does some additional processing
+used by Automake-generated @file{Makefile}s.  If you are using Automake,
+then you should use this.  Otherwise, you should use @code{AC_PROG_LEX}
+(and perhaps @code{AC_DECL_YYTEXT}, which @code{AM_PROG_LEX} calls).
+
+@item AM_WITH_DMALLOC
+This macro adds support for the @samp{--with-dmalloc} flag to
+@code{configure}.  If the user chooses to enable @code{dmalloc} support,
+then this macro will define the preprocessor symbol @samp{WITH_DMALLOC}
+and will add @samp{-ldmalloc} to the @file{Makefile} variable
+@samp{LIBS}.
+
+@end table
+
+@node OPL
+@appendix OPL
+
+@example
+@include COPYING
+@end example
