@@ -1,60 +1,62 @@
 @c -*-texinfo-*-
 @ignore
 @c %**start of menu
-* Introduction::
-* History::
+* Introducción::
+* Historia::
 @c %**end of menu
 @end ignore
 
-@node Introduction
-@chapter Introduction
+@node Introducción
+@chapter Introducción
 
-Autoconf, Automake and Libtool are packages for making your software
-more portable and to simplify building it---usually on someone else's
-system.  Software portability and effective build systems are crucial
-aspects of modern software engineering practice.  It is unlikely that a
-software project would be started today with the expectation that the
-software would run on only one platform.  Hardware constraints may
-change the choice of platform, new customers with different kinds of
-systems may emerge or your vendor might introduce incompatible changes
-in newer versions of their operating system.  In addition, tools that
-make building software easier and less error prone are valuable.
+Autoconf, Automake y Libtool son paquetes para hacer tu software
+mas portable y simple de construirlo---Usualmente en algún otro
+sistema.  La portabilidad del software y un sistema de construcción 
+eficiente son aspectos cruciales en la practica de ingeniería de software
+moderna. Es poco probable que un proyecto de software haya iniciado 
+hoy con la expectativa de que el software se ejecute en una sola plataforma.  
+Limitaciones de hardware pueden cambiar la elección de la plataforma, 
+los nuevos clientes con diferentes tipos de sistemas pueden emerger o 
+su proveedor pueden introducir cambios incompatibles en las últimas 
+versiones de su sistema operativo. Además, las herramientas que hacer 
+que la creación de software más fácil y menos propenso a errores son valiosos.
 
-Autoconf is a tool that makes your packages more portable by performing
-tests to discover system characteristics before the package is compiled.
-Your source code can then adapt to these differences.
+Autoconf es una herramienta que hace que los paquetes más portátil mediante 
+la realización de pruebas para descubrir las características del sistema antes de 
+compilar el paquete. Su código fuente puede entonces adaptarse a estas diferencias.
 
-Automake is a tool for generating @file{Makefile}s---descriptions of
-what to build---that conform to a number of standards.  Automake
-substantially simplifies the process of describing the organization of a
-package and performs additional functions such as dependency tracking
-between source files.
+Automake es una herramienta para generar @file{Makefile}s---descripciones 
+de qué construir---que se ajustan a una serie de normas. Automake
+simplifica considerablemente el proceso de describir la organización de un
+paquetes y realiza otras funciones como el seguimiento de la dependencia
+entre los archivos fuente.
 
-Libtool is a command line interface to the compiler and linker that
-makes it easy to portably generate static and shared libraries,
-regardless of the platform it is running on.
+Libtool es una interfaz de línea de comandos para el compilador y 
+enlazador que hace que sea fácil de generar bibliotecas portables 
+estáticas y compartidas, independientemente de la plataforma 
+que se está ejecutando.
 
 @menu
-* What this book is::
+* Que es este libro::
 * What the book is not::
 * Who should read this book::
 * How this book is organized::
 @end menu
 
-@node What this book is
-@section What this book is
+@node  Que es este libro
+@section Que es este libro
 
-This book is a tutorial for Autoconf, Automake and Libtool, hereafter
-referred to as the COLLECTIVE.  The @sc{gnu} manuals that accompany each
-tools adequately document each tool in isolation.  Until now, there has
-not been a guide that has described how these tools work
-@emph{together}.
+Este libro es un tutorial para Autoconf, Automake y Libtool, en adelante
+conocido como el colectivo. Los manuales @sc{gnu} que acompañan a cada
+herramienta documentan adecuadamente cada herramienta de manera aislada. 
+Hasta ahora, no ha habido una guía que describa cómo funcionan estas 
+herramientas en @emph{conjunto}.
 
-As these tools have evolved over the years, design decisions have been
-made by contributors who clearly understand the associated problems, but
-little documentation exists that captures why things are the way they
-are.  By way of example, one might wonder why some Autoconf macros use
-shell constructs like:
+A medida que estas herramientas han evolucionado a lo largo de los años, 
+las decisiones de diseño han sido realizadas por los contribuyentes que 
+entienden claramente los problemas asociados, pero existe poca documentación 
+que capta por qué las cosas son como son. A modo de ejemplo, uno podría 
+preguntarse por qué algunas macros autoconf utilizan construcciones shell como:
 
 @smallexample
 if test "x$var" = xbar; then
@@ -62,7 +64,7 @@ if test "x$var" = xbar; then
 fi
 @end smallexample
 
-instead of the simpler:
+en lugar de la más simple:
 
 @smallexample
 if [ $var = bar ]; then
@@ -70,7 +72,7 @@ if [ $var = bar ]; then
 fi
 @end smallexample
 
-Much of this reasoning is recorded in this book.
+Gran parte de este razonamiento se registra en este libro.
 
 @node What the book is not
 @section What the book is not
